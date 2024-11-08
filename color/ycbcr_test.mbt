@@ -83,16 +83,16 @@ test "YCbCr colors are a superset of Gray colors" {
   }
 }
 
-// // TestNYCbCrAAlpha tests that NYCbCrA colors are a superset of Alpha colors.
-// func TestNYCbCrAAlpha(t *testing.T) {
-// 	for i := 0; i < 256; i++ {
-// 		c0 := NYCbCrA{YCbCr{0xff, 0x80, 0x80}, uint8(i)}
-// 		c1 := Alpha{uint8(i)}
-// 		if err := eq(c0, c1); err != nil {
-// 			t.Errorf("i=0x%02x:\n%v", i, err)
-// 		}
-// 	}
-// }
+test "NYCbCrA colors are a superset of Alpha colors" {
+  // func TestNYCbCrAAlpha(t *testing.T) {
+  for i = 0; i < 256; i = i + 1 {
+    let c0 : @color.NYCbCrA = { y: 0xff, cb: 0x80, cr: 0x80, a: i.to_byte() }
+    let c1 : @color.Alpha = { a: i.to_byte() }
+    let err = eq(c0, c1)
+    guard let None = err else { _ => raise EqError("i=\{i}:\n\{err}") }
+
+  }
+}
 
 // // TestNYCbCrAYCbCr tests that NYCbCrA colors are a superset of YCbCr colors.
 // func TestNYCbCrAYCbCr(t *testing.T) {
