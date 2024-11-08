@@ -80,6 +80,7 @@ pub struct Rectangle {
   max : Point
 }
 
+/// Rectangle::new returns an empty (all zeros) rectangle.
 pub fn Rectangle::new() -> Rectangle {
   { min: pt(0, 0), max: pt(0, 0) }
 }
