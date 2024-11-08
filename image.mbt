@@ -132,6 +132,10 @@ pub fn bounds(self : RGBA) -> Rectangle {
   self.rect
 }
 
+pub fn op_get(self : RGBA, p : Point) -> @color.Color {
+  self.at(p.x, p.y)
+}
+
 pub fn at(self : RGBA, x : Int, y : Int) -> @color.Color {
   self.rgba_at(x, y)
 }
@@ -213,7 +217,7 @@ pub fn set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
 /// through r. The returned value shares pixels with the original image.
 pub fn sub_image(self : RGBA, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
-  // If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+  // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
@@ -272,6 +276,10 @@ pub fn color_model(self : RGBA64) -> @color.Model {
 
 pub fn bounds(self : RGBA64) -> Rectangle {
   self.rect
+}
+
+pub fn op_get(self : RGBA64, p : Point) -> @color.Color {
+  self.at(p.x, p.y)
 }
 
 pub fn at(self : RGBA64, x : Int, y : Int) -> @color.Color {
@@ -335,7 +343,7 @@ pub fn set_rgba64(self : RGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // through r. The returned value shares pixels with the original image.
 pub fn sub_image(self : RGBA64, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
-  // If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+  // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
@@ -394,6 +402,10 @@ pub fn color_model(self : NRGBA) -> @color.Model {
 
 pub fn bounds(self : NRGBA) -> Rectangle {
   self.rect
+}
+
+pub fn op_get(self : NRGBA, p : Point) -> @color.Color {
+  self.at(p.x, p.y)
 }
 
 pub fn at(self : NRGBA, x : Int, y : Int) -> @color.Color {
@@ -474,7 +486,7 @@ pub fn set_nrgba(self : NRGBA, x : Int, y : Int, c : @color.NRGBA) -> Unit {
 // through r. The returned value shares pixels with the original image.
 pub fn sub_image(self : NRGBA, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
-  // If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+  // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
@@ -533,6 +545,10 @@ pub fn color_model(self : NRGBA64) -> @color.Model {
 
 pub fn bounds(self : NRGBA64) -> Rectangle {
   self.rect
+}
+
+pub fn op_get(self : NRGBA64, p : Point) -> @color.Color {
+  self.at(p.x, p.y)
 }
 
 pub fn at(self : NRGBA64, x : Int, y : Int) -> @color.Color {
@@ -629,7 +645,7 @@ pub fn set_nrgba64(
 // through r. The returned value shares pixels with the original image.
 pub fn sub_image(self : NRGBA64, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
-  // If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+  // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
@@ -658,148 +674,168 @@ pub fn opaque(self : NRGBA64) -> Bool {
   true
 }
 
-// // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
-// func NRGBA64::new(r Rectangle) *NRGBA64 {
-// 	return &NRGBA64{
-// 		pix:    make([]Byte, pixel_buffer_length(8, r, "NRGBA64")),
-// 		stride: 8 * r.Dx(),
-// 		Rect:   r,
-// 	}
-// }
+// NRGBA64::new returns a new [NRGBA64] image with the given bounds.
+pub fn NRGBA64::new(r : Rectangle) -> NRGBA64 {
+  {
+    pix: Array::make(pixel_buffer_length(8, r, "NRGBA64"), b'\x00')[:],
+    stride: 8 * r.dx(),
+    rect: r,
+  }
+}
 
-// // Alpha is an in-memory image whose At method returns [color.Alpha] values.
-// type Alpha struct {
-// 	// pix holds the image's pixels, as alpha values. The pixel at
-// 	// (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
-// 	pix []Byte
-// 	// stride is the pix stride (in bytes) between vertically adjacent pixels.
-// 	stride int
-// 	// Rect is the image's bounds.
-// 	Rect Rectangle
-// }
+// Alpha is an in-memory image whose At method returns [color.Alpha] values.
+pub struct Alpha {
+  // pix holds the image's pixels, as alpha values. The pixel at
+  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
+  pix : ArrayView[Byte]
+  // stride is the pix stride (in bytes) between vertically adjacent pixels.
+  stride : Int
+  // Rect is the image's bounds.
+  rect : Rectangle
+}
 
-// func (p *Alpha) color_model() color.Model { return color.AlphaModel }
+pub fn Alpha::empty() -> Alpha {
+  { pix: [][:], stride: 0, rect: Rectangle::new() }
+}
 
-// func (p *Alpha) bounds() Rectangle { return self.rect }
+pub fn color_model(self : Alpha) -> @color.Model {
+  @color.alpha_model
+}
 
-// func (p *Alpha) At(x: Int, y : Int) -> @color.Color {
-// 	return p.AlphaAt(x, y)
-// }
+pub fn bounds(self : Alpha) -> Rectangle {
+  self.rect
+}
 
-// func (p *Alpha) rgba64_at(x: Int, y : Int) -> @color.RGBA64 {
-// 	let a = uint16(p.AlphaAt(x, y).A)
-// 	a |= a << 8
-// 	return color.RGBA64{a, a, a, a}
-// }
+pub fn op_get(self : Alpha, p : Point) -> @color.Color {
+  self.at(p.x, p.y)
+}
 
-// func (p *Alpha) AlphaAt(x: Int, y : Int) -> @color.Alpha {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return color.Alpha{}
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	return color.Alpha{self.pix[i]}
-// }
+pub fn at(self : Alpha, x : Int, y : Int) -> @color.Color {
+  self.alpha_at(x, y)
+}
 
-// // pix_offset returns the index of the first element of pix that corresponds to
-// // the pixel at (x, y).
-// func (p *Alpha) pix_offset(x: Int, y : Int) -> Int {
-// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
-// }
+pub fn rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
+  let mut a = self.alpha_at(x, y).a.to_uint()
+  a = a | (a << 8)
+  { r: a, g: a, b: a, a }
+}
 
-// func (p *Alpha) Set(x: Int, y : Int, c: @color.Color) -> Unit {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	self.pix[i] = color.AlphaModel.Convert(c).(color.Alpha).A
-// }
+pub fn alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
+  if not(pt(x, y).is_in(self.rect)) {
+    return @color.Alpha::new(0)
+  }
+  let i = self.pix_offset(x, y)
+  { a: self.pix[i] }
+}
 
-// func (p *Alpha) set_rgba64(x: Int, y : Int, c: @color.RGBA64) -> Unit {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	self.pix[i] = Byte(c.A >> 8)
-// }
+// pix_offset returns the index of the first element of pix that corresponds to
+// the pixel at (x, y).
+pub fn pix_offset(self : Alpha, x : Int, y : Int) -> Int {
+  (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
+}
 
-// func (p *Alpha) SetAlpha(x: Int, y : Int, c: @color.Alpha) {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	self.pix[i] = c.A
-// }
+pub fn op_set(self : Alpha, p : Point, c : @color.Color) -> Unit {
+  self.set(p.x, p.y, c)
+}
 
-// // sub_image returns an image representing the portion of the image p visible
-// // through r. The returned value shares pixels with the original image.
-// func (p *Alpha) sub_image(r : Rectangle) -> Image {
-// 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
-// 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
-// 	// this, the pix[i:] expression below can panic.
-// 	if r.empty() {
-// 		return &Alpha{}
-// 	}
-// 	let i = self.pix_offset(r.min.x, r.min.y)
-// 	return &Alpha{
-// 		pix:    self.pix[i:],
-// 		stride: self.stride,
-// 		Rect:   r,
-// 	}
-// }
+pub fn set(self : Alpha, x : Int, y : Int, c : @color.Color) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  let (_, _, _, a) = @color.alpha_model.convert(c).rgba() // .(color.Alpha).A
+  self.pix[i] = (a >> 8).to_byte()
+}
 
-// // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Alpha) opaque() -> Bool {
-// 	if self.rect.empty() {
-// 		return true
-// 	}
-// 	i0, let i1 = 0, self.rect.dx()
-// 	for y = self.rect.min.y; y < self.rect.max.y; y=y+1 {
-// 		for i = i0; i < i1; i++ {
-// 			if self.pix[i] != 0xff {
-// 				return false
-// 			}
-// 		}
-// 		i0 += self.stride
-// 		i1 += self.stride
-// 	}
-// 	return true
-// }
+pub fn set_rgba64(self : Alpha, x : Int, y : Int, c : @color.RGBA64) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  self.pix[i] = (c.a >> 8).to_byte()
+}
 
-// // NewAlpha returns a new [Alpha] image with the given bounds.
-// func NewAlpha(r Rectangle) *Alpha {
-// 	return &Alpha{
-// 		pix:    make([]Byte, pixel_buffer_length(1, r, "Alpha")),
-// 		stride: 1 * r.Dx(),
-// 		Rect:   r,
-// 	}
-// }
+pub fn set_alpha(self : Alpha, x : Int, y : Int, c : @color.Alpha) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  self.pix[i] = c.a
+}
 
-// // Alpha16 is an in-memory image whose At method returns [color.Alpha16] values.
-// type Alpha16 struct {
-// 	// pix holds the image's pixels, as alpha values in big-endian format. The pixel at
-// 	// (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
-// 	pix []Byte
-// 	// stride is the pix stride (in bytes) between vertically adjacent pixels.
-// 	stride int
-// 	// Rect is the image's bounds.
-// 	Rect Rectangle
-// }
+// sub_image returns an image representing the portion of the image p visible
+// through r. The returned value shares pixels with the original image.
+pub fn sub_image(self : Alpha, r : Rectangle) -> Image {
+  let r = r.intersect(self.rect)
+  // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
+  // either r1 or r2 if the intersection is empty. Without explicitly checking for
+  // this, the pix[i:] expression below can panic.
+  if r.empty() {
+    return Alpha::empty()
+  }
+  let i = self.pix_offset(r.min.x, r.min.y)
+  Alpha::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
 
-// func (p *Alpha16) color_model() color.Model { return color.Alpha16Model }
+// opaque scans the entire image and reports whether it is fully opaque.
+pub fn opaque(self : Alpha) -> Bool {
+  if self.rect.empty() {
+    return true
+  }
+  let mut i0 = 0
+  let mut i1 = self.rect.dx()
+  for y = self.rect.min.y; y < self.rect.max.y; y = y + 1 {
+    for i = i0; i < i1; i = i + 1 {
+      if self.pix[i] != 0xff {
+        return false
+      }
+    }
+    i0 += self.stride
+    i1 += self.stride
+  }
+  return true
+}
 
-// func (p *Alpha16) bounds() Rectangle { return self.rect }
+// Alpha::new returns a new [Alpha] image with the given bounds.
+pub fn Alpha::new(r : Rectangle) -> Alpha {
+  {
+    pix: Array::make(pixel_buffer_length(1, r, "Alpha"), b'\x00')[:],
+    stride: 1 * r.dx(),
+    rect: r,
+  }
+}
 
-// func (p *Alpha16) At(x: Int, y : Int) -> @color.Color {
+// Alpha16 is an in-memory image whose At method returns [color.Alpha16] values.
+pub struct Alpha16 {
+  // pix holds the image's pixels, as alpha values in big-endian format. The pixel at
+  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
+  pix : ArrayView[Byte]
+  // stride is the pix stride (in bytes) between vertically adjacent pixels.
+  stride : Int
+  // Rect is the image's bounds.
+  rect : Rectangle
+}
+
+pub fn Alpha16::empty() -> Alpha16 {
+  { pix: [][:], stride: 0, rect: Rectangle::new() }
+}
+
+pub fn color_model(self : Alpha16) -> @color.Model {
+  @color.alpha16_model
+}
+
+// pub fn bounds(self: Alpha16, ) Rectangle { return self.rect }
+
+// pub fn At(self: Alpha16, x: Int, y : Int) -> @color.Color {
 // 	return p.Alpha16At(x, y)
 // }
 
-// func (p *Alpha16) rgba64_at(x: Int, y : Int) -> @color.RGBA64 {
+// pub fn rgba64_at(self: Alpha16, x: Int, y : Int) -> @color.RGBA64 {
 // 	let a = p.Alpha16At(x, y).A
 // 	return color.RGBA64{a, a, a, a}
 // }
 
-// func (p *Alpha16) Alpha16At(x: Int, y : Int) -> @color.Alpha16 {
+// pub fn Alpha16At(self: Alpha16, x: Int, y : Int) -> @color.Alpha16 {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return color.Alpha16{}
 // 	}
@@ -809,11 +845,11 @@ pub fn opaque(self : NRGBA64) -> Bool {
 
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
-// func (p *Alpha16) pix_offset(x: Int, y : Int) -> Int {
+// pub fn pix_offset(self: Alpha16, x: Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*2
 // }
 
-// func (p *Alpha16) Set(x: Int, y : Int, c: @color.Color) -> Unit {
+// pub fn Set(self: Alpha16, x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -823,7 +859,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // 	self.pix[i+1] = Byte(c1.A)
 // }
 
-// func (p *Alpha16) set_rgba64(x: Int, y : Int, c: @color.RGBA64) -> Unit {
+// pub fn set_rgba64(self: Alpha16, x: Int, y : Int, c: @color.RGBA64) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -832,7 +868,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // 	self.pix[i+1] = Byte(c.A)
 // }
 
-// func (p *Alpha16) SetAlpha16(x: Int, y : Int, c: @color.Alpha16) {
+// pub fn set_alpha16(self: Alpha16, x: Int, y : Int, c: @color.Alpha16) {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -843,9 +879,9 @@ pub fn opaque(self : NRGBA64) -> Bool {
 
 // // sub_image returns an image representing the portion of the image p visible
 // // through r. The returned value shares pixels with the original image.
-// func (p *Alpha16) sub_image(r : Rectangle) -> Image {
+// pub fn sub_image(self: Alpha16, r : Rectangle) -> Image {
 // 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+// 	// If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
 // 	// this, the pix[i:] expression below can panic.
 // 	if r.empty() {
@@ -860,7 +896,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Alpha16) opaque() -> Bool {
+// pub fn opaque(self: Alpha16, ) -> Bool {
 // 	if self.rect.empty() {
 // 		return true
 // 	}
@@ -877,8 +913,8 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // 	return true
 // }
 
-// // NewAlpha16 returns a new [Alpha16] image with the given bounds.
-// func NewAlpha16(r Rectangle) *Alpha16 {
+// // Alpha16::new returns a new [Alpha16] image with the given bounds.
+// func Alpha16::new(r Rectangle) *Alpha16 {
 // 	return &Alpha16{
 // 		pix:    make([]Byte, pixel_buffer_length(2, r, "Alpha16")),
 // 		stride: 2 * r.Dx(),
@@ -922,7 +958,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Gray) pix_offset(x: Int, y : Int) -> Int {
-// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
+// 	(y-self.rect.min.y)*self.stride + (x-self.rect.min.x)*1
 // }
 
 // func (p *Gray) Set(x: Int, y : Int, c: @color.Color) -> Unit {
@@ -955,7 +991,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // through r. The returned value shares pixels with the original image.
 // func (p *Gray) sub_image(r : Rectangle) -> Image {
 // 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+// 	// If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
 // 	// this, the pix[i:] expression below can panic.
 // 	if r.empty() {
@@ -1055,7 +1091,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // through r. The returned value shares pixels with the original image.
 // func (p *Gray16) sub_image(r : Rectangle) -> Image {
 // 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+// 	// If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
 // 	// this, the pix[i:] expression below can panic.
 // 	if r.empty() {
@@ -1164,7 +1200,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // through r. The returned value shares pixels with the original image.
 // func (p *CMYK) sub_image(r : Rectangle) -> Image {
 // 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+// 	// If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
 // 	// this, the pix[i:] expression below can panic.
 // 	if r.empty() {
@@ -1243,7 +1279,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Paletted) pix_offset(x: Int, y : Int) -> Int {
-// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
+// 	(y-self.rect.min.y)*self.stride + (x-self.rect.min.x)*1
 // }
 
 // func (p *Paletted) Set(x: Int, y : Int, c: @color.Color) -> Unit {
@@ -1282,7 +1318,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // // through r. The returned value shares pixels with the original image.
 // func (p *Paletted) sub_image(r : Rectangle) -> Image {
 // 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+// 	// If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
 // 	// this, the pix[i:] expression below can panic.
 // 	if r.empty() {
