@@ -141,7 +141,6 @@ pub fn inset(self : Rectangle, n : Int) -> Rectangle {
 /// intersect returns the largest rectangle contained by both r and s. If the
 /// two rectangles do not overlap then the zero rectangle will be returned.
 pub fn intersect(self : Rectangle, s : Rectangle) -> Rectangle {
-  // func (r Rectangle) Intersect(s Rectangle) Rectangle {
   let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
   if r.min.x < s.min.x {
     r.min.x = s.min.x
@@ -165,108 +164,115 @@ pub fn intersect(self : Rectangle, s : Rectangle) -> Rectangle {
   r
 }
 
-// // Union returns the smallest rectangle that contains both r and s.
-// func (r Rectangle) Union(s Rectangle) Rectangle {
-// 	if r.Empty() {
-// 		return s
-// 	}
-// 	if s.Empty() {
-// 		return r
-// 	}
-// 	if r.Min.X > s.Min.X {
-// 		r.Min.X = s.Min.X
-// 	}
-// 	if r.Min.Y > s.Min.Y {
-// 		r.Min.Y = s.Min.Y
-// 	}
-// 	if r.Max.X < s.Max.X {
-// 		r.Max.X = s.Max.X
-// 	}
-// 	if r.Max.Y < s.Max.Y {
-// 		r.Max.Y = s.Max.Y
-// 	}
-// 	return r
-// }
+/// union returns the smallest rectangle that contains both r and s.
+pub fn union(self : Rectangle, s : Rectangle) -> Rectangle {
+  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  if r.empty() {
+    return s
+  }
+  if s.empty() {
+    return r
+  }
+  if r.min.x > s.min.x {
+    r.min.x = s.min.x
+  }
+  if r.min.y > s.min.y {
+    r.min.y = s.min.y
+  }
+  if r.max.x < s.max.x {
+    r.max.x = s.max.x
+  }
+  if r.max.y < s.max.y {
+    r.max.y = s.max.y
+  }
+  r
+}
 
 /// empty reports whether the rectangle contains no points.
 pub fn empty(self : Rectangle) -> Bool {
   self.min.x >= self.max.x || self.min.y >= self.max.y
 }
 
-// // Eq reports whether r and s contain the same set of points. All empty
-// // rectangles are considered equal.
-// func (r Rectangle) Eq(s Rectangle) bool {
-// 	return r == s || r.Empty() && s.Empty()
-// }
+/// op_equal reports whether r and s contain the same set of points. All empty
+/// rectangles are considered equal.
+pub fn op_equal(self : Rectangle, s : Rectangle) -> Bool {
+  (self.min == s.min && self.max == s.max) || (self.empty() && s.empty())
+}
 
-// // Overlaps reports whether r and s have a non-empty intersection.
-// func (r Rectangle) Overlaps(s Rectangle) bool {
-// 	return !r.Empty() && !s.Empty() &&
-// 		r.Min.X < s.Max.X && s.Min.X < r.Max.X &&
-// 		r.Min.Y < s.Max.Y && s.Min.Y < r.Max.Y
-// }
+/// overlaps reports whether r and s have a non-empty intersection.
+pub fn overlaps(self : Rectangle, s : Rectangle) -> Bool {
+  not(self.empty()) &&
+  not(s.empty()) &&
+  self.min.x < s.max.x &&
+  s.min.x < self.max.x &&
+  self.min.y < s.max.y &&
+  s.min.y < self.max.y
+}
 
-// // In reports whether every point in r is in s.
-// func (r Rectangle) In(s Rectangle) bool {
-// 	if r.Empty() {
-// 		return true
-// 	}
-// 	// Note that r.Max is an exclusive bound for r, so that r.In(s)
-// 	// does not require that r.Max.In(s).
-// 	return s.Min.X <= r.Min.X && r.Max.X <= s.Max.X &&
-// 		s.Min.Y <= r.Min.Y && r.Max.Y <= s.Max.Y
-// }
+/// is_in reports whether every point in r is in s.
+pub fn is_in(self : Rectangle, s : Rectangle) -> Bool {
+  if self.empty() {
+    return true
+  }
+  // note that self.max is an exclusive bound for r, so that self.in(s)
+  // does not require that self.max.in(s).
+  s.min.x <= self.min.x &&
+  self.max.x <= s.max.x &&
+  s.min.y <= self.min.y &&
+  self.max.y <= s.max.y
+}
 
-// // Canon returns the canonical version of r. The returned rectangle has minimum
-// // and maximum coordinates swapped if necessary so that it is well-formed.
-// func (r Rectangle) Canon() Rectangle {
-// 	if r.Max.X < r.Min.X {
-// 		r.Min.X, r.Max.X = r.Max.X, r.Min.X
-// 	}
-// 	if r.Max.Y < r.Min.Y {
-// 		r.Min.Y, r.Max.Y = r.Max.Y, r.Min.Y
-// 	}
-// 	return r
-// }
+/// canon returns the canonical version of r. The returned rectangle has minimum
+/// and maximum coordinates swapped if necessary so that it is well-formed.
+pub fn canon(self : Rectangle) -> Rectangle {
+  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  if r.max.x < r.min.x {
+    let tmp = r.min.x
+    r.min.x = r.max.x
+    r.max.x = tmp
+  }
+  if r.max.y < r.min.y {
+    let tmp = r.min.y
+    r.min.y = r.max.y
+    r.max.y = tmp
+  }
+  r
+}
 
-// // At implements the [Image] interface.
-// func (r Rectangle) At(x, y int) color.Color {
-// 	if (Point{x, y}).In(r) {
-// 		return color.Opaque
-// 	}
-// 	return color.Transparent
-// }
+/// at implements the [Image] trait.
+pub fn at(self : Rectangle, x : Int, y : Int) -> @color.Color {
+  if pt(x, y).is_in(self) {
+    return @color.opaque
+  }
+  @color.transparent
+}
 
-// // RGBA64At implements the [RGBA64Image] interface.
-// func (r Rectangle) RGBA64At(x, y int) color.RGBA64 {
-// 	if (Point{x, y}).In(r) {
-// 		return color.RGBA64{0xffff, 0xffff, 0xffff, 0xffff}
-// 	}
-// 	return color.RGBA64{}
-// }
+/// rgba64_at implements the [RGBA64Image] trait.
+pub fn rgba64_at(self : Rectangle, x : Int, y : Int) -> @color.RGBA64 {
+  if pt(x, y).is_in(self) {
+    return @color.RGBA64::{ r: 0xffff, g: 0xffff, b: 0xffff, a: 0xffff }
+  }
+  @color.RGBA64::{ r: 0, g: 0, b: 0, a: 0 }
+}
 
-// // Bounds implements the [Image] interface.
-// func (r Rectangle) Bounds() Rectangle {
-// 	return r
-// }
+/// bounds implements the [Image] trait.
+pub fn bounds(self : Rectangle) -> Rectangle {
+  self
+}
 
-// // ColorModel implements the [Image] interface.
-// func (r Rectangle) ColorModel() color.Model {
-// 	return color.Alpha16Model
-// }
+/// color_model implements the [Image] trait.
+pub fn color_model(self : Rectangle) -> @color.Model {
+  @color.alpha16_model
+}
 
-// // Rect is shorthand for [Rectangle]{Pt(x0, y0), [Pt](x1, y1)}. The returned
-// // rectangle has minimum and maximum coordinates swapped if necessary so that
-// // it is well-formed.
-// func Rect(x0, y0, x1, y1 int) Rectangle {
-// 	if x0 > x1 {
-// 		x0, x1 = x1, x0
-// 	}
-// 	if y0 > y1 {
-// 		y0, y1 = y1, y0
-// 	}
-// 	return Rectangle{Point{x0, y0}, Point{x1, y1}}
-// }
+/// rect is shorthand for [Rectangle]{Pt(x0, y0), [Pt](x1, y1)}. The returned
+/// rectangle has minimum and maximum coordinates swapped if necessary so that
+/// it is well-formed.
+pub fn rect(x0 : Int, y0 : Int, x1 : Int, y1 : Int) -> Rectangle {
+  let (x0, x1) = if x0 > x1 { (x1, x0) } else { (x0, x1) }
+  let (y0, y1) = if y0 > y1 { (y1, y0) } else { (y0, y1) }
+  { min: pt(x0, y0), max: pt(x1, y1) }
+}
 
 // // mul3NonNeg returns (x * y * z), unless at least one argument is negative or
 // // if the computation overflows the int type, in which case it returns -1.
