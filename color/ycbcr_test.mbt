@@ -105,23 +105,23 @@ test "NYCbCrA colors are a superset of YCbCr colors" {
   }
 }
 
-// // TestCMYKRoundtrip tests that a subset of RGB space can be converted to CMYK
-// // and back to within 1/256 tolerance.
-// func TestCMYKRoundtrip(t *testing.T) {
-// 	for r := 0; r < 256; r += 7 {
-// 		for g := 0; g < 256; g += 5 {
-// 			for b := 0; b < 256; b += 3 {
-// 				r0, g0, b0 := uint8(r), uint8(g), uint8(b)
-// 				c, m, y, k := RGBToCMYK(r0, g0, b0)
-// 				r1, g1, b1 := CMYKToRGB(c, m, y, k)
-// 				if delta(r0, r1) > 1 || delta(g0, g1) > 1 || delta(b0, b1) > 1 {
-// 					t.Fatalf("\nr0, g0, b0 = %d, %d, %d\nc, m, y, k = %d, %d, %d, %d\nr1, g1, b1 = %d, %d, %d",
-// 						r0, g0, b0, c, m, y, k, r1, g1, b1)
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+test "a subset of RGB space can be converted to CMYK and back to within 1/256 tolerance" {
+  // func TestCMYKRoundtrip(t *testing.T) {
+  for r = 0; r < 256; r = r + 7 {
+    for g = 0; g < 256; g = g + 5 {
+      for b = 0; b < 256; b = b + 3 {
+        let (r0, g0, b0) = (r.to_byte(), g.to_byte(), b.to_byte())
+        let (c, m, y, k) = @color.rgb_to_cmyk(r0, g0, b0)
+        let (r1, g1, b1) = @color.cmyk_to_rgb(c, m, y, k)
+        if delta(r0, r1) > 1 || delta(g0, g1) > 1 || delta(b0, b1) > 1 {
+          raise EqError(
+            "\nr0, g0, b0 = \{r0.to_int()}, \{g0.to_int()}, \{b0.to_int()}\nc, m, y, k = \{c.to_int()}, \{m.to_int()}, \{y.to_int()}, \{k.to_int()}\nr1, g1, b1 = \{r1.to_int()}, \{g1.to_int()}, \{b1.to_int()}",
+          )
+        }
+      }
+    }
+  }
+}
 
 // // TestCMYKToRGBConsistency tests that calling the RGBA method (16 bit color)
 // // then truncating to 8 bits is equivalent to calling the CMYKToRGB function (8

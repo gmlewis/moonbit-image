@@ -353,9 +353,12 @@ pub fn cmyk_to_rgb(
   k : Byte
 ) -> (Byte, Byte, Byte) {
   let w = 0xffffU - k.to_uint() * 0x101
-  let r = ((0xffffU - c.to_uint() * 0x101) * w / 0xffff).to_byte()
-  let g = ((0xffffU - m.to_uint() * 0x101) * w / 0xffff).to_byte()
-  let b = ((0xffffU - y.to_uint() * 0x101) * w / 0xffff).to_byte()
+  let r = (0xffffU - c.to_uint() * 0x101) * w / 0xffff
+  let g = (0xffffU - m.to_uint() * 0x101) * w / 0xffff
+  let b = (0xffffU - y.to_uint() * 0x101) * w / 0xffff
+  let r = (r >> 8).to_byte()
+  let g = (g >> 8).to_byte()
+  let b = (b >> 8).to_byte()
   (r, g, b)
 }
 
