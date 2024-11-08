@@ -123,27 +123,35 @@ test "a subset of RGB space can be converted to CMYK and back to within 1/256 to
   }
 }
 
-// // TestCMYKToRGBConsistency tests that calling the RGBA method (16 bit color)
-// // then truncating to 8 bits is equivalent to calling the CMYKToRGB function (8
-// // bit color).
-// func TestCMYKToRGBConsistency(t *testing.T) {
-// 	for c := 0; c < 256; c += 7 {
-// 		for m := 0; m < 256; m += 5 {
-// 			for y := 0; y < 256; y += 3 {
-// 				for k := 0; k < 256; k += 11 {
-// 					x := CMYK{uint8(c), uint8(m), uint8(y), uint8(k)}
-// 					r0, g0, b0, _ := x.RGBA()
-// 					r1, g1, b1 := uint8(r0>>8), uint8(g0>>8), uint8(b0>>8)
-// 					r2, g2, b2 := CMYKToRGB(x.C, x.M, x.Y, x.K)
-// 					if r1 != r2 || g1 != g2 || b1 != b2 {
-// 						t.Fatalf("c, m, y, k = %d, %d, %d, %d\nr1, g1, b1 = %d, %d, %d\nr2, g2, b2 = %d, %d, %d",
-// 							c, m, y, k, r1, g1, b1, r2, g2, b2)
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+test "calling the RGBA method (16 bit color) then truncating to 8 bits is equivalent to calling the CMYKToRGB function (8 bit color)" {
+  // func TestCMYKToRGBConsistency(t *testing.T) {
+  for c = 0; c < 256; c = c + 7 {
+    for m = 0; m < 256; m = m + 5 {
+      for y = 0; y < 256; y = y + 3 {
+        for k = 0; k < 256; k = k + 11 {
+          let x : @color.CMYK = {
+            c: c.to_byte(),
+            m: m.to_byte(),
+            y: y.to_byte(),
+            k: k.to_byte(),
+          }
+          let (r0, g0, b0, _) = x.rgba()
+          let (r1, g1, b1) = (
+            (r0 >> 8).to_byte(),
+            (g0 >> 8).to_byte(),
+            (b0 >> 8).to_byte(),
+          )
+          let (r2, g2, b2) = @color.cmyk_to_rgb(x.c, x.m, x.y, x.k)
+          if r1 != r2 || g1 != g2 || b1 != b2 {
+            raise EqError(
+              "c, m, y, k = \{c}, \{m}, \{y}, \{k}\nr1, g1, b1 = \{r1}, \{g1}, \{b1}\nr2, g2, b2 = \{r2}, \{g2}, \{b2}",
+            )
+          }
+        }
+      }
+    }
+  }
+}
 
 // // TestCMYKGray tests that CMYK colors are a superset of Gray colors.
 // func TestCMYKGray(t *testing.T) {
