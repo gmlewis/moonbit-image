@@ -562,44 +562,48 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
   return (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 8
 }
 
-// pub fn Set(self: NRGBA64, x: Int, y : Int, c: @color.Color) {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	let c1 = color.NRGBA64Model.Convert(c).(color.NRGBA64)
-// 	let s = self.pix[i : i+8 : i+8] // Small cap improves performance, see https://golang.org/issue/27857
-// 	s[0] = Byte(c1.R >> 8)
-// 	s[1] = Byte(c1.R)
-// 	s[2] = Byte(c1.G >> 8)
-// 	s[3] = Byte(c1.G)
-// 	s[4] = Byte(c1.B >> 8)
-// 	s[5] = Byte(c1.B)
-// 	s[6] = Byte(c1.A >> 8)
-// 	s[7] = Byte(c1.A)
-// }
+pub fn op_set(self : NRGBA64, p : Point, c : @color.Color) -> Unit {
+  self.set(p.x, p.y, c)
+}
 
-// pub fn set_rgba64(self: NRGBA64, x: Int, y : Int, c: @color.RGBA64) -> Unit {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	r, g, b, let a = uint32(c.R), uint32(c.G), uint32(c.B), uint32(c.A)
-// 	if (a != 0) && (a != 0xffff) {
-// 		r = (r * 0xffff) / a
-// 		g = (g * 0xffff) / a
-// 		b = (b * 0xffff) / a
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	let s = self.pix[i : i+8 : i+8] // Small cap improves performance, see https://golang.org/issue/27857
-// 	s[0] = Byte(r >> 8)
-// 	s[1] = Byte(r)
-// 	s[2] = Byte(g >> 8)
-// 	s[3] = Byte(g)
-// 	s[4] = Byte(b >> 8)
-// 	s[5] = Byte(b)
-// 	s[6] = Byte(a >> 8)
-// 	s[7] = Byte(a)
-// }
+pub fn set(self : NRGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  let (r, g, b, a) = @color.nrgba64_model.convert(c).rgba() // .(color.NRGBA64)
+  self.pix[i + 0] = (r >> 8).to_byte()
+  self.pix[i + 1] = r.to_byte()
+  self.pix[i + 2] = (g >> 8).to_byte()
+  self.pix[i + 3] = g.to_byte()
+  self.pix[i + 4] = (b >> 8).to_byte()
+  self.pix[i + 5] = b.to_byte()
+  self.pix[i + 6] = (a >> 8).to_byte()
+  self.pix[i + 7] = a.to_byte()
+}
+
+pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let mut r = c.r
+  let mut g = c.g
+  let mut b = c.b
+  if c.a != 0 && c.a != 0xffff {
+    r = r * 0xffff / c.a
+    g = g * 0xffff / c.a
+    b = b * 0xffff / c.a
+  }
+  let i = self.pix_offset(x, y)
+  self.pix[i + 0] = (r >> 8).to_byte()
+  self.pix[i + 1] = r.to_byte()
+  self.pix[i + 2] = (g >> 8).to_byte()
+  self.pix[i + 3] = g.to_byte()
+  self.pix[i + 4] = (b >> 8).to_byte()
+  self.pix[i + 5] = b.to_byte()
+  self.pix[i + 6] = (c.a >> 8).to_byte()
+  self.pix[i + 7] = c.a.to_byte()
+}
 
 // pub fn set_nrgba64(self: NRGBA64, x: Int, y : Int, c: @color.NRGBA64) {
 // 	if not(pt(x,y).is_in(self.rect)) {
@@ -701,7 +705,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
-// func (p *Alpha) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *Alpha) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -808,7 +812,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*2
 // }
 
-// func (p *Alpha16) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *Alpha16) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -920,7 +924,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
-// func (p *Gray) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *Gray) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -1016,7 +1020,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*2
 // }
 
-// func (p *Gray16) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *Gray16) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -1117,7 +1121,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.min.y)*self.stride + (x-self.rect.min.x)*4
 // }
 
-// func (p *CMYK) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *CMYK) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -1241,7 +1245,7 @@ pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
 // 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
-// func (p *Paletted) Set(x: Int, y : Int, c: @color.Color) {
+// func (p *Paletted) Set(x: Int, y : Int, c: @color.Color) -> Unit {
 // 	if not(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
