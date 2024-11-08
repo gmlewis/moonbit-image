@@ -361,7 +361,7 @@ pub fn opaque(self : RGBA64) -> Bool {
     i0 += self.stride
     i1 += self.stride
   }
-  return true
+  true
 }
 
 // RGBA64::new returns a new [RGBA64] image with the given bounds.
@@ -500,7 +500,7 @@ pub fn opaque(self : NRGBA) -> Bool {
     i0 += self.stride
     i1 += self.stride
   }
-  return true
+  true
 }
 
 // NRGBA::new returns a new [NRGBA] image with the given bounds.
@@ -605,57 +605,58 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 7] = c.a.to_byte()
 }
 
-// pub fn set_nrgba64(self: NRGBA64, x: Int, y : Int, c: @color.NRGBA64) {
-// 	if not(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	let s = self.pix[i : i+8 : i+8] // Small cap improves performance, see https://golang.org/issue/27857
-// 	s[0] = Byte(c.R >> 8)
-// 	s[1] = Byte(c.R)
-// 	s[2] = Byte(c.G >> 8)
-// 	s[3] = Byte(c.G)
-// 	s[4] = Byte(c.B >> 8)
-// 	s[5] = Byte(c.B)
-// 	s[6] = Byte(c.A >> 8)
-// 	s[7] = Byte(c.A)
-// }
+pub fn set_nrgba64(
+  self : NRGBA64,
+  x : Int,
+  y : Int,
+  c : @color.NRGBA64
+) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  self.pix[i + 0] = (c.r >> 8).to_byte()
+  self.pix[i + 1] = c.r.to_byte()
+  self.pix[i + 2] = (c.g >> 8).to_byte()
+  self.pix[i + 3] = c.g.to_byte()
+  self.pix[i + 4] = (c.b >> 8).to_byte()
+  self.pix[i + 5] = c.b.to_byte()
+  self.pix[i + 6] = (c.a >> 8).to_byte()
+  self.pix[i + 7] = c.a.to_byte()
+}
 
-// // sub_image returns an image representing the portion of the image p visible
-// // through r. The returned value shares pixels with the original image.
-// pub fn sub_image(self: NRGBA64, r : Rectangle) -> Image {
-// 	let r = r.intersect(self.rect)
-// 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
-// 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
-// 	// this, the pix[i:] expression below can panic.
-// 	if r.empty() {
-// 		return &NRGBA64{}
-// 	}
-// 	let i = self.pix_offset(r.min.x, r.min.y)
-// 	return &NRGBA64{
-// 		pix:    self.pix[i:],
-// 		stride: self.stride,
-// 		Rect:   r,
-// 	}
-// }
+// sub_image returns an image representing the portion of the image p visible
+// through r. The returned value shares pixels with the original image.
+pub fn sub_image(self : NRGBA64, r : Rectangle) -> Image {
+  let r = r.intersect(self.rect)
+  // If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
+  // either r1 or r2 if the intersection is empty. Without explicitly checking for
+  // this, the pix[i:] expression below can panic.
+  if r.empty() {
+    return NRGBA64::empty()
+  }
+  let i = self.pix_offset(r.min.x, r.min.y)
+  NRGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
 
-// // opaque scans the entire image and reports whether it is fully opaque.
-// pub fn opaque(self: NRGBA64, ) bool {
-// 	if self.rect.empty() {
-// 		return true
-// 	}
-// 	i0, let i1 = 6, self.rect.dx()*8
-// 	for y = self.rect.min.y; y < self.rect.max.y; y=y+1 {
-// 		for i = i0; i < i1; i =i+ 8 {
-// 			if self.pix[i+0] != 0xff || self.pix[i+1] != 0xff {
-// 				return false
-// 			}
-// 		}
-// 		i0 += self.stride
-// 		i1 += self.stride
-// 	}
-// 	return true
-// }
+// opaque scans the entire image and reports whether it is fully opaque.
+pub fn opaque(self : NRGBA64) -> Bool {
+  if self.rect.empty() {
+    return true
+  }
+  let mut i0 = 6
+  let mut i1 = self.rect.dx() * 8
+  for y = self.rect.min.y; y < self.rect.max.y; y = y + 1 {
+    for i = i0; i < i1; i = i + 8 {
+      if self.pix[i + 0] != 0xff || self.pix[i + 1] != 0xff {
+        return false
+      }
+    }
+    i0 += self.stride
+    i1 += self.stride
+  }
+  true
+}
 
 // // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
 // func NRGBA64::new(r Rectangle) *NRGBA64 {
@@ -748,7 +749,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Alpha) opaque() bool {
+// func (p *Alpha) opaque() -> Bool {
 // 	if self.rect.empty() {
 // 		return true
 // 	}
@@ -859,7 +860,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Alpha16) opaque() bool {
+// func (p *Alpha16) opaque() -> Bool {
 // 	if self.rect.empty() {
 // 		return true
 // 	}
@@ -969,7 +970,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Gray) opaque() bool {
+// func (p *Gray) opaque() -> Bool {
 // 	return true
 // }
 
@@ -1069,7 +1070,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Gray16) opaque() bool {
+// func (p *Gray16) opaque() -> Bool {
 // 	return true
 // }
 
@@ -1178,7 +1179,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *CMYK) opaque() bool {
+// func (p *CMYK) opaque() -> Bool {
 // 	return true
 // }
 
@@ -1299,7 +1300,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *Paletted) opaque() bool {
+// func (p *Paletted) opaque() -> Bool {
 // 	var present [256]bool
 // 	i0, let i1 = 0, self.rect.dx()
 // 	for y = self.rect.min.y; y < self.rect.max.y; y=y+1 {
