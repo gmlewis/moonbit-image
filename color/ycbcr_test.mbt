@@ -94,16 +94,16 @@ test "NYCbCrA colors are a superset of Alpha colors" {
   }
 }
 
-// // TestNYCbCrAYCbCr tests that NYCbCrA colors are a superset of YCbCr colors.
-// func TestNYCbCrAYCbCr(t *testing.T) {
-// 	for i := 0; i < 256; i++ {
-// 		c0 := NYCbCrA{YCbCr{uint8(i), 0x40, 0xc0}, 0xff}
-// 		c1 := YCbCr{uint8(i), 0x40, 0xc0}
-// 		if err := eq(c0, c1); err != nil {
-// 			t.Errorf("i=0x%02x:\n%v", i, err)
-// 		}
-// 	}
-// }
+test "NYCbCrA colors are a superset of YCbCr colors" {
+  // func TestNYCbCrAYCbCr(t *testing.T) {
+  for i = 0; i < 256; i = i + 1 {
+    let c0 : @color.NYCbCrA = { y: i.to_byte(), cb: 0x40, cr: 0xc0, a: 0xff }
+    let c1 : @color.YCbCr = { y: i.to_byte(), cb: 0x40, cr: 0xc0 }
+    let err = eq(c0, c1)
+    guard let None = err else { _ => raise EqError("i=\{i}:\n\{err}") }
+
+  }
+}
 
 // // TestCMYKRoundtrip tests that a subset of RGB space can be converted to CMYK
 // // and back to within 1/256 tolerance.
