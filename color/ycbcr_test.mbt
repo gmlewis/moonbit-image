@@ -12,16 +12,19 @@ fn delta(x : Byte, y : Byte) -> Byte {
   return y - x
 }
 
-type! EqError String
+type! EqError String derive(Show)
 
-fn eq(c0 : @color.Color, c1 : @color.Color) -> Unit!EqError {
+fn eq(c0 : @color.Color, c1 : @color.Color) -> EqError? {
   let (r0, g0, b0, a0) = c0.rgba()
   let (r1, g1, b1, a1) = c1.rgba()
   if r0 != r1 || g0 != g1 || b0 != b1 || a0 != a1 {
-    raise EqError(
-      "got (\{r0}, \{g0}, \{b0}, \{a0})\nwant (\{r1}, \{g1}, \{b1}, \{a1})",
+    return Some(
+      EqError(
+        "got (\{r0}, \{g0}, \{b0}, \{a0})\nwant (\{r1}, \{g1}, \{b1}, \{a1})",
+      ),
     )
   }
+  None
 }
 
 test "a subset of RGB space can be converted to YCbCr and back to within 2/256 tolerance" {
@@ -69,16 +72,16 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
   }
 }
 
-// // TestYCbCrGray tests that YCbCr colors are a superset of Gray colors.
-// func TestYCbCrGray(t *testing.T) {
-// 	for i := 0; i < 256; i++ {
-// 		c0 := YCbCr{uint8(i), 0x80, 0x80}
-// 		c1 := Gray{uint8(i)}
-// 		if err := eq(c0, c1); err != nil {
-// 			t.Errorf("i=0x%02x:\n%v", i, err)
-// 		}
-// 	}
-// }
+test "YCbCr colors are a superset of Gray colors" {
+  // func TestYCbCrGray(t *testing.T) {
+  for i = 0; i < 256; i = i + 1 {
+    let c0 : @color.YCbCr = { y: i.to_byte(), cb: 0x80, cr: 0x80 }
+    let c1 : @color.Gray = { y: i.to_byte() }
+    let err = eq(c0, c1)
+    guard let None = err else { _ => raise EqError("i=\{i}:\n\{err}") }
+
+  }
+}
 
 // // TestNYCbCrAAlpha tests that NYCbCrA colors are a superset of Alpha colors.
 // func TestNYCbCrAAlpha(t *testing.T) {
