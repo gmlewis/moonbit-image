@@ -373,59 +373,70 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
   }
 }
 
-// // NRGBA is an in-memory image whose At method returns [color.NRGBA] values.
-// type NRGBA struct {
-// 	// pix holds the image's pixels, in R, G, B, A order. The pixel at
-// 	// (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
-// 	pix []Byte
-// 	// stride is the pix stride (in bytes) between vertically adjacent pixels.
-// 	stride int
-// 	// Rect is the image's bounds.
-// 	Rect Rectangle
-// }
+// NRGBA is an in-memory image whose At method returns [color.NRGBA] values.
+pub struct NRGBA {
+  // pix holds the image's pixels, in R, G, B, A order. The pixel at
+  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
+  pix : ArrayView[Byte]
+  // stride is the pix stride (in bytes) between vertically adjacent pixels.
+  stride : Int
+  // Rect is the image's bounds.
+  rect : Rectangle
+}
 
-// func (p *NRGBA) color_model() color.Model { return color.NRGBAModel }
+pub fn color_model(self : NRGBA) -> @color.Model {
+  @color.nrgba_model
+}
 
-// func (p *NRGBA) bounds() Rectangle { return p.rect }
+pub fn bounds(self : NRGBA) -> Rectangle {
+  self.rect
+}
 
-// func (p *NRGBA) At(x, y int) color.Color {
-// 	return p.Nrgba_at(x, y)
-// }
+pub fn at(self : NRGBA, x : Int, y : Int) -> @color.Color {
+  self.nrgba_at(x, y)
+}
 
-// func (p *NRGBA) rgba64_at(x, y int) color.RGBA64 {
-// 	r, g, b, let a = p.Nrgba_at(x, y).RGBA()
-// 	return color.RGBA64{uint16(r), uint16(g), uint16(b), uint16(a)}
-// }
+pub fn rgba64_at(self : NRGBA, x : Int, y : Int) -> @color.RGBA64 {
+  let (r, g, b, a) = self.nrgba_at(x, y).rgba()
+  @color.RGBA64::new(r, g, b, a)
+}
 
-// func (p *NRGBA) Nrgba_at(x, y int) color.NRGBA {
-// 	if !(pt(x,y).is_in(self.rect)) {
-// 		return color.NRGBA{}
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	let s = self.pix[i : i+4 : i+4] // Small cap improves performance, see https://golang.org/issue/27857
-// 	return color.NRGBA{s[0], s[1], s[2], s[3]}
-// }
+pub fn nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
+  if not(pt(x, y).is_in(self.rect)) {
+    return @color.NRGBA::new(0, 0, 0, 0)
+  }
+  let i = self.pix_offset(x, y)
+  @color.NRGBA::new(
+    self.pix[i + 0],
+    self.pix[i + 1],
+    self.pix[i + 2],
+    self.pix[i + 3],
+  )
+}
 
-// // pix_offset returns the index of the first element of pix that corresponds to
-// // the pixel at (x, y).
-// func (p *NRGBA) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*4
-// }
+// pix_offset returns the index of the first element of pix that corresponds to
+// the pixel at (x, y).
+pub fn pix_offset(self : NRGBA, x : Int, y : Int) -> Int {
+  (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
+}
 
-// func (p *NRGBA) Set(x, y int, c color.Color) {
-// 	if !(pt(x,y).is_in(self.rect)) {
-// 		return
-// 	}
-// 	let i = self.pix_offset(x, y)
-// 	let c1 = color.NRGBAModel.Convert(c).(color.NRGBA)
-// 	let s = self.pix[i : i+4 : i+4] // Small cap improves performance, see https://golang.org/issue/27857
-// 	s[0] = c1.R
-// 	s[1] = c1.G
-// 	s[2] = c1.B
-// 	s[3] = c1.A
-// }
+pub fn op_set(self : NRGBA, p : Point, c : @color.Color) -> Unit {
+  self.set(p.x, p.y, c)
+}
 
-// func (p *NRGBA) set_rgba64(x, y int, c color.RGBA64) {
+pub fn set(self : NRGBA, x : Int, y : Int, c : @color.Color) -> Unit {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let i = self.pix_offset(x, y)
+  let (r, g, b, a) = @color.nrgba_model.convert(c).rgba() // .(color.NRGBA)
+  self.pix[i + 0] = (r >> 8).to_byte()
+  self.pix[i + 1] = (g >> 8).to_byte()
+  self.pix[i + 2] = (b >> 8).to_byte()
+  self.pix[i + 3] = (a >> 8).to_byte()
+}
+
+// pub fn set_rgba64(self: NRGBA, x, y int, c color.RGBA64) {
 // 	if !(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -443,7 +454,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // 	s[3] = Byte(a >> 8)
 // }
 
-// func (p *NRGBA) SetNRGBA(x, y int, c color.NRGBA) {
+// pub fn SetNRGBA(self: NRGBA, x, y int, c color.NRGBA) {
 // 	if !(pt(x,y).is_in(self.rect)) {
 // 		return
 // 	}
@@ -457,7 +468,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // // sub_image returns an image representing the portion of the image p visible
 // // through r. The returned value shares pixels with the original image.
-// func (p *NRGBA) sub_image(r Rectangle) Image {
+// pub fn sub_image(self: NRGBA, r Rectangle) Image {
 // 	r = r.Intersect(self.rect)
 // 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
 // 	// either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -474,7 +485,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // }
 
 // // opaque scans the entire image and reports whether it is fully opaque.
-// func (p *NRGBA) opaque() bool {
+// pub fn opaque(self: NRGBA, ) bool {
 // 	if self.rect.empty() {
 // 		return true
 // 	}
@@ -513,7 +524,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *NRGBA64) color_model() color.Model { return color.NRGBA64Model }
 
-// func (p *NRGBA64) bounds() Rectangle { return p.rect }
+// func (p *NRGBA64) bounds() Rectangle { return self.rect }
 
 // func (p *NRGBA64) At(x, y int) color.Color {
 // 	return p.Nrgba64_at(x, y)
@@ -657,7 +668,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *Alpha) color_model() color.Model { return color.AlphaModel }
 
-// func (p *Alpha) bounds() Rectangle { return p.rect }
+// func (p *Alpha) bounds() Rectangle { return self.rect }
 
 // func (p *Alpha) At(x, y int) color.Color {
 // 	return p.AlphaAt(x, y)
@@ -680,7 +691,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Alpha) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*1
+// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
 // func (p *Alpha) Set(x, y int, c color.Color) {
@@ -765,7 +776,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *Alpha16) color_model() color.Model { return color.Alpha16Model }
 
-// func (p *Alpha16) bounds() Rectangle { return p.rect }
+// func (p *Alpha16) bounds() Rectangle { return self.rect }
 
 // func (p *Alpha16) At(x, y int) color.Color {
 // 	return p.Alpha16At(x, y)
@@ -787,7 +798,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Alpha16) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*2
+// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*2
 // }
 
 // func (p *Alpha16) Set(x, y int, c color.Color) {
@@ -876,7 +887,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *Gray) color_model() color.Model { return color.GrayModel }
 
-// func (p *Gray) bounds() Rectangle { return p.rect }
+// func (p *Gray) bounds() Rectangle { return self.rect }
 
 // func (p *Gray) At(x, y int) color.Color {
 // 	return p.GrayAt(x, y)
@@ -899,7 +910,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Gray) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*1
+// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
 // func (p *Gray) Set(x, y int, c color.Color) {
@@ -973,7 +984,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *Gray16) color_model() color.Model { return color.Gray16Model }
 
-// func (p *Gray16) bounds() Rectangle { return p.rect }
+// func (p *Gray16) bounds() Rectangle { return self.rect }
 
 // func (p *Gray16) At(x, y int) color.Color {
 // 	return p.Gray16At(x, y)
@@ -995,7 +1006,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Gray16) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*2
+// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*2
 // }
 
 // func (p *Gray16) Set(x, y int, c color.Color) {
@@ -1073,7 +1084,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *CMYK) color_model() color.Model { return color.CMYKModel }
 
-// func (p *CMYK) bounds() Rectangle { return p.rect }
+// func (p *CMYK) bounds() Rectangle { return self.rect }
 
 // func (p *CMYK) At(x, y int) color.Color {
 // 	return p.CMYKAt(x, y)
@@ -1096,7 +1107,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *CMYK) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*4
+// 	return (y-self.rect.min.y)*self.stride + (x-self.rect.min.x)*4
 // }
 
 // func (p *CMYK) Set(x, y int, c color.Color) {
@@ -1184,7 +1195,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 
 // func (p *Paletted) color_model() color.Model { return p.Palette }
 
-// func (p *Paletted) bounds() Rectangle { return p.rect }
+// func (p *Paletted) bounds() Rectangle { return self.rect }
 
 // func (p *Paletted) At(x, y int) color.Color {
 // 	if len(p.Palette) == 0 {
@@ -1220,7 +1231,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // // pix_offset returns the index of the first element of pix that corresponds to
 // // the pixel at (x, y).
 // func (p *Paletted) pix_offset(x, y int) int {
-// 	return (y-p.rect.Min.Y)*self.stride + (x-p.rect.Min.X)*1
+// 	return (y-self.rect.Min.Y)*self.stride + (x-self.rect.Min.X)*1
 // }
 
 // func (p *Paletted) Set(x, y int, c color.Color) {
@@ -1271,7 +1282,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
 // 	return &Paletted{
 // 		pix:     self.pix[i:],
 // 		stride:  self.stride,
-// 		Rect:    p.rect.Intersect(r),
+// 		Rect:    self.rect.Intersect(r),
 // 		Palette: p.Palette,
 // 	}
 // }
