@@ -80,6 +80,15 @@ pub struct Rectangle {
   max : Point
 }
 
+pub fn Rectangle::new() -> Rectangle {
+  { min: pt(0, 0), max: pt(0, 0) }
+}
+
+/// copy makes a copy of the provided rectangle without changing it.
+pub fn copy(self : Rectangle) -> Rectangle {
+  { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+}
+
 /// to_string returns a string representation of r like "(3,4)-(6,5)".
 pub fn to_string(self : Rectangle) -> String {
   "\{self.min}-\{self.max}"
@@ -120,7 +129,7 @@ pub fn sub(self : Rectangle, p : Point) -> Rectangle {
 /// of r's dimensions is less than 2*n then an empty rectangle near the center
 /// of r will be returned.
 pub fn inset(self : Rectangle, n : Int) -> Rectangle {
-  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  let r = self.copy()
   if r.dx() < 2 * n {
     r.min.x = (r.min.x + r.max.x) / 2
     r.max.x = r.min.x
@@ -141,7 +150,7 @@ pub fn inset(self : Rectangle, n : Int) -> Rectangle {
 /// intersect returns the largest rectangle contained by both r and s. If the
 /// two rectangles do not overlap then the zero rectangle will be returned.
 pub fn intersect(self : Rectangle, s : Rectangle) -> Rectangle {
-  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  let r = self.copy()
   if r.min.x < s.min.x {
     r.min.x = s.min.x
   }
@@ -159,14 +168,14 @@ pub fn intersect(self : Rectangle, s : Rectangle) -> Rectangle {
   //
   // if max(r0.Min.X, s0.Min.X) >= min(r0.Max.X, s0.Max.X) || likewiseForY { etc }
   if r.empty() {
-    return { min: pt(0, 0), max: pt(0, 0) }
+    return Rectangle::new()
   }
   r
 }
 
 /// union returns the smallest rectangle that contains both r and s.
 pub fn union(self : Rectangle, s : Rectangle) -> Rectangle {
-  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  let r = self.copy()
   if r.empty() {
     return s
   }
@@ -225,7 +234,7 @@ pub fn is_in(self : Rectangle, s : Rectangle) -> Bool {
 /// canon returns the canonical version of r. The returned rectangle has minimum
 /// and maximum coordinates swapped if necessary so that it is well-formed.
 pub fn canon(self : Rectangle) -> Rectangle {
-  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  let r = self.copy()
   if r.max.x < r.min.x {
     let tmp = r.min.x
     r.min.x = r.max.x
