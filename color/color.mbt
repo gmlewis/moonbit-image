@@ -350,3 +350,22 @@ pub let white : Gray16 = { y: 0xffff }
 pub let transparent : Alpha16 = { a: 0 }
 
 pub let opaque : Alpha16 = { a: 0xffff }
+
+test "sq_diff" {
+  // canonical sqDiff implementation
+  let orig = fn(x : UInt, y : UInt) -> UInt {
+    let d = if x > y { x - y } else { y - x }
+    (d * d) >> 2
+  }
+  let test_cases = [
+    0U, 1, 2, 0x0fffd, 0x0fffe, 0x0ffff, 0x10000, 0x10001, 0x10002, 0xfffffffd, 0xfffffffe,
+    0xffffffff,
+  ]
+  for x in test_cases {
+    for y in test_cases {
+      let got = sq_diff(x, y)
+      let want = orig(x, y)
+      assert_eq!(got, want)
+    }
+  }
+}
