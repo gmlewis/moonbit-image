@@ -42,25 +42,32 @@ test "a subset of RGB space can be converted to YCbCr and back to within 2/256 t
   }
 }
 
-// // TestYCbCrToRGBConsistency tests that calling the RGBA method (16 bit color)
-// // then truncating to 8 bits is equivalent to calling the YCbCrToRGB function (8
-// // bit color).
-// func TestYCbCrToRGBConsistency(t *testing.T) {
-// 	for y := 0; y < 256; y += 7 {
-// 		for cb := 0; cb < 256; cb += 5 {
-// 			for cr := 0; cr < 256; cr += 3 {
-// 				x := YCbCr{uint8(y), uint8(cb), uint8(cr)}
-// 				r0, g0, b0, _ := x.RGBA()
-// 				r1, g1, b1 := uint8(r0>>8), uint8(g0>>8), uint8(b0>>8)
-// 				r2, g2, b2 := YCbCrToRGB(x.Y, x.Cb, x.Cr)
-// 				if r1 != r2 || g1 != g2 || b1 != b2 {
-// 					t.Fatalf("y, cb, cr = %d, %d, %d\nr1, g1, b1 = %d, %d, %d\nr2, g2, b2 = %d, %d, %d",
-// 						y, cb, cr, r1, g1, b1, r2, g2, b2)
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+test "calling the RGBA method (16 bit color) then truncating to 8 bits is equivalent to calling the YCbCrToRGB function (8 bit color)" {
+  // func TestYCbCrToRGBConsistency(t *testing.T) {
+  for y = 0; y < 256; y = y + 7 {
+    for cb = 0; cb < 256; cb = cb + 5 {
+      for cr = 0; cr < 256; cr = cr + 3 {
+        let x : @color.YCbCr = {
+          y: y.to_byte(),
+          cb: cb.to_byte(),
+          cr: cr.to_byte(),
+        }
+        let (r0, g0, b0, _) = x.rgba()
+        let (r1, g1, b1) = (
+          (r0 >> 8).to_byte(),
+          (g0 >> 8).to_byte(),
+          (b0 >> 8).to_byte(),
+        )
+        let (r2, g2, b2) = @color.y_cb_cr_to_rgb(x.y, x.cb, x.cr)
+        if r1 != r2 || g1 != g2 || b1 != b2 {
+          raise EqError(
+            "y, cb, cr = \{y}, \{cb}, \{cr}\nr1, g1, b1 = \{r1}, \{g1}, \{b1}\nr2, g2, b2 = \{r2}, \{g2}, \{b2}",
+          )
+        }
+      }
+    }
+  }
+}
 
 // // TestYCbCrGray tests that YCbCr colors are a superset of Gray colors.
 // func TestYCbCrGray(t *testing.T) {
