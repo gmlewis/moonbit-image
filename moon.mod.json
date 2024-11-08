@@ -1,0 +1,14 @@
+{
+  "name": "gmlewis/image",
+  "version": "0.1.0",
+  "deps": {},
+  "readme": "README.md",
+  "repository": "https://github.com/gmlewis/moonbit-image",
+  "license": "Apache-2.0",
+  "keywords": [
+    "image",
+    "color",
+    "moonbit"
+  ],
+  "description": "MoonBit image: simple image representation."
+}
