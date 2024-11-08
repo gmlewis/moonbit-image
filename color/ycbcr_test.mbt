@@ -153,14 +153,16 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
   }
 }
 
-// // TestCMYKGray tests that CMYK colors are a superset of Gray colors.
-// func TestCMYKGray(t *testing.T) {
-// 	for i := 0; i < 256; i++ {
-// 		if err := eq(CMYK{0x00, 0x00, 0x00, uint8(255 - i)}, Gray{uint8(i)}); err != nil {
-// 			t.Errorf("i=0x%02x:\n%v", i, err)
-// 		}
-// 	}
-// }
+test "CMYK colors are a superset of Gray colors" {
+  // func TestCMYKGray(t *testing.T) {
+  for i = 0; i < 256; i = i + 1 {
+    let c0 : @color.CMYK = { c: 0, m: 0, y: 0, k: (255 - i).to_byte() }
+    let c1 : @color.Gray = { y: i.to_byte() }
+    let err = eq(c0, c1)
+    guard let None = err else { _ => raise EqError("i=\{i}:\n\{err}") }
+
+  }
+}
 
 // func TestPalette(t *testing.T) {
 // 	p := Palette{
