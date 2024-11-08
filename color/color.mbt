@@ -20,6 +20,23 @@ pub trait Color {
   rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
 
+impl Show for Color with output(self, logger) {
+  // let (r, g, b, a) = self.rgba()
+  // logger.write_string("@color.RGBA::{r:\{r},g:\{g},b:\{b},a:\{a}}")
+  logger.write_string(self.to_string())
+}
+
+pub fn to_string(self : Color) -> String {
+  let (r, g, b, a) = self.rgba()
+  "@color.RGBA::{r:\{r},g:\{g},b:\{b},a:\{a}}"
+}
+
+pub fn op_equal(self : Color, o : Color) -> Bool {
+  let (r0, g0, b0, a0) = self.rgba()
+  let (r1, g1, b1, a1) = o.rgba()
+  r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
+}
+
 /// RGBA represents a traditional 32-bit alpha-premultiplied color, having 8
 /// bits for each of red, green, blue and alpha.
 ///
@@ -30,6 +47,10 @@ pub struct RGBA {
   g : Byte
   b : Byte
   a : Byte
+} derive(Show, Eq)
+
+pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
+  { r, g, b, a }
 }
 
 pub fn rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
@@ -50,6 +71,10 @@ pub struct RGBA64 {
   g : UInt // 16 bits
   b : UInt // 16 bits
   a : UInt // 16 bits
+} derive(Show, Eq)
+
+pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
+  { r, g, b, a }
 }
 
 pub fn rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
@@ -62,6 +87,10 @@ pub struct NRGBA {
   g : Byte
   b : Byte
   a : Byte
+} derive(Show, Eq)
+
+pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
+  { r, g, b, a }
 }
 
 pub fn rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
@@ -86,6 +115,10 @@ pub struct NRGBA64 {
   g : UInt // 16 bits
   b : UInt // 16 bits
   a : UInt // 16 bits
+} derive(Show, Eq)
+
+pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
+  { r, g, b, a }
 }
 
 pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
@@ -98,6 +131,10 @@ pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
 /// Alpha represents an 8-bit alpha color.
 pub struct Alpha {
   a : Byte
+} derive(Show, Eq)
+
+pub fn Alpha::new(a : Byte) -> Alpha {
+  { a, }
 }
 
 pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
@@ -108,6 +145,10 @@ pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
 /// Alpha16 represents a 16-bit alpha color.
 pub struct Alpha16 {
   a : UInt // 16 bits
+} derive(Show, Eq)
+
+pub fn Alpha16::new(a : UInt) -> Alpha16 {
+  { a, }
 }
 
 pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
@@ -117,6 +158,10 @@ pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
 /// Gray represents an 8-bit grayscale color.
 pub struct Gray {
   y : Byte
+} derive(Show, Eq)
+
+pub fn Gray::new(y : Byte) -> Gray {
+  { y, }
 }
 
 pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
@@ -127,6 +172,10 @@ pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
 /// Gray16 represents a 16-bit grayscale color.
 pub struct Gray16 {
   y : UInt // 16 bits
+} derive(Show, Eq)
+
+pub fn Gray16::new(y : UInt) -> Gray16 {
+  { y, }
 }
 
 pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
@@ -293,7 +342,7 @@ pub fn index(self : Palette, c : Color) -> Int {
 
   let (cr, cg, cb, ca) = c.rgba()
   let mut ret = 0
-  let mut best_sum = (1U << 32) - 1
+  let mut best_sum = @uint.max_value
   for i, v in self._ {
     let (vr, vg, vb, va) = v.rgba()
     let sum = sq_diff(cr, vr) +

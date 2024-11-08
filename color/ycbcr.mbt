@@ -171,7 +171,7 @@ pub struct YCbCr {
   y : Byte
   cb : Byte
   cr : Byte
-}
+} derive(Show, Eq)
 
 pub fn rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the y_cb_cr_to_rgb function above, except that it
@@ -250,7 +250,7 @@ pub struct NYCbCrA {
   cb : Byte
   cr : Byte
   a : Byte
-}
+} derive(Show, Eq)
 
 pub fn rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
   // The first part of this method is the same as YCbCr.RGBA.
@@ -371,7 +371,7 @@ pub struct CMYK {
   m : Byte
   y : Byte
   k : Byte
-}
+} derive(Show, Eq)
 
 pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the cmyk_to_rgb function above, except that it

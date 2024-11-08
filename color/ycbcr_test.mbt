@@ -164,31 +164,32 @@ test "CMYK colors are a superset of Gray colors" {
   }
 }
 
-// func TestPalette(t *testing.T) {
-// 	p := Palette{
-// 		RGBA{0xff, 0xff, 0xff, 0xff},
-// 		RGBA{0x80, 0x00, 0x00, 0xff},
-// 		RGBA{0x7f, 0x00, 0x00, 0x7f},
-// 		RGBA{0x00, 0x00, 0x00, 0x7f},
-// 		RGBA{0x00, 0x00, 0x00, 0x00},
-// 		RGBA{0x40, 0x40, 0x40, 0x40},
-// 	}
-// 	// Check that, for a Palette with no repeated colors, the closest color to
-// 	// each element is itself.
-// 	for i, c := range p {
-// 		j := p.Index(c)
-// 		if i != j {
-// 			t.Errorf("Index(%v): got %d (color = %v), want %d", c, j, p[j], i)
-// 		}
-// 	}
-// 	// Check that finding the closest color considers alpha, not just red,
-// 	// green and blue.
-// 	got := p.Convert(RGBA{0x80, 0x00, 0x00, 0x80})
-// 	want := RGBA{0x7f, 0x00, 0x00, 0x7f}
-// 	if got != want {
-// 		t.Errorf("got %v, want %v", got, want)
-// 	}
-// }
+test "palette" {
+  // func TestPalette(t *testing.T) {
+  let p : @color.Palette = [
+    @color.RGBA::new(0xff, 0xff, 0xff, 0xff),
+    @color.RGBA::new(0x80, 0x00, 0x00, 0xff),
+    @color.RGBA::new(0x7f, 0x00, 0x00, 0x7f),
+    @color.RGBA::new(0x00, 0x00, 0x00, 0x7f),
+    @color.RGBA::new(0x00, 0x00, 0x00, 0x00),
+    @color.RGBA::new(0x40, 0x40, 0x40, 0x40),
+  ]
+  // Check that, for a Palette with no repeated colors, the closest color to
+  // each element is itself.
+  for i, c in p._ {
+    let j = p.index(c)
+    if i != j {
+      raise EqError("Index(\{c}): got \{j} (color = \{p._[j]}), want \{i}")
+    }
+  }
+  // Check that finding the closest color considers alpha, not just red,
+  // green and blue.
+  let got = p.convert(@color.RGBA::new(0x80, 0x00, 0x00, 0x80))
+  let want = @color.RGBA::new(0x7f, 0x00, 0x00, 0x7f)
+  if got != want {
+    raise EqError("got \{got}, want \{want}")
+  }
+}
 
 // var sink8 uint8
 // var sink32 uint32
