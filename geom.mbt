@@ -274,36 +274,33 @@ pub fn rect(x0 : Int, y0 : Int, x1 : Int, y1 : Int) -> Rectangle {
   { min: pt(x0, y0), max: pt(x1, y1) }
 }
 
-// // mul3NonNeg returns (x * y * z), unless at least one argument is negative or
-// // if the computation overflows the int type, in which case it returns -1.
-// func mul3NonNeg(x int, y int, z int) int {
-// 	if (x < 0) || (y < 0) || (z < 0) {
-// 		return -1
-// 	}
-// 	hi, lo := bits.Mul64(uint64(x), uint64(y))
-// 	if hi != 0 {
-// 		return -1
-// 	}
-// 	hi, lo = bits.Mul64(lo, uint64(z))
-// 	if hi != 0 {
-// 		return -1
-// 	}
-// 	a := int(lo)
-// 	if (a < 0) || (uint64(a) != lo) {
-// 		return -1
-// 	}
-// 	return a
-// }
+/// mul3_non_neg returns (x * y * z), unless at least one argument is negative or
+/// if the computation overflows the int type, in which case it returns -1.
+pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
+  if x < 0 || y < 0 || z < 0 {
+    return -1
+  }
+  let v = BigInt::from_int(x) * BigInt::from_int(y) * BigInt::from_int(z)
+  if v > BigInt::from_int(@int.max_value) {
+    return -1
+  }
+  let s = v.to_string()
+  try {
+    @strconv.parse_int!(s)
+  } catch {
+    _ => return -1
+  }
+}
 
-// // add2NonNeg returns (x + y), unless at least one argument is negative or if
-// // the computation overflows the int type, in which case it returns -1.
-// func add2NonNeg(x int, y int) int {
-// 	if (x < 0) || (y < 0) {
-// 		return -1
-// 	}
-// 	a := x + y
-// 	if a < 0 {
-// 		return -1
-// 	}
-// 	return a
-// }
+/// add2_non_neg returns (x + y), unless at least one argument is negative or if
+/// the computation overflows the int type, in which case it returns -1.
+pub fn add2_non_neg(x : Int, y : Int) -> Int {
+  if x < 0 || y < 0 {
+    return -1
+  }
+  let a = x + y
+  if a < 0 {
+    return -1
+  }
+  a
+}
