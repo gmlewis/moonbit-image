@@ -7,8 +7,8 @@
 
 // A Point is an X, Y coordinate pair. The axes increase right and down.
 pub struct Point {
-  x : Int
-  y : Int
+  mut x : Int
+  mut y : Int
 }
 
 /// to_string returns a string representation of p like "(3,4)".
@@ -41,36 +41,31 @@ pub fn is_in(self : Point, r : Rectangle) -> Bool {
   r.min.x <= self.x && self.x < r.max.x && r.min.y <= self.y && self.y < r.max.y
 }
 
-// // Mod returns the point q in r such that p.X-q.X is a multiple of r's width
-// // and p.Y-q.Y is a multiple of r's height.
-// func (p Point) Mod(r Rectangle) Point {
-// 	w, h := r.Dx(), r.Dy()
-// 	p = p.Sub(r.Min)
-// 	p.X = p.X % w
-// 	if p.X < 0 {
-// 		p.X += w
-// 	}
-// 	p.Y = p.Y % h
-// 	if p.Y < 0 {
-// 		p.Y += h
-// 	}
-// 	return p.Add(r.Min)
-// }
+/// mod returns the point q in r such that p.X-q.X is a multiple of r's width
+/// and p.Y-q.Y is a multiple of r's height.
+pub fn mod(self : Point, r : Rectangle) -> Point {
+  let (w, h) = (r.dx(), r.dy())
+  let p = self - r.min
+  p.x = p.x % w
+  if p.x < 0 {
+    p.x += w
+  }
+  p.y = p.y % h
+  if p.y < 0 {
+    p.y += h
+  }
+  p + r.min
+}
 
-// // Eq reports whether p and q are equal.
-// func (p Point) Eq(q Point) bool {
-// 	return p == q
-// }
+/// op_equal reports whether p and q are equal.
+pub fn op_equal(self : Point, q : Point) -> Bool {
+  self.x == q.x && self.y == q.y
+}
 
-// // ZP is the zero [Point].
-// //
-// // Deprecated: Use a literal [image.Point] instead.
-// var ZP Point
-
-// // Pt is shorthand for [Point]{X, Y}.
-// func Pt(X, Y int) Point {
-// 	return Point{X, Y}
-// }
+/// pt is shorthand for [Point]{X, Y}.
+pub fn pt(x : Int, y : Int) -> Point {
+  { x, y }
+}
 
 /// A Rectangle contains the points with Min.X <= X < Max.X, Min.Y <= Y < Max.Y.
 /// It is well-formed if Min.X <= Max.X and likewise for Y. Points are always
@@ -85,90 +80,90 @@ pub struct Rectangle {
   max : Point
 }
 
-// // String returns a string representation of r like "(3,4)-(6,5)".
-// func (r Rectangle) String() string {
-// 	return r.Min.String() + "-" + r.Max.String()
-// }
+/// to_string returns a string representation of r like "(3,4)-(6,5)".
+pub fn to_string(self : Rectangle) -> String {
+  "\{self.min}-\{self.max}"
+}
 
-// // Dx returns r's width.
-// func (r Rectangle) Dx() int {
-// 	return r.Max.X - r.Min.X
-// }
+/// dx returns r's width.
+pub fn dx(self : Rectangle) -> Int {
+  self.max.x - self.min.x
+}
 
-// // Dy returns r's height.
-// func (r Rectangle) Dy() int {
-// 	return r.Max.Y - r.Min.Y
-// }
+/// dy returns r's height.
+pub fn dy(self : Rectangle) -> Int {
+  self.max.y - self.min.y
+}
 
-// // Size returns r's width and height.
-// func (r Rectangle) Size() Point {
-// 	return Point{
-// 		r.Max.X - r.Min.X,
-// 		r.Max.Y - r.Min.Y,
-// 	}
-// }
+/// size returns r's width and height.
+pub fn size(self : Rectangle) -> Point {
+  { x: self.max.x - self.min.x, y: self.max.y - self.min.y }
+}
 
-// // Add returns the rectangle r translated by p.
-// func (r Rectangle) Add(p Point) Rectangle {
-// 	return Rectangle{
-// 		Point{r.Min.X + p.X, r.Min.Y + p.Y},
-// 		Point{r.Max.X + p.X, r.Max.Y + p.Y},
-// 	}
-// }
+/// add returns the rectangle r translated by p.
+pub fn add(self : Rectangle, p : Point) -> Rectangle {
+  {
+    min: pt(self.min.x + p.x, self.min.y + p.y),
+    max: pt(self.max.x + p.x, self.max.y + p.y),
+  }
+}
 
-// // Sub returns the rectangle r translated by -p.
-// func (r Rectangle) Sub(p Point) Rectangle {
-// 	return Rectangle{
-// 		Point{r.Min.X - p.X, r.Min.Y - p.Y},
-// 		Point{r.Max.X - p.X, r.Max.Y - p.Y},
-// 	}
-// }
+/// sub returns the rectangle r translated by -p.
+pub fn sub(self : Rectangle, p : Point) -> Rectangle {
+  {
+    min: pt(self.min.x - p.x, self.min.y - p.y),
+    max: pt(self.max.x - p.x, self.max.y - p.y),
+  }
+}
 
-// // Inset returns the rectangle r inset by n, which may be negative. If either
-// // of r's dimensions is less than 2*n then an empty rectangle near the center
-// // of r will be returned.
-// func (r Rectangle) Inset(n int) Rectangle {
-// 	if r.Dx() < 2*n {
-// 		r.Min.X = (r.Min.X + r.Max.X) / 2
-// 		r.Max.X = r.Min.X
-// 	} else {
-// 		r.Min.X += n
-// 		r.Max.X -= n
-// 	}
-// 	if r.Dy() < 2*n {
-// 		r.Min.Y = (r.Min.Y + r.Max.Y) / 2
-// 		r.Max.Y = r.Min.Y
-// 	} else {
-// 		r.Min.Y += n
-// 		r.Max.Y -= n
-// 	}
-// 	return r
-// }
+/// inset returns the rectangle r inset by n, which may be negative. If either
+/// of r's dimensions is less than 2*n then an empty rectangle near the center
+/// of r will be returned.
+pub fn inset(self : Rectangle, n : Int) -> Rectangle {
+  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  if r.dx() < 2 * n {
+    r.min.x = (r.min.x + r.max.x) / 2
+    r.max.x = r.min.x
+  } else {
+    r.min.x += n
+    r.max.x -= n
+  }
+  if r.dy() < 2 * n {
+    r.min.y = (r.min.y + r.max.y) / 2
+    r.max.y = r.min.y
+  } else {
+    r.min.y += n
+    r.max.y -= n
+  }
+  r
+}
 
-// // Intersect returns the largest rectangle contained by both r and s. If the
-// // two rectangles do not overlap then the zero rectangle will be returned.
-// func (r Rectangle) Intersect(s Rectangle) Rectangle {
-// 	if r.Min.X < s.Min.X {
-// 		r.Min.X = s.Min.X
-// 	}
-// 	if r.Min.Y < s.Min.Y {
-// 		r.Min.Y = s.Min.Y
-// 	}
-// 	if r.Max.X > s.Max.X {
-// 		r.Max.X = s.Max.X
-// 	}
-// 	if r.Max.Y > s.Max.Y {
-// 		r.Max.Y = s.Max.Y
-// 	}
-// 	// Letting r0 and s0 be the values of r and s at the time that the method
-// 	// is called, this next line is equivalent to:
-// 	//
-// 	// if max(r0.Min.X, s0.Min.X) >= min(r0.Max.X, s0.Max.X) || likewiseForY { etc }
-// 	if r.Empty() {
-// 		return ZR
-// 	}
-// 	return r
-// }
+/// intersect returns the largest rectangle contained by both r and s. If the
+/// two rectangles do not overlap then the zero rectangle will be returned.
+pub fn intersect(self : Rectangle, s : Rectangle) -> Rectangle {
+  // func (r Rectangle) Intersect(s Rectangle) Rectangle {
+  let r = { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  if r.min.x < s.min.x {
+    r.min.x = s.min.x
+  }
+  if r.min.y < s.min.y {
+    r.min.y = s.min.y
+  }
+  if r.max.x > s.max.x {
+    r.max.x = s.max.x
+  }
+  if r.max.y > s.max.y {
+    r.max.y = s.max.y
+  }
+  // Letting r0 and s0 be the values of r and s at the time that the method
+  // is called, this next line is equivalent to:
+  //
+  // if max(r0.Min.X, s0.Min.X) >= min(r0.Max.X, s0.Max.X) || likewiseForY { etc }
+  if r.empty() {
+    return { min: pt(0, 0), max: pt(0, 0) }
+  }
+  r
+}
 
 // // Union returns the smallest rectangle that contains both r and s.
 // func (r Rectangle) Union(s Rectangle) Rectangle {
@@ -193,10 +188,10 @@ pub struct Rectangle {
 // 	return r
 // }
 
-// // Empty reports whether the rectangle contains no points.
-// func (r Rectangle) Empty() bool {
-// 	return r.Min.X >= r.Max.X || r.Min.Y >= r.Max.Y
-// }
+/// empty reports whether the rectangle contains no points.
+pub fn empty(self : Rectangle) -> Bool {
+  self.min.x >= self.max.x || self.min.y >= self.max.y
+}
 
 // // Eq reports whether r and s contain the same set of points. All empty
 // // rectangles are considered equal.
@@ -259,11 +254,6 @@ pub struct Rectangle {
 // func (r Rectangle) ColorModel() color.Model {
 // 	return color.Alpha16Model
 // }
-
-// // ZR is the zero [Rectangle].
-// //
-// // Deprecated: Use a literal [image.Rectangle] instead.
-// var ZR Rectangle
 
 // // Rect is shorthand for [Rectangle]{Pt(x0, y0), [Pt](x1, y1)}. The returned
 // // rectangle has minimum and maximum coordinates swapped if necessary so that
