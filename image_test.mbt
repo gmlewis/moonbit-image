@@ -197,36 +197,33 @@ test "new xxx bad rectangle" {
   }
 }
 
-// func Test16BitsPerColorChannel(t *testing.T) {
-// 	testcolor_model := []@color.Model{
-// 		@color.RGBA64Model,
-// 		@color.NRGBA64Model,
-// 		@color.Alpha16Model,
-// 		@color.Gray16Model,
-// 	}
-// 	for _, cm := range testcolor_model {
-// 		c := cm.convert(@color.RGBA64{0x1234, 0x1234, 0x1234, 0x1234}) // Premultiplied alpha.
-// 		r, _, _, _ := c.rgba()
-// 		if r != 0x1234 {
-// 			raise TestError("%T: want red value 0x%04x got 0x%04x", c, 0x1234, r)
-// 			continue
-// 		}
-// 	}
-// 	testImage := []image{
-// 		NewRGBA64(@image.rect(0, 0, 10, 10)),
-// 		NewNRGBA64(@image.rect(0, 0, 10, 10)),
-// 		NewAlpha16(@image.rect(0, 0, 10, 10)),
-// 		NewGray16(@image.rect(0, 0, 10, 10)),
-// 	}
-// 	for _, m := range testImage {
-// 		m.Set(1, 2, @color.NRGBA64{0xffff, 0xffff, 0xffff, 0x1357}) // Non-premultiplied alpha.
-// 		r, _, _, _ := m.at(1, 2).rgba()
-// 		if r != 0x1357 {
-// 			raise TestError("%T: want red value 0x%04x got 0x%04x", m, 0x1357, r)
-// 			continue
-// 		}
-// 	}
-// }
+test "16 bits per color channel" {
+  let testcolor_model = [
+    @color.rgba64_model, @color.nrgba64_model, @color.alpha16_model, @color.gray16_model,
+  ]
+  for cm in testcolor_model {
+    let c = cm.convert(@color.RGBA64::new(0x1234, 0x1234, 0x1234, 0x1234)) // Premultiplied alpha.
+    let (r, _, _, _) = c.rgba()
+    if r != 0x1234 {
+      raise TestError("\{c}: want red value 0x1234 got \{r}")
+      continue
+    }
+  }
+  let test_image : Array[Image] = [
+    @image.RGBA64::new!(@image.rect(0, 0, 10, 10)),
+    @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)),
+    @image.Alpha16::new!(@image.rect(0, 0, 10, 10)),
+    @image.Gray16::new!(@image.rect(0, 0, 10, 10)),
+  ]
+  for i, m in test_image {
+    m.set(1, 2, @color.NRGBA64::new(0xffff, 0xffff, 0xffff, 0x1357)) // Non-premultiplied alpha.
+    let (r, _, _, _) = m.at(1, 2).rgba()
+    if r != 0x1357 {
+      raise TestError("image #\{i+1}: want red value 0x1357 got \{r}")
+      continue
+    }
+  }
+}
 
 // func TestRGBA64Image(t *testing.T) {
 // 	// memset sets every element of s to v.

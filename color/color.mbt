@@ -18,17 +18,18 @@ pub trait Color {
   // An alpha-premultiplied color component c has been scaled by alpha (a),
   // so has valid values 0 <= c <= a.
   rgba(Self) -> (UInt, UInt, UInt, UInt)
+  // model reports the color model of the underlying data.
+  // This is needed because MoonBit does not have reflection.
+  model(Self) -> String
 }
 
 impl Show for Color with output(self, logger) {
-  // let (r, g, b, a) = self.rgba()
-  // logger.write_string("@color.RGBA::{r:\{r},g:\{g},b:\{b},a:\{a}}")
   logger.write_string(self.to_string())
 }
 
 pub fn to_string(self : Color) -> String {
   let (r, g, b, a) = self.rgba()
-  "@color.RGBA::{r:\{r},g:\{g},b:\{b},a:\{a}}"
+  "@color.\{self.model()}::{\{r} \{g} \{b} \{a}}"
 }
 
 pub fn op_equal(self : Color, o : Color) -> Bool {
@@ -51,6 +52,10 @@ pub struct RGBA {
 
 pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
   { r, g, b, a }
+}
+
+pub fn model(self : RGBA) -> String {
+  "RGBA"
 }
 
 pub fn rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
@@ -77,6 +82,10 @@ pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
   { r, g, b, a }
 }
 
+pub fn model(self : RGBA64) -> String {
+  "RGBA64"
+}
+
 pub fn rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
   (self.r, self.g, self.b, self.a)
 }
@@ -91,6 +100,10 @@ pub struct NRGBA {
 
 pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
   { r, g, b, a }
+}
+
+pub fn model(self : NRGBA) -> String {
+  "NRGBA"
 }
 
 pub fn rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
@@ -121,6 +134,10 @@ pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
   { r, g, b, a }
 }
 
+pub fn model(self : NRGBA64) -> String {
+  "NRGBA64"
+}
+
 pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
   let r = self.r * self.a / 0xffff
   let g = self.g * self.a / 0xffff
@@ -137,6 +154,10 @@ pub fn Alpha::new(a : Byte) -> Alpha {
   { a, }
 }
 
+pub fn model(self : Alpha) -> String {
+  "Alpha"
+}
+
 pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
   let a = self.a.to_uint() | (self.a.to_uint() << 8)
   (a, a, a, a)
@@ -149,6 +170,10 @@ pub struct Alpha16 {
 
 pub fn Alpha16::new(a : UInt) -> Alpha16 {
   { a, }
+}
+
+pub fn model(self : Alpha16) -> String {
+  "Alpha16"
 }
 
 pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
@@ -164,6 +189,10 @@ pub fn Gray::new(y : Byte) -> Gray {
   { y, }
 }
 
+pub fn model(self : Gray) -> String {
+  "Gray"
+}
+
 pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
   let y = self.y.to_uint() | (self.y.to_uint() << 8)
   (y, y, y, 0xffff)
@@ -176,6 +205,10 @@ pub struct Gray16 {
 
 pub fn Gray16::new(y : UInt) -> Gray16 {
   { y, }
+}
+
+pub fn model(self : Gray16) -> String {
+  "Gray16"
 }
 
 pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
@@ -225,6 +258,9 @@ pub let gray_model : Model = model_func(gray_model_fn)
 pub let gray16_model : Model = model_func(gray16_model_fn)
 
 fn rgba_model_fn(c : Color) -> Color {
+  if c.model() == "RGBA" {
+    return c
+  }
   let (r, g, b, a) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
@@ -235,12 +271,18 @@ fn rgba_model_fn(c : Color) -> Color {
 }
 
 fn rgba64_model_fn(c : Color) -> Color {
+  if c.model() == "RGBA64" {
+    return c
+  }
   let (r, g, b, a) = c.rgba()
   let c : RGBA64 = { r, g, b, a }
   c
 }
 
 fn nrgba_model_fn(c : Color) -> Color {
+  if c.model() == "NRGBA" {
+    return c
+  }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
     let r = (r >> 8).to_byte()
@@ -263,9 +305,12 @@ fn nrgba_model_fn(c : Color) -> Color {
 }
 
 fn nrgba64_model_fn(c : Color) -> Color {
+  if c.model() == "NRGBA64" {
+    return c
+  }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
-    let c : NRGBA64 = { r, g, b, a: 0xffff }
+    let c : NRGBA64 = { r: r & a, g: g & a, b: b & a, a: 0xffff }
     return c
   }
   if a == 0 {
@@ -273,14 +318,17 @@ fn nrgba64_model_fn(c : Color) -> Color {
     return c
   }
   // Since Color.RGBA returns an alpha-premultiplied color, we should have r <= a && g <= a && b <= a.
-  let r = r * 0xffff / a
-  let g = g * 0xffff / a
-  let b = b * 0xffff / a
+  let r = (r * 0xffff / a) & 0xffff
+  let g = (g * 0xffff / a) & 0xffff
+  let b = (b * 0xffff / a) & 0xffff
   let c : NRGBA64 = { r, g, b, a }
   c
 }
 
 fn alpha_model_fn(c : Color) -> Color {
+  if c.model() == "Alpha" {
+    return c
+  }
   let (_, _, _, a) = c.rgba()
   let a = (a >> 8).to_byte()
   let c : Alpha = { a, }
@@ -288,12 +336,18 @@ fn alpha_model_fn(c : Color) -> Color {
 }
 
 fn alpha16_model_fn(c : Color) -> Color {
+  if c.model() == "Alpha16" {
+    return c
+  }
   let (_, _, _, a) = c.rgba()
   let c : Alpha16 = { a, }
   c
 }
 
 fn gray_model_fn(c : Color) -> Color {
+  if c.model() == "Gray" {
+    return c
+  }
   let (r, g, b, _) = c.rgba()
 
   // These coefficients (the fractions 0.299, 0.587 and 0.114) are the same
@@ -311,6 +365,9 @@ fn gray_model_fn(c : Color) -> Color {
 }
 
 fn gray16_model_fn(c : Color) -> Color {
+  if c.model() == "Gray16" {
+    return c
+  }
   let (r, g, b, _) = c.rgba()
 
   // These coefficients (the fractions 0.299, 0.587 and 0.114) are the same
