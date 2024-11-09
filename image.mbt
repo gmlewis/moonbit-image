@@ -317,7 +317,7 @@ pub fn set(self : RGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (r, g, b, a) = @color.rgba64_model.convert(c) // .(color.RGBA64)
+  let { r, g, b, a } = @color.RGBA64::from(c)
   self.pix[i + 0] = (r >> 8).to_byte()
   self.pix[i + 1] = r.to_byte()
   self.pix[i + 2] = (g >> 8).to_byte()
@@ -449,11 +449,11 @@ pub fn set(self : NRGBA, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (r, g, b, a) = @color.nrgba_model.convert(c) // .(color.NRGBA)
-  self.pix[i + 0] = r.to_byte()
-  self.pix[i + 1] = g.to_byte()
-  self.pix[i + 2] = b.to_byte()
-  self.pix[i + 3] = a.to_byte()
+  let { r, g, b, a } = @color.NRGBA::from(c)
+  self.pix[i + 0] = r
+  self.pix[i + 1] = g
+  self.pix[i + 2] = b
+  self.pix[i + 3] = a
 }
 
 pub fn set_rgba64(self : NRGBA, x : Int, y : Int, c : @color.RGBA64) -> Unit {
@@ -591,7 +591,7 @@ pub fn set(self : NRGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (r, g, b, a) = @color.nrgba64_model.convert(c) // .(color.NRGBA64)
+  let { r, g, b, a } = @color.NRGBA64::from(c)
   self.pix[i + 0] = (r >> 8).to_byte()
   self.pix[i + 1] = r.to_byte()
   println(
@@ -750,8 +750,8 @@ pub fn set(self : Alpha, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (_, _, _, a) = @color.alpha_model.convert(c) // .(color.Alpha).A
-  self.pix[i] = (a >> 8).to_byte()
+  let { a } = @color.Alpha::from(c)
+  self.pix[i] = a
 }
 
 pub fn set_rgba64(self : Alpha, x : Int, y : Int, c : @color.RGBA64) -> Unit {
@@ -872,7 +872,7 @@ pub fn set(self : Alpha16, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (_, _, _, a) = @color.alpha16_model.convert(c) // .(color.Alpha16)
+  let { a } = @color.Alpha16::from(c)
   self.pix[i + 0] = (a >> 8).to_byte()
   self.pix[i + 1] = a.to_byte()
 }
@@ -1002,8 +1002,8 @@ pub fn set(self : Gray, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (y, _, _, _) = @color.gray_model.convert(c) // .(color.Gray).Y
-  self.pix[i] = (y >> 8).to_byte()
+  let { y } = @color.Gray::from(c)
+  self.pix[i] = y
 }
 
 pub fn set_rgba64(self : Gray, x : Int, y : Int, c : @color.RGBA64) -> Unit {
@@ -1112,7 +1112,7 @@ pub fn set(self : Gray16, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (y, _, _, _) = @color.gray16_model.convert(c) // .(color.Gray16)
+  let { y } = @color.Gray16::from(c)
   self.pix[i + 0] = (y >> 8).to_byte()
   self.pix[i + 1] = y.to_byte()
 }
@@ -1225,11 +1225,11 @@ pub fn set(self : CMYK, x : Int, y : Int, c : @color.Color) -> Unit {
     return
   }
   let i = self.pix_offset(x, y)
-  let (c, m, y, k) = @color.cmyk_model.convert(c) // .(color.CMYK)
-  self.pix[i + 0] = (c >> 8).to_byte()
-  self.pix[i + 1] = (m >> 8).to_byte()
-  self.pix[i + 2] = (y >> 8).to_byte()
-  self.pix[i + 3] = (k >> 8).to_byte()
+  let { c, m, y, k } = @color.CMYK::from(c)
+  self.pix[i + 0] = c
+  self.pix[i + 1] = m
+  self.pix[i + 2] = y
+  self.pix[i + 3] = k
 }
 
 pub fn set_rgba64(self : CMYK, x : Int, y : Int, c : @color.RGBA64) -> Unit {

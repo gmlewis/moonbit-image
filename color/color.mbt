@@ -21,6 +21,9 @@ pub trait Color {
   // model reports the color model of the underlying data.
   // This is needed because MoonBit does not have reflection.
   model(Self) -> String
+  // raw is also needed due to the lack of reflection to get the underlying data.
+  // Do not use this method as it is for internal use only.
+  raw(Self) -> (UInt, UInt, UInt, UInt)
 }
 
 impl Show for Color with output(self, logger) {
@@ -58,6 +61,10 @@ pub fn model(self : RGBA) -> String {
   "RGBA"
 }
 
+pub fn raw(self : RGBA) -> (UInt, UInt, UInt, UInt) {
+  (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
+}
+
 pub fn rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
   let r = self.r.to_uint() | (self.r.to_uint() << 8)
   let g = self.g.to_uint() | (self.g.to_uint() << 8)
@@ -86,6 +93,10 @@ pub fn model(self : RGBA64) -> String {
   "RGBA64"
 }
 
+pub fn raw(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
+  (self.r, self.g, self.b, self.a)
+}
+
 pub fn rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
   (self.r, self.g, self.b, self.a)
 }
@@ -104,6 +115,10 @@ pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
 
 pub fn model(self : NRGBA) -> String {
   "NRGBA"
+}
+
+pub fn raw(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
+  (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 pub fn rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
@@ -138,6 +153,10 @@ pub fn model(self : NRGBA64) -> String {
   "NRGBA64"
 }
 
+pub fn raw(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
+  (self.r, self.g, self.b, self.a)
+}
+
 pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
   let r = self.r * self.a / 0xffff
   let g = self.g * self.a / 0xffff
@@ -158,6 +177,11 @@ pub fn model(self : Alpha) -> String {
   "Alpha"
 }
 
+pub fn raw(self : Alpha) -> (UInt, UInt, UInt, UInt) {
+  let a = self.a.to_uint()
+  (a, a, a, a)
+}
+
 pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
   let a = self.a.to_uint() | (self.a.to_uint() << 8)
   (a, a, a, a)
@@ -176,6 +200,10 @@ pub fn model(self : Alpha16) -> String {
   "Alpha16"
 }
 
+pub fn raw(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
+  (self.a, self.a, self.a, self.a)
+}
+
 pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
   (self.a, self.a, self.a, self.a)
 }
@@ -191,6 +219,11 @@ pub fn Gray::new(y : Byte) -> Gray {
 
 pub fn model(self : Gray) -> String {
   "Gray"
+}
+
+pub fn raw(self : Gray) -> (UInt, UInt, UInt, UInt) {
+  let y = self.y.to_uint()
+  (y, y, y, y)
 }
 
 pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
@@ -211,6 +244,11 @@ pub fn model(self : Gray16) -> String {
   "Gray16"
 }
 
+pub fn raw(self : Gray16) -> (UInt, UInt, UInt, UInt) {
+  let y = self.y
+  (y, y, y, y)
+}
+
 pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
   (self.y, self.y, self.y, 0xffff)
 }
@@ -225,7 +263,7 @@ pub trait Model {
 pub fn model_func(f : (Color) -> Color) -> Model {
   // Note: using ModelFunc as the implementation
   // means that callers can still use comparisons
-  // like m == RGBAModel. This is not possible if
+  // like m == rgba_model. This is not possible if
   // we use the func value directly, because funcs
   // are no longer comparable.
   let mf : ModelFunc = { f, }
@@ -258,95 +296,120 @@ pub let gray_model : Model = model_func(gray_model_fn)
 pub let gray16_model : Model = model_func(gray16_model_fn)
 
 fn rgba_model_fn(c : Color) -> Color {
+  RGBA::from(c)
+}
+
+pub fn RGBA::from(c : Color) -> RGBA {
   if c.model() == "RGBA" {
-    return c
+    let (r, g, b, a) = c.raw()
+    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
   }
   let (r, g, b, a) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let a = (a >> 8).to_byte()
-  let c : RGBA = { r, g, b, a }
-  c
+  { r, g, b, a }
 }
 
 fn rgba64_model_fn(c : Color) -> Color {
+  RGBA64::from(c)
+}
+
+pub fn RGBA64::from(c : Color) -> RGBA64 {
   if c.model() == "RGBA64" {
-    return c
+    let (r, g, b, a) = c.raw()
+    return { r, g, b, a }
   }
   let (r, g, b, a) = c.rgba()
-  let c : RGBA64 = { r, g, b, a }
-  c
+  { r, g, b, a }
 }
 
 fn nrgba_model_fn(c : Color) -> Color {
+  NRGBA::from(c)
+}
+
+pub fn NRGBA::from(c : Color) -> NRGBA {
   if c.model() == "NRGBA" {
-    return c
+    let (r, g, b, a) = c.raw()
+    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
   }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
     let r = (r >> 8).to_byte()
     let g = (g >> 8).to_byte()
     let b = (b >> 8).to_byte()
-    let c : NRGBA = { r, g, b, a: 0xff }
-    return c
+    return { r, g, b, a: 0xff }
   }
   if a == 0 {
-    let c : NRGBA = { r: 0, g: 0, b: 0, a: 0 }
-    return c
+    return { r: 0, g: 0, b: 0, a: 0 }
   }
   // Since Color.RGBA returns an alpha-premultiplied color, we should have r <= a && g <= a && b <= a.
   let r = ((r * 0xffff / a) >> 8).to_byte()
   let g = ((g * 0xffff / a) >> 8).to_byte()
   let b = ((b * 0xffff / a) >> 8).to_byte()
   let a = (a >> 8).to_byte()
-  let c : NRGBA = { r, g, b, a }
-  c
+  { r, g, b, a }
 }
 
 fn nrgba64_model_fn(c : Color) -> Color {
+  NRGBA64::from(c)
+}
+
+pub fn NRGBA64::from(c : Color) -> NRGBA64 {
   if c.model() == "NRGBA64" {
-    return c
+    let (r, g, b, a) = c.raw()
+    return { r, g, b, a }
   }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
-    let c : NRGBA64 = { r: r & a, g: g & a, b: b & a, a: 0xffff }
-    return c
+    return { r: r & a, g: g & a, b: b & a, a: 0xffff }
   }
   if a == 0 {
-    let c : NRGBA64 = { r: 0, g: 0, b: 0, a: 0 }
-    return c
+    return { r: 0, g: 0, b: 0, a: 0 }
   }
   // Since Color.RGBA returns an alpha-premultiplied color, we should have r <= a && g <= a && b <= a.
   let r = (r * 0xffff / a) & 0xffff
   let g = (g * 0xffff / a) & 0xffff
   let b = (b * 0xffff / a) & 0xffff
-  let c : NRGBA64 = { r, g, b, a }
-  c
+  { r, g, b, a }
 }
 
 fn alpha_model_fn(c : Color) -> Color {
+  Alpha::from(c)
+}
+
+pub fn Alpha::from(c : Color) -> Alpha {
   if c.model() == "Alpha" {
-    return c
+    let (a, _, _, _) = c.raw()
+    return { a: a.to_byte() }
   }
   let (_, _, _, a) = c.rgba()
   let a = (a >> 8).to_byte()
-  let c : Alpha = { a, }
-  c
+  { a, }
 }
 
 fn alpha16_model_fn(c : Color) -> Color {
+  Alpha16::from(c)
+}
+
+pub fn Alpha16::from(c : Color) -> Alpha16 {
   if c.model() == "Alpha16" {
-    return c
+    let (a, _, _, _) = c.raw()
+    return { a, }
   }
   let (_, _, _, a) = c.rgba()
-  let c : Alpha16 = { a, }
-  c
+  { a, }
 }
 
 fn gray_model_fn(c : Color) -> Color {
+  Gray::from(c)
+}
+
+pub fn Gray::from(c : Color) -> Gray {
   if c.model() == "Gray" {
-    return c
+    let (y, _, _, _) = c.raw()
+    return { y: y.to_byte() }
   }
   let (r, g, b, _) = c.rgba()
 
@@ -360,13 +423,17 @@ fn gray_model_fn(c : Color) -> Color {
   // because the return value is 8 bit color, not 16 bit color.
   let y = (19595U * r + 38470U * g + 7471U * b + (1U << 15)) >> 24
   let y = y.to_byte()
-  let y : Gray = { y, }
-  y
+  { y, }
 }
 
 fn gray16_model_fn(c : Color) -> Color {
+  Gray16::from(c)
+}
+
+pub fn Gray16::from(c : Color) -> Gray16 {
   if c.model() == "Gray16" {
-    return c
+    let (y, _, _, _) = c.raw()
+    return { y, }
   }
   let (r, g, b, _) = c.rgba()
 
@@ -376,8 +443,7 @@ fn gray16_model_fn(c : Color) -> Color {
   //
   // Note that 19595 + 38470 + 7471 equals 65536.
   let y = (19595U * r + 38470U * g + 7471U * b + (1U << 15)) >> 16
-  let y : Gray16 = { y, }
-  y
+  { y, }
 }
 
 /// Palette is a palette of colors.

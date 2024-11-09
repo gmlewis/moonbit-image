@@ -177,6 +177,10 @@ pub fn model(self : YCbCr) -> String {
   "YCbCr"
 }
 
+pub fn raw(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
+  (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), 0)
+}
+
 pub fn rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the y_cb_cr_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff]. There is a
@@ -261,6 +265,10 @@ pub struct NYCbCrA {
 
 pub fn model(self : NYCbCrA) -> String {
   "NYCbCrA"
+}
+
+pub fn raw(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
+  (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), self.a.to_uint())
 }
 
 pub fn rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
@@ -395,6 +403,10 @@ pub fn model(self : CMYK) -> String {
   "CMYK"
 }
 
+pub fn raw(self : CMYK) -> (UInt, UInt, UInt, UInt) {
+  (self.c.to_uint(), self.m.to_uint(), self.y.to_uint(), self.k.to_uint())
+}
+
 pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the cmyk_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff].
@@ -410,14 +422,18 @@ pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
 pub let cmyk_model : Model = model_func(cmyk_model_fn)
 
 fn cmyk_model_fn(c : Color) -> Color {
+  CMYK::from(c)
+}
+
+pub fn CMYK::from(c : Color) -> CMYK {
   if c.model() == "CMYK" {
-    return c
+    let (c, m, y, k) = c.raw()
+    return { c: c.to_byte(), m: m.to_byte(), y: y.to_byte(), k: k.to_byte() }
   }
   let (r, g, b, _) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let (c, m, y, k) = rgb_to_cmyk(r, g, b)
-  let c : CMYK = { c, m, y, k }
-  c
+  { c, m, y, k }
 }
