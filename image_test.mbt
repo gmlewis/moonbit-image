@@ -9,15 +9,15 @@ typealias Rectangle = @image.Rectangle
 
 typealias Image = @image.Image
 
-trait TestImage {
-  opaque(Self) -> Bool
-  set(Self, Int, Int, @color.Color) -> Unit
-  sub_image(Self, Rectangle) -> Image
-  // trait Image
-  color_model(Self) -> @color.Model
-  bounds(Self) -> Rectangle
-  at(Self, Int, Int) -> @color.Color
-}
+// trait TestImage {
+//   opaque(Self) -> Bool
+//   set(Self, Int, Int, @color.Color) -> Unit
+//   sub_image(Self, Rectangle) -> Image
+//   // trait Image
+//   color_model(Self) -> @color.Model
+//   bounds(Self) -> Rectangle
+//   at(Self, Int, Int) -> @color.Color
+// }
 
 fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
   let (r0, g0, b0, a0) = cm.convert(c0).rgba()
@@ -27,7 +27,7 @@ fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
 
 struct TestT {
   name : String
-  image : () -> TestImage
+  image : () -> Image
 }
 
 let test_images : Array[TestT] = [
@@ -68,51 +68,66 @@ let test_images : Array[TestT] = [
   },
 ]
 
-// func TestImage(t *testing.T) {
-// 	for _, tc := range test_images {
-// 		m := tc.image()
-// 		if !Rect(0, 0, 10, 10).Eq(m.Bounds()) {
-// 			t.Errorf("%T: want bounds %v, got %v", m, Rect(0, 0, 10, 10), m.Bounds())
-// 			continue
-// 		}
-// 		if !cmp(m.ColorModel(), Transparent, m.At(6, 3)) {
-// 			t.Errorf("%T: at (6, 3), want a zero color, got %v", m, m.At(6, 3))
-// 			continue
-// 		}
-// 		m.Set(6, 3, Opaque)
-// 		if !cmp(m.ColorModel(), Opaque, m.At(6, 3)) {
-// 			t.Errorf("%T: at (6, 3), want a non-zero color, got %v", m, m.At(6, 3))
-// 			continue
-// 		}
-// 		if !m.sub_image(Rect(6, 3, 7, 4)).(image).Opaque() {
-// 			t.Errorf("%T: at (6, 3) was not opaque", m)
-// 			continue
-// 		}
-// 		m = m.sub_image(Rect(3, 2, 9, 8)).(image)
-// 		if !Rect(3, 2, 9, 8).Eq(m.Bounds()) {
-// 			t.Errorf("%T: sub-image want bounds %v, got %v", m, Rect(3, 2, 9, 8), m.Bounds())
-// 			continue
-// 		}
-// 		if !cmp(m.ColorModel(), Opaque, m.At(6, 3)) {
-// 			t.Errorf("%T: sub-image at (6, 3), want a non-zero color, got %v", m, m.At(6, 3))
-// 			continue
-// 		}
-// 		if !cmp(m.ColorModel(), Transparent, m.At(3, 3)) {
-// 			t.Errorf("%T: sub-image at (3, 3), want a zero color, got %v", m, m.At(3, 3))
-// 			continue
-// 		}
-// 		m.Set(3, 3, Opaque)
-// 		if !cmp(m.ColorModel(), Opaque, m.At(3, 3)) {
-// 			t.Errorf("%T: sub-image at (3, 3), want a non-zero color, got %v", m, m.At(3, 3))
-// 			continue
-// 		}
-// 		// Test that taking an empty sub-image starting at a corner does not panic.
-// 		m.sub_image(Rect(0, 0, 0, 0))
-// 		m.sub_image(Rect(10, 0, 10, 0))
-// 		m.sub_image(Rect(0, 10, 0, 10))
-// 		m.sub_image(Rect(10, 10, 10, 10))
-// 	}
-// }
+test "image" {
+  for tc in test_images {
+    let m = (tc.image)()
+    if not(@image.rect(0, 0, 10, 10) == m.bounds()) {
+      raise TestError(
+        "\{tc.name}: want bounds \{@image.rect(0,0,10,10)}, got \{m.bounds()}",
+      )
+      continue
+    }
+    if not(cmp(m.color_model(), @color.transparent, m.at(6, 3))) {
+      raise TestError(
+        "\{tc.name}: at (6, 3), want a zero color, got \{m.at(6, 3)}",
+      )
+      continue
+    }
+    m.set(6, 3, @color.opaque)
+    if not(cmp(m.color_model(), @color.opaque, m.at(6, 3))) {
+      raise TestError(
+        "\{tc.name}: at (6, 3), want a non-zero color, got \{m.at(6, 3)}",
+      )
+      continue
+    }
+    if not(m.sub_image(@image.rect(6, 3, 7, 4)).opaque()) {
+      raise TestError("\{tc.name}: at (6, 3) was not opaque")
+      continue
+    }
+    let m = m.sub_image(@image.rect(3, 2, 9, 8))
+    if not(@image.rect(3, 2, 9, 8) == m.bounds()) {
+      raise TestError(
+        "\{tc.name}: sub-image want bounds \{@image.rect(3, 2, 9, 8)}, got \{m.bounds()}",
+      )
+      continue
+    }
+    if not(cmp(m.color_model(), @color.opaque, m.at(6, 3))) {
+      raise TestError(
+        "\{tc.name}: sub-image at (6, 3), want a non-zero color, got \{m.at(6, 3)}",
+      )
+      continue
+    }
+    if not(cmp(m.color_model(), @color.transparent, m.at(3, 3))) {
+      raise TestError(
+        "\{tc.name}: sub-image at (3, 3), want a zero color, got \{m.at(6, 3)}",
+      )
+      continue
+    }
+    m.set(3, 3, @color.opaque)
+    if not(cmp(m.color_model(), @color.opaque, m.at(3, 3))) {
+      raise TestError(
+        "\{tc.name}: sub-image at (3, 3), want a non-zero color, got \{m.at(6, 3)}",
+      )
+      continue
+    }
+    // Test that taking an empty sub-image starting at a corner does not panic.
+    let _ = m.sub_image(@image.rect(0, 0, 0, 0))
+    let _ = m.sub_image(@image.rect(10, 0, 10, 0))
+    let _ = m.sub_image(@image.rect(0, 10, 0, 10))
+    let _ = m.sub_image(@image.rect(10, 10, 10, 10))
+
+  }
+}
 
 // func TestNewXxxBadRectangle(t *testing.T) {
 // 	// call calls f(r) and reports whether it ran without panicking.
@@ -163,7 +178,7 @@ let test_images : Array[TestT] = [
 // 				got := call(tc.f, r)
 // 				want := !negDx && !negDy
 // 				if got != want {
-// 					t.Errorf("New%s: negDx=%t, negDy=%t: got %t, want %t",
+// 					raise TestError("New%s: negDx=%t, negDy=%t: got %t, want %t",
 // 						tc.name, negDx, negDy, got, want)
 // 				}
 // 			}
@@ -180,38 +195,38 @@ let test_images : Array[TestT] = [
 // 				Max: Point{maxInt, maxInt},
 // 			})
 // 			if got {
-// 				t.Errorf("New%s: overflow: got ok, want !ok", tc.name)
+// 				raise TestError("New%s: overflow: got ok, want !ok", tc.name)
 // 			}
 // 		}
 // 	}
 // }
 
 // func Test16BitsPerColorChannel(t *testing.T) {
-// 	testColorModel := []@color.Model{
+// 	testcolor_model := []@color.Model{
 // 		@color.RGBA64Model,
 // 		@color.NRGBA64Model,
 // 		@color.Alpha16Model,
 // 		@color.Gray16Model,
 // 	}
-// 	for _, cm := range testColorModel {
+// 	for _, cm := range testcolor_model {
 // 		c := cm.convert(@color.RGBA64{0x1234, 0x1234, 0x1234, 0x1234}) // Premultiplied alpha.
 // 		r, _, _, _ := c.rgba()
 // 		if r != 0x1234 {
-// 			t.Errorf("%T: want red value 0x%04x got 0x%04x", c, 0x1234, r)
+// 			raise TestError("%T: want red value 0x%04x got 0x%04x", c, 0x1234, r)
 // 			continue
 // 		}
 // 	}
 // 	testImage := []image{
-// 		NewRGBA64(Rect(0, 0, 10, 10)),
-// 		NewNRGBA64(Rect(0, 0, 10, 10)),
-// 		NewAlpha16(Rect(0, 0, 10, 10)),
-// 		NewGray16(Rect(0, 0, 10, 10)),
+// 		NewRGBA64(@image.rect(0, 0, 10, 10)),
+// 		NewNRGBA64(@image.rect(0, 0, 10, 10)),
+// 		NewAlpha16(@image.rect(0, 0, 10, 10)),
+// 		NewGray16(@image.rect(0, 0, 10, 10)),
 // 	}
 // 	for _, m := range testImage {
 // 		m.Set(1, 2, @color.NRGBA64{0xffff, 0xffff, 0xffff, 0x1357}) // Non-premultiplied alpha.
-// 		r, _, _, _ := m.At(1, 2).rgba()
+// 		r, _, _, _ := m.at(1, 2).rgba()
 // 		if r != 0x1357 {
-// 			t.Errorf("%T: want red value 0x%04x got 0x%04x", m, 0x1357, r)
+// 			raise TestError("%T: want red value 0x%04x got 0x%04x", m, 0x1357, r)
 // 			continue
 // 		}
 // 	}
@@ -225,7 +240,7 @@ let test_images : Array[TestT] = [
 // 		}
 // 	}
 
-// 	r := Rect(0, 0, 3, 2)
+// 	r := @image.rect(0, 0, 3, 2)
 // 	testCases := []Image{
 // 		NewAlpha(r),
 // 		NewAlpha16(r),
@@ -280,21 +295,21 @@ let test_images : Array[TestT] = [
 // 			// @color.Opaque.
 
 // 		default:
-// 			t.Errorf("could not initialize pixels for %T", tc)
+// 			raise TestError("could not initialize pixels for %T", tc)
 // 			continue
 // 		}
 
 // 		// Check that RGBA64At(x, y) is equivalent to At(x, y).rgba().
 // 		rgba64Image, ok := tc.(RGBA64Image)
-// 		if !ok {
-// 			t.Errorf("%T is not an RGBA64Image", tc)
+// 		if not(ok ) {
+// 			raise TestError("%T is not an RGBA64Image", tc)
 // 			continue
 // 		}
 // 		got := rgba64Image.RGBA64At(1, 1)
 // 		wantR, wantG, wantB, wantA := tc.At(1, 1).rgba()
 // 		if (uint32(got.R) != wantR) || (uint32(got.G) != wantG) ||
 // 			(uint32(got.B) != wantB) || (uint32(got.A) != wantA) {
-// 			t.Errorf("%T:\ngot  (0x%04X, 0x%04X, 0x%04X, 0x%04X)\n"+
+// 			raise TestError("%T:\ngot  (0x%04X, 0x%04X, 0x%04X, 0x%04X)\n"+
 // 				"want (0x%04X, 0x%04X, 0x%04X, 0x%04X)", tc,
 // 				got.R, got.G, got.B, got.A,
 // 				wantR, wantG, wantB, wantA)
@@ -310,7 +325,7 @@ let test_images : Array[TestT] = [
 // 			b.ReportAllocs()
 // 			b.ResetTimer()
 // 			for i := 0; i < b.N; i++ {
-// 				m.At(4, 5)
+// 				m.at(4, 5)
 // 			}
 // 		})
 // 	}
@@ -331,7 +346,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkRGBAAt(b *testing.B) {
-// 	m := NewRGBA(Rect(0, 0, 10, 10))
+// 	m := NewRGBA(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -340,7 +355,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkRGBASetRGBA(b *testing.B) {
-// 	m := NewRGBA(Rect(0, 0, 10, 10))
+// 	m := NewRGBA(@image.rect(0, 0, 10, 10))
 // 	c := @color.RGBA{0xff, 0xff, 0xff, 0x13}
 // 	b.ResetTimer()
 
@@ -350,7 +365,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkRGBA64At(b *testing.B) {
-// 	m := NewRGBA64(Rect(0, 0, 10, 10))
+// 	m := NewRGBA64(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -359,7 +374,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkRGBA64SetRGBA64(b *testing.B) {
-// 	m := NewRGBA64(Rect(0, 0, 10, 10))
+// 	m := NewRGBA64(@image.rect(0, 0, 10, 10))
 // 	c := @color.RGBA64{0xffff, 0xffff, 0xffff, 0x1357}
 // 	b.ResetTimer()
 
@@ -369,7 +384,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkNRGBAAt(b *testing.B) {
-// 	m := NewNRGBA(Rect(0, 0, 10, 10))
+// 	m := NewNRGBA(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -378,7 +393,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkNRGBASetNRGBA(b *testing.B) {
-// 	m := NewNRGBA(Rect(0, 0, 10, 10))
+// 	m := NewNRGBA(@image.rect(0, 0, 10, 10))
 // 	c := @color.NRGBA{0xff, 0xff, 0xff, 0x13}
 // 	b.ResetTimer()
 
@@ -388,7 +403,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkNRGBA64At(b *testing.B) {
-// 	m := NewNRGBA64(Rect(0, 0, 10, 10))
+// 	m := NewNRGBA64(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -397,7 +412,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkNRGBA64SetNRGBA64(b *testing.B) {
-// 	m := NewNRGBA64(Rect(0, 0, 10, 10))
+// 	m := NewNRGBA64(@image.rect(0, 0, 10, 10))
 // 	c := @color.NRGBA64{0xffff, 0xffff, 0xffff, 0x1357}
 // 	b.ResetTimer()
 
@@ -407,7 +422,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkAlphaAt(b *testing.B) {
-// 	m := NewAlpha(Rect(0, 0, 10, 10))
+// 	m := NewAlpha(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -416,7 +431,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkAlphaSetAlpha(b *testing.B) {
-// 	m := NewAlpha(Rect(0, 0, 10, 10))
+// 	m := NewAlpha(@image.rect(0, 0, 10, 10))
 // 	c := @color.Alpha{0x13}
 // 	b.ResetTimer()
 
@@ -426,7 +441,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkAlpha16At(b *testing.B) {
-// 	m := NewAlpha16(Rect(0, 0, 10, 10))
+// 	m := NewAlpha16(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -435,7 +450,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkAlphaSetAlpha16(b *testing.B) {
-// 	m := NewAlpha16(Rect(0, 0, 10, 10))
+// 	m := NewAlpha16(@image.rect(0, 0, 10, 10))
 // 	c := @color.Alpha16{0x13}
 // 	b.ResetTimer()
 
@@ -445,7 +460,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkGrayAt(b *testing.B) {
-// 	m := NewGray(Rect(0, 0, 10, 10))
+// 	m := NewGray(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -454,7 +469,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkGraySetGray(b *testing.B) {
-// 	m := NewGray(Rect(0, 0, 10, 10))
+// 	m := NewGray(@image.rect(0, 0, 10, 10))
 // 	c := @color.Gray{0x13}
 // 	b.ResetTimer()
 
@@ -464,7 +479,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkGray16At(b *testing.B) {
-// 	m := NewGray16(Rect(0, 0, 10, 10))
+// 	m := NewGray16(@image.rect(0, 0, 10, 10))
 // 	b.ResetTimer()
 
 // 	for i := 0; i < b.N; i++ {
@@ -473,7 +488,7 @@ let test_images : Array[TestT] = [
 // }
 
 // func BenchmarkGraySetGray16(b *testing.B) {
-// 	m := NewGray16(Rect(0, 0, 10, 10))
+// 	m := NewGray16(@image.rect(0, 0, 10, 10))
 // 	c := @color.Gray16{0x13}
 // 	b.ResetTimer()
 

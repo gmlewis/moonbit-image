@@ -58,6 +58,11 @@ pub trait Image {
   /// At(bounds().Min.X, bounds().Min.Y) returns the upper-left pixel of the grid.
   /// At(bounds().Max.X-1, bounds().Max.Y-1) returns the lower-right one.
   at(Self, Int, Int) -> @color.Color
+
+  // other available methods:
+  opaque(Self) -> Bool
+  set(Self, Int, Int, @color.Color) -> Unit
+  sub_image(Self, Rectangle) -> Image
 }
 
 /// RGBA64Image is an [Image] whose pixels can be converted directly to a
