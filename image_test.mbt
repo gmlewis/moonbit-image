@@ -9,15 +9,7 @@ typealias Rectangle = @image.Rectangle
 
 typealias Image = @image.Image
 
-// trait TestImage {
-//   opaque(Self) -> Bool
-//   set(Self, Int, Int, @color.Color) -> Unit
-//   sub_image(Self, Rectangle) -> Image
-//   // trait Image
-//   color_model(Self) -> @color.Model
-//   bounds(Self) -> Rectangle
-//   at(Self, Int, Int) -> @color.Color
-// }
+typealias SizeError = @image.SizeError
 
 fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
   let (r0, g0, b0, a0) = cm.convert(c0).rgba()
@@ -27,40 +19,40 @@ fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
 
 struct TestT {
   name : String
-  image : () -> Image
+  image : () -> Image!SizeError
 }
 
 let test_images : Array[TestT] = [
-  { name: "rgba", image: fn() { @image.RGBA::new(@image.rect(0, 0, 10, 10)) } },
+  { name: "rgba", image: fn() { @image.RGBA::new!(@image.rect(0, 0, 10, 10)) } },
   {
     name: "rgba64",
-    image: fn() { @image.RGBA64::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) },
   },
   {
     name: "nrgba",
-    image: fn() { @image.NRGBA::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.NRGBA::new!(@image.rect(0, 0, 10, 10)) },
   },
   {
     name: "nrgba64",
-    image: fn() { @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) },
   },
   {
     name: "alpha",
-    image: fn() { @image.Alpha::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.Alpha::new!(@image.rect(0, 0, 10, 10)) },
   },
   {
     name: "alpha16",
-    image: fn() { @image.Alpha16::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) },
   },
-  { name: "gray", image: fn() { @image.Gray::new(@image.rect(0, 0, 10, 10)) } },
+  { name: "gray", image: fn() { @image.Gray::new!(@image.rect(0, 0, 10, 10)) } },
   {
     name: "gray16",
-    image: fn() { @image.Gray16::new(@image.rect(0, 0, 10, 10)) },
+    image: fn() { @image.Gray16::new!(@image.rect(0, 0, 10, 10)) },
   },
   {
     name: "paletted",
     image: fn() {
-      @image.Paletted::new(
+      @image.Paletted::new!(
         @image.rect(0, 0, 10, 10),
         [@color.transparent, @color.opaque],
       )
@@ -70,7 +62,7 @@ let test_images : Array[TestT] = [
 
 test "image" {
   for tc in test_images {
-    let m = (tc.image)()
+    let m = (tc.image)!()
     if not(@image.rect(0, 0, 10, 10) == m.bounds()) {
       raise TestError(
         "\{tc.name}: want bounds \{@image.rect(0,0,10,10)}, got \{m.bounds()}",
@@ -129,77 +121,81 @@ test "image" {
   }
 }
 
-// func TestNewXxxBadRectangle(t *testing.T) {
-// 	// call calls f(r) and reports whether it ran without panicking.
-// 	call := func(f func(Rectangle), r Rectangle) (ok bool) {
-// 		defer func() {
-// 			if recover() != nil {
-// 				ok = false
-// 			}
-// 		}()
-// 		f(r)
-// 		return true
-// 	}
+struct TestR {
+  name : String
+  f : (Rectangle) -> Image!SizeError
+}
 
-// 	testCases := []struct {
-// 		name string
-// 		f    func(Rectangle)
-// 	}{
-// 		{"RGBA", func(r Rectangle) { NewRGBA(r) }},
-// 		{"RGBA64", func(r Rectangle) { NewRGBA64(r) }},
-// 		{"NRGBA", func(r Rectangle) { NewNRGBA(r) }},
-// 		{"NRGBA64", func(r Rectangle) { NewNRGBA64(r) }},
-// 		{"Alpha", func(r Rectangle) { NewAlpha(r) }},
-// 		{"Alpha16", func(r Rectangle) { NewAlpha16(r) }},
-// 		{"Gray", func(r Rectangle) { NewGray(r) }},
-// 		{"Gray16", func(r Rectangle) { NewGray16(r) }},
-// 		{"CMYK", func(r Rectangle) { NewCMYK(r) }},
-// 		{"Paletted", func(r Rectangle) { NewPaletted(r, @color.Palette{@color.Black, @color.White}) }},
-// 		{"YCbCr", func(r Rectangle) { NewYCbCr(r, YCbCrSubsampleRatio422) }},
-// 		{"NYCbCrA", func(r Rectangle) { NewNYCbCrA(r, YCbCrSubsampleRatio444) }},
-// 	}
+// call calls f(r) and reports whether it ran without raising an error.
+fn call(f : (Rectangle) -> Image!SizeError, r : Rectangle) -> Bool {
+  // defer func() {
+  // 	if recover() != nil {
+  // 		ok = false
+  // 	}
+  // }()
+  try {
+    let _ = f!(r)
 
-// 	for _, tc := range testCases {
-// 		// Calling NewXxx(r) should fail (panic, since NewXxx doesn't return an
-// 		// error) unless r's width and height are both non-negative.
-// 		for _, negDx := range []bool{false, true} {
-// 			for _, negDy := range []bool{false, true} {
-// 				r := Rectangle{
-// 					Min: Point{15, 28},
-// 					Max: Point{16, 29},
-// 				}
-// 				if negDx {
-// 					r.Max.X = 14
-// 				}
-// 				if negDy {
-// 					r.Max.Y = 27
-// 				}
+  } catch {
+    _ => return false
+  }
+  true
+}
 
-// 				got := call(tc.f, r)
-// 				want := !negDx && !negDy
-// 				if got != want {
-// 					raise TestError("New%s: negDx=%t, negDy=%t: got %t, want %t",
-// 						tc.name, negDx, negDy, got, want)
-// 				}
-// 			}
-// 		}
+test "new xxx bad rectangle" {
+  let test_cases = [
+    { name: "RGBA", f: fn(r) { @image.RGBA::new!(r) } },
+    { name: "RGBA64", f: fn(r) { @image.RGBA64::new!(r) } },
+    { name: "NRGBA", f: fn(r) { @image.NRGBA::new!(r) } },
+    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new!(r) } },
+    { name: "Alpha", f: fn(r) { @image.Alpha::new!(r) } },
+    { name: "Alpha16", f: fn(r) { @image.Alpha16::new!(r) } },
+    { name: "Gray", f: fn(r) { @image.Gray::new!(r) } },
+    { name: "Gray16", f: fn(r) { @image.Gray16::new!(r) } },
+    { name: "CMYK", f: fn(r) { @image.CMYK::new!(r) } },
+    {
+      name: "Paletted",
+      f: fn(r) { @image.Paletted::new!(r, [@color.black, @color.white]) },
+    },
+    // {name: "YCbCr", f: fn(r ) { @image.YCbCr::new(r, YCbCrSubsampleRatio422) }},
+    // {name: "NYCbCrA", f: fn(r ) { @image.NYCbCrA::new(r, YCbCrSubsampleRatio444) }},
+  ]
+  for tc in test_cases {
+    // Calling NewXxx(r) should fail (panic, since NewXxx doesn't return an
+    // error) unless r's width and height are both non-negative.
+    for neg_dx in [true, false] {
+      for neg_dy in [true, false] {
+        let r : Rectangle = { min: @image.pt(15, 28), max: @image.pt(16, 29) }
+        if neg_dx {
+          r.max.x = 14
+        }
+        if neg_dy {
+          r.max.y = 27
+        }
+        let got = call(tc.f, r)
+        let want = not(neg_dx) && not(neg_dy)
+        if got != want {
+          raise TestError(
+            "\{tc.name}::new: neg_dx=\{neg_dx}, neg_dy=\{neg_dy}: got \{got}, want \{want}",
+          )
+        }
+      }
+    }
 
-// 		// Passing a Rectangle whose width and height is MaxInt should also fail
-// 		// (panic), due to overflow.
-// 		{
-// 			zeroAsUint := uint(0)
-// 			maxUint := zeroAsUint - 1
-// 			maxInt := int(maxUint / 2)
-// 			got := call(tc.f, Rectangle{
-// 				Min: Point{0, 0},
-// 				Max: Point{maxInt, maxInt},
-// 			})
-// 			if got {
-// 				raise TestError("New%s: overflow: got ok, want !ok", tc.name)
-// 			}
-// 		}
-// 	}
-// }
+    // Passing a Rectangle whose width and height is MaxInt should also fail
+    // (panic), due to overflow.
+    let got = call(
+      tc.f,
+      Rectangle::{
+        min: @image.pt(0, 0),
+        max: @image.pt(@int.max_value, @int.max_value),
+      },
+    )
+    if got {
+      raise TestError("\{tc.name}::new: overflow: got ok, want !ok")
+    }
+  }
+}
 
 // func Test16BitsPerColorChannel(t *testing.T) {
 // 	testcolor_model := []@color.Model{
@@ -241,7 +237,7 @@ test "image" {
 // 	}
 
 // 	r := @image.rect(0, 0, 3, 2)
-// 	testCases := []Image{
+// 	test_cases := []Image{
 // 		NewAlpha(r),
 // 		NewAlpha16(r),
 // 		NewCMYK(r),
@@ -257,9 +253,9 @@ test "image" {
 // 		NewYCbCr(r, YCbCrSubsampleRatio444),
 // 		r,
 // 	}
-// 	for _, tc := range testCases {
+// 	for _, tc := range test_cases {
 // 		switch tc := tc.(type) {
-// 		// Most of the concrete image types in the testCases implement the
+// 		// Most of the concrete image types in the test_cases implement the
 // 		// draw.RGBA64Image interface: they have a SetRGBA64 method. We use an
 // 		// interface literal here, instead of importing "image/draw", to avoid
 // 		// an import cycle.

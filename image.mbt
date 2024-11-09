@@ -93,21 +93,20 @@ pub trait PalettedImage {
   at(Self, Int, Int) -> @color.Color
 }
 
+type! SizeError String derive(Show, Eq)
+
 // pixel_buffer_length returns the length of the []Byte typed pix slice field
 // for the NewXxx functions. Conceptually, this is just (bpp * width * height),
 // but this function panics if at least one of those is negative or if the
 // computation would overflow the int type.
-//
-// This panics instead of returning an error because of backwards
-// compatibility. The NewXxx functions do not return an error.
 fn pixel_buffer_length(
   bytes_per_pixel : Int,
   r : Rectangle,
   image_type_name : String
-) -> Int {
+) -> Int!SizeError {
   let total_length = mul3_non_neg(bytes_per_pixel, r.dx(), r.dy())
   if total_length < 0 {
-    abort(
+    raise SizeError(
       "image: \{image_type_name}::new Rectangle has huge or negative dimensions",
     )
   }
@@ -252,9 +251,9 @@ pub fn opaque(self : RGBA) -> Bool {
 }
 
 // RGBA::new returns a new [RGBA] image with the given bounds.
-pub fn RGBA::new(r : Rectangle) -> RGBA {
+pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(4, r, "RGBA"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(4, r, "RGBA"), b'\x00')[:],
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -378,9 +377,9 @@ pub fn opaque(self : RGBA64) -> Bool {
 }
 
 // RGBA64::new returns a new [RGBA64] image with the given bounds.
-pub fn RGBA64::new(r : Rectangle) -> RGBA64 {
+pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(8, r, "RGBA64"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(8, r, "RGBA64"), b'\x00')[:],
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -521,9 +520,9 @@ pub fn opaque(self : NRGBA) -> Bool {
 }
 
 // NRGBA::new returns a new [NRGBA] image with the given bounds.
-pub fn NRGBA::new(r : Rectangle) -> NRGBA {
+pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(4, r, "NRGBA"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(4, r, "NRGBA"), b'\x00')[:],
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -680,9 +679,9 @@ pub fn opaque(self : NRGBA64) -> Bool {
 }
 
 // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
-pub fn NRGBA64::new(r : Rectangle) -> NRGBA64 {
+pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(8, r, "NRGBA64"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(8, r, "NRGBA64"), b'\x00')[:],
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -802,9 +801,9 @@ pub fn opaque(self : Alpha) -> Bool {
 }
 
 // Alpha::new returns a new [Alpha] image with the given bounds.
-pub fn Alpha::new(r : Rectangle) -> Alpha {
+pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(1, r, "Alpha"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(1, r, "Alpha"), b'\x00')[:],
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -932,9 +931,9 @@ pub fn opaque(self : Alpha16) -> Bool {
 }
 
 // Alpha16::new returns a new [Alpha16] image with the given bounds.
-pub fn Alpha16::new(r : Rectangle) -> Alpha16 {
+pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(2, r, "Alpha16"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(2, r, "Alpha16"), b'\x00')[:],
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -1042,9 +1041,9 @@ pub fn opaque(self : Gray) -> Bool {
 }
 
 // Gray::new returns a new [Gray] image with the given bounds.
-pub fn Gray::new(r : Rectangle) -> Gray {
+pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(1, r, "Gray"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(1, r, "Gray"), b'\x00')[:],
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -1155,9 +1154,9 @@ pub fn opaque(self : Gray16) -> Bool {
 }
 
 // Gray16::new returns a new [Gray16] image with the given bounds.
-pub fn Gray16::new(r : Rectangle) -> Gray16 {
+pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(2, r, "Gray16"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(2, r, "Gray16"), b'\x00')[:],
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -1277,9 +1276,9 @@ pub fn opaque(self : CMYK) -> Bool {
 }
 
 // CMYK::new returns a new CMYK image with the given bounds.
-pub fn CMYK::new(r : Rectangle) -> CMYK {
+pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(4, r, "CMYK"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(4, r, "CMYK"), b'\x00')[:],
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -1428,9 +1427,9 @@ pub fn opaque(self : Paletted) -> Bool {
 
 // Paletted::new returns a new [Paletted] image with the given width, height and
 // palette.
-pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted {
+pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted!SizeError {
   {
-    pix: Array::make(pixel_buffer_length(1, r, "Paletted"), b'\x00')[:],
+    pix: Array::make(pixel_buffer_length!(1, r, "Paletted"), b'\x00')[:],
     stride: 1 * r.dx(),
     rect: r,
     palette: p,
