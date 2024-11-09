@@ -225,33 +225,33 @@ test "16 bits per color channel" {
   }
 }
 
-// func TestRGBA64Image(t *testing.T) {
-// 	// memset sets every element of s to v.
-// 	memset := func(s []byte, v byte) {
-// 		for i := range s {
-// 			s[i] = v
-// 		}
-// 	}
+// // memset sets every element of s to v.
+// fn memset(s : ArrayView[Byte], v : Byte) -> Unit {
+//   for i in 0..<s.length() {
+//     s[i] = v
+//   }
+// }
 
-// 	r := @image.rect(0, 0, 3, 2)
-// 	test_cases := []Image{
-// 		NewAlpha(r),
-// 		NewAlpha16(r),
-// 		NewCMYK(r),
-// 		NewGray(r),
-// 		NewGray16(r),
-// 		NewNRGBA(r),
-// 		NewNRGBA64(r),
-// 		NewNYCbCrA(r, YCbCrSubsampleRatio444),
-// 		NewPaletted(r, palette.Plan9),
-// 		NewRGBA(r),
-// 		NewRGBA64(r),
-// 		NewUniform(@color.RGBA64{}),
-// 		NewYCbCr(r, YCbCrSubsampleRatio444),
+// test "RGBA64 image" {
+// 	let r = @image.rect(0, 0, 3, 2)
+// 	let test_cases: Array[Image] = [
+// 		@image.Alpha::new!(r),
+// 		@image.Alpha16::new!(r),
+// 		@image.CMYK::new!(r),
+// 		@image.Gray::new!(r),
+// 		@image.Gray16::new!(r),
+// 		@image.NRGBA::new!(r),
+// 		@image.NRGBA64::new!(r),
+// 		// @image.NYCbCrA::new!(r, YCbCrSubsampleRatio444),
+// 		// @image.Paletted::new!(r, palette.Plan9),
+// 		@image.RGBA::new!(r),
+// 		@image.RGBA64::new!(r),
+// 		// @image.Uniform::new!(@color.RGBA64{}),
+// 		// @image.YCbCr::new!(r, YCbCrSubsampleRatio444),
 // 		r,
-// 	}
-// 	for _, tc := range test_cases {
-// 		switch tc := tc.(type) {
+//   ]
+// 	for tc in test_cases {
+//     match tc.model() {
 // 		// Most of the concrete image types in the test_cases implement the
 // 		// draw.RGBA64Image interface: they have a SetRGBA64 method. We use an
 // 		// interface literal here, instead of importing "image/draw", to avoid
@@ -264,21 +264,24 @@ test "16 bits per color channel" {
 // 		//
 // 		// The Uniform and Rectangle types are also special-cased, as they
 // 		// don't have a Set or SetRGBA64 method.
-// 		case interface {
-// 			SetRGBA64(x, y int, c @color.RGBA64)
-// 		}:
-// 			tc.SetRGBA64(1, 1, @color.RGBA64{0x7FFF, 0x3FFF, 0x0000, 0x7FFF})
+// 		// case interface {
+// 		// 	SetRGBA64(x, y int, c @color.RGBA64)
+// 		// }:
+// 		// 	tc.SetRGBA64(1, 1, @color.RGBA64{0x7FFF, 0x3FFF, 0x0000, 0x7FFF})
 
-// 		case *NYCbCrA:
+// }
+// 		"NYCbCrA" => {
 // 			memset(tc.YCbCr.Y, 0x77)
 // 			memset(tc.YCbCr.Cb, 0x88)
 // 			memset(tc.YCbCr.Cr, 0x99)
 // 			memset(tc.A, 0xAA)
 
-// 		case *Uniform:
+// }
+// 		"Uniform" => {
 // 			tc.C = @color.RGBA64{0x7FFF, 0x3FFF, 0x0000, 0x7FFF}
 
-// 		case *YCbCr:
+// }
+// 		"YCbCr" => {
 // 			memset(tc.Y, 0x77)
 // 			memset(tc.Cb, 0x88)
 // 			memset(tc.Cr, 0x99)

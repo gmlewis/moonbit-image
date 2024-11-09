@@ -85,6 +85,18 @@ pub fn Rectangle::new() -> Rectangle {
   { min: pt(0, 0), max: pt(0, 0) }
 }
 
+pub fn opaque(self : Rectangle) -> Bool {
+  true
+}
+
+pub fn set(self : Rectangle, x : Int, y : Int, c : @color.Color) -> Unit {
+
+}
+
+pub fn sub_image(self : Rectangle, o : Rectangle) -> Image {
+  self
+}
+
 /// copy makes a copy of the provided rectangle without changing it.
 pub fn copy(self : Rectangle) -> Rectangle {
   { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }

@@ -594,9 +594,6 @@ pub fn set(self : NRGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
   let { r, g, b, a } = @color.NRGBA64::from(c)
   self.pix[i + 0] = (r >> 8).to_byte()
   self.pix[i + 1] = r.to_byte()
-  println(
-    "GML: nrgba64.set(\{x}, \{y}, c=\{c}) r=\{r}, s[0]=\{self.pix[i+0]}, s[1]=\{self.pix[i+1]}",
-  )
   self.pix[i + 2] = (g >> 8).to_byte()
   self.pix[i + 3] = g.to_byte()
   self.pix[i + 4] = (b >> 8).to_byte()
