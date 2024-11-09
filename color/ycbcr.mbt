@@ -373,6 +373,10 @@ pub struct CMYK {
   k : Byte
 } derive(Show, Eq)
 
+pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
+  { c, m, y, k }
+}
+
 pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the cmyk_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff].
