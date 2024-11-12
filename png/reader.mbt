@@ -418,7 +418,7 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 }
 
 // decode decodes the IDAT data into an image.
-fn decode(self : Decoder) -> (@image.Image, IOError?) {
+fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
   let mut img = @image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(self)
   if err != None {
@@ -1058,7 +1058,7 @@ fn read_image_pass(
 
 fn parse_idat(self : Decoder, length : UInt) -> IOError? {
   self.idat_length = length
-  let (img, err) = self.decode()
+  let (img, err) = self.decode_idat()
   self.img = img
   if err != None {
     return err
@@ -1073,85 +1073,82 @@ fn parse_iend(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
-// func (d *decoder) parseChunk(configOnly bool) error {
-// 	// Read the length and chunk type.
-// 	if _, err := io.read_full(self.r, self.tmp[:8]); err != nil {
-// 		return err
-// 	}
-// 	length := be_uint32(self.tmp[:4])
-// 	self.crc.Reset()
-// 	self.crc.Write(self.tmp[4:8])
+fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
+  // Read the length and chunk type.
+  let (_, err) = @io.read_full(self.r, self.tmp[:8])
+  if err != None {
+    return err
+  }
+  let length = be_uint32(self.tmp[:4])
+  self.crc.reset()
+  guard let (_, None) = self.crc.write(self.tmp[4:8])
 
-// 	// Read the chunk data.
-// 	match string(self.tmp[4:8]) {
-// 	"IHDR" => {
-// 		if self.stage != DS_START {
-// 			return chunk_order_error
-// 		}
-// 		self.stage = DS_SEEN_IHDR
-// 		return self.parse_ihdr(length)
-// }
-// 	"PLTE" => {
-// 		if self.stage != DS_SEEN_IHDR {
-// 			return chunk_order_error
-// 		}
-// 		self.stage = DS_SEEN_PLTE
-// 		return self.parse_plte(length)
-// }
-// 	"tRNS" => {
-// 		if cb_paletted(self.cb) {
-// 			if self.stage != DS_SEEN_PLTE {
-// 				return chunk_order_error
-// 			}
-// 		} else if cb_true_color(self.cb) {
-// 			if self.stage != DS_SEEN_IHDR && self.stage != DS_SEEN_PLTE {
-// 				return chunk_order_error
-// 			}
-// 		} else if self.stage != DS_SEEN_IHDR {
-// 			return chunk_order_error
-// 		}
-// 		self.stage = DS_SEENT_RNS
-// 		return self.parse_t_rns(length)
-// }
-// 	"IDAT" => {
-// 		if self.stage < DS_SEEN_IHDR || self.stage > DS_SEEN_IDAT || (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
-// 			return chunk_order_error
-// 		} else if self.stage == DS_SEEN_IDAT {
-// 			// Ignore trailing zero-length or garbage IDAT chunks.
-// 			//
-// 			// This does not affect valid PNG images that contain multiple IDAT
-// 			// chunks, since the first call to parse_idat below will consume all
-// 			// consecutive IDAT chunks required for decoding the image.
-// 			break
-// 		}
-// 		self.stage = DS_SEEN_IDAT
-// 		if configOnly {
-// 			return nil
-// 		}
-// 		return self.parse_idat(length)
-// }
-// 	"IEND" => {
-// 		if self.stage != DS_SEEN_IDAT {
-// 			return chunk_order_error
-// 		}
-// 		self.stage = DS_SEEN_IEND
-// 		return self.parse_iend(length)
-// 	}
-// 	if length > 0x7fffffff {
-// 		return format_error(fmt.Sprintf("Bad chunk length: %d", length))
-// 	}
-// 	// Ignore this chunk (of a known length).
-// 	var ignored [4096]byte
-// 	for length > 0 {
-// 		n, err := io.read_full(self.r, ignored[:min(len(ignored), int(length))])
-// 		if err != nil {
-// 			return err
-// 		}
-// 		self.crc.Write(ignored[:n])
-// 		length -= uint32(n)
-// 	}
-// 	return self.verify_checksum()
-// }
+  // Read the chunk data.
+  let chunk = be_uint32(self.tmp[4:8])
+  if chunk == be_uint32(Slice::new(b"IHDR".to_array())) {
+    // 		if self.stage != DS_START {
+    // 			return chunk_order_error
+    // 		}
+    // 		self.stage = DS_SEEN_IHDR
+    // 		return self.parse_ihdr(length)
+  } else if chunk == be_uint32(Slice::new(b"PLTE".to_array())) {
+    // 		if self.stage != DS_SEEN_IHDR {
+    // 			return chunk_order_error
+    // 		}
+    // 		self.stage = DS_SEEN_PLTE
+    // 		return self.parse_plte(length)
+  } else if chunk == be_uint32(Slice::new(b"tRNS".to_array())) {
+    // 		if cb_paletted(self.cb) {
+    // 			if self.stage != DS_SEEN_PLTE {
+    // 				return chunk_order_error
+    // 			}
+    // 		} else if cb_true_color(self.cb) {
+    // 			if self.stage != DS_SEEN_IHDR && self.stage != DS_SEEN_PLTE {
+    // 				return chunk_order_error
+    // 			}
+    // 		} else if self.stage != DS_SEEN_IHDR {
+    // 			return chunk_order_error
+    // 		}
+    // 		self.stage = DS_SEENT_RNS
+    // 		return self.parse_t_rns(length)
+  } else if chunk == be_uint32(Slice::new(b"IDAT".to_array())) {
+    // 		if self.stage < DS_SEEN_IHDR || self.stage > DS_SEEN_IDAT || (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
+    // 			return chunk_order_error
+    // 		} else if self.stage == DS_SEEN_IDAT {
+    // 			// Ignore trailing zero-length or garbage IDAT chunks.
+    // 			//
+    // 			// This does not affect valid PNG images that contain multiple IDAT
+    // 			// chunks, since the first call to parse_idat below will consume all
+    // 			// consecutive IDAT chunks required for decoding the image.
+    // 			break
+    // 		}
+    // 		self.stage = DS_SEEN_IDAT
+    // 		if config_only {
+    // 			return nil
+    // 		}
+    // 		return self.parse_idat(length)
+  } else if chunk == be_uint32(Slice::new(b"IEND".to_array())) {
+    // 		if self.stage != DS_SEEN_IDAT {
+    // 			return chunk_order_error
+    // 		}
+    // 		self.stage = DS_SEEN_IEND
+    // 		return self.parse_iend(length)
+    // 	}
+    // 	if length > 0x7fffffff {
+    // 		return format_error(fmt.Sprintf("Bad chunk length: %d", length))
+    // 	}
+    // 	// Ignore this chunk (of a known length).
+    // 	var ignored [4096]byte
+    // 	for length > 0 {
+    // 		n, err := io.read_full(self.r, ignored[:min(len(ignored), int(length))])
+    // 		if err != nil {
+    // 			return err
+    // 		}
+    // 		self.crc.Write(ignored[:n])
+    // 		length -= uint32(n)
+  }
+  self.verify_checksum()
+}
 
 fn verify_checksum(self : Decoder) -> IOError? {
   let (_, err) = @io.read_full(self.r, self.tmp[:4])
@@ -1164,40 +1161,39 @@ fn verify_checksum(self : Decoder) -> IOError? {
   None
 }
 
-// func (d *decoder) check_header() error {
-// 	_, err := io.read_full(self.r, self.tmp[:len(PNG_HEADER)])
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if string(self.tmp[:len(PNG_HEADER)]) != PNG_HEADER {
-// 		return format_error("not a PNG file")
-// 	}
-// 	return nil
-// }
+fn check_header(self : Decoder) -> IOError? {
+  let (_, err) = @io.read_full(self.r, self.tmp[:PNG_HEADER.length()])
+  if err != None {
+    return err
+  }
+  if self.tmp[:PNG_HEADER.length()].to_bytes() != PNG_HEADER {
+    return Some(format_error("not a PNG file"))
+  }
+  None
+}
 
-// // Decode reads a PNG image from r and returns it as an [image.Image].
-// // The type of Image returned depends on the PNG contents.
-// func Decode(r io.Reader) (image.Image, error) {
-// 	d := &decoder{
-// 		r:   r,
-// 		crc: crc32.NewIEEE(),
-// 	}
-// 	if err := self.check_header(); err != nil {
-// 		if err == io.EOF {
-// 			err = io.err_unexpected_eof
-// 		}
-// 		return nil, err
-// 	}
-// 	for self.stage != DS_SEEN_IEND {
-// 		if err := self.parseChunk(false); err != nil {
-// 			if err == io.EOF {
-// 				err = io.err_unexpected_eof
-// 			}
-// 			return nil, err
-// 		}
-// 	}
-// 	return self.img, nil
-// }
+// decode reads a PNG image from r and returns it as an [image.Image].
+// The type of Image returned depends on the PNG contents.
+pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
+  let d : Decoder = { r, crc: @crc32.new() }
+  let mut err = d.check_header()
+  if err != None {
+    if err == Some(@io.eof) {
+      err = Some(@io.err_unexpected_eof)
+    }
+    return (@image.Image::new_empty(), err)
+  }
+  while d.stage != DS_SEEN_IEND {
+    let mut err = d.parse_chunk(false)
+    if err != None {
+      if err == Some(@io.eof) {
+        err = Some(@io.err_unexpected_eof)
+      }
+      return (@image.Image::new_empty(), err)
+    }
+  }
+  (d.img, None)
+}
 
 // // DecodeConfig returns the color model and dimensions of a PNG image without
 // // decoding the entire image.
@@ -1214,7 +1210,7 @@ fn verify_checksum(self : Decoder) -> IOError? {
 // 	}
 
 // 	for {
-// 		if err := self.parseChunk(true); err != nil {
+// 		if err := self.parse_chunk(true); err != nil {
 // 			if err == io.EOF {
 // 				err = io.err_unexpected_eof
 // 			}

@@ -2,6 +2,7 @@
   "import": [
     "gmlewis/flate",
     "gmlewis/hash",
+    "gmlewis/hash/crc32",
     "gmlewis/image",
     "gmlewis/image/color",
     "gmlewis/io",
