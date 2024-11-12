@@ -86,9 +86,9 @@ const FT_PAETH = 4
 const N_FILTER = 5
 
 // Interlace type.
-const IT_NONE = 0
+const IT_NONE = b'\x00'
 
-const IT_ADAM7 = 1
+const IT_ADAM7 = b'\x01'
 
 // InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
 struct InterlaceScan {
@@ -134,15 +134,15 @@ struct Decoder {
   r : @io.Reader
   img : @image.Image
   crc : @hash.Hash32
-  width : Int
-  height : Int
-  depth : Int
+  mut width : Int
+  mut height : Int
+  mut depth : Int
   palette : @color.Palette
-  cb : Int
+  mut cb : Int
   stage : Int
   idat_length : UInt
   tmp : Slice[Byte] // [3 * 256]byte
-  interlace : Int
+  mut interlace : Int
 
   // use_transparent and transparent are used for grayscale and truecolor
   // transparency, as opposed to palette transparency.
@@ -150,124 +150,122 @@ struct Decoder {
   transparent : Slice[Byte] // [6]byte
 }
 
-// A FormatError reports that the input is not a valid PNG.
-type! FormatError String derive(Show, Eq)
+typealias IOError = @io.IOError
 
-fn format_error(e : String) -> FormatError {
-  FormatError("png: invalid format: \{e}")
+// A format_error reports that the input is not a valid PNG.
+fn format_error(e : String) -> IOError {
+  IOError("png: invalid format: \{e}")
 }
 
-pub let chunk_order_error : FormatError = format_error("chunk out of order")
+pub let chunk_order_error : IOError = format_error("chunk out of order")
 
-// An UnsupportedError reports that the input uses a valid but unimplemented PNG feature.
-type! UnsupportedError String derive(Show, Eq)
-
-fn unsupported_error(e : String) -> UnsupportedError {
-  UnsupportedError("png: unsupported feature: \{e}")
+// An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
+fn unsupported_error(e : String) -> IOError {
+  IOError("png: unsupported feature: \{e}")
 }
 
-// func (d *decoder) parseIHDR(length uint32) error {
-// 	if length != 13 {
-// 		return format_error("bad IHDR length")
-// 	}
-// 	if _, err := io.ReadFull(d.r, d.tmp[:13]); err != nil {
-// 		return err
-// 	}
-// 	d.crc.Write(d.tmp[:13])
-// 	if d.tmp[10] != 0 {
-// 		return unsupported_error("compression method")
-// 	}
-// 	if d.tmp[11] != 0 {
-// 		return unsupported_error("filter method")
-// 	}
-// 	if d.tmp[12] != IT_NONE && d.tmp[12] != IT_ADAM7 {
-// 		return format_error("invalid interlace method")
-// 	}
-// 	d.interlace = int(d.tmp[12])
+fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
+  if length != 13 {
+    return Some(format_error("bad IHDR length"))
+  }
+  let (_, err) = @io.read_full(self.r, self.tmp[:13])
+  if err != None {
+    return err
+  }
+  guard let (_, None) = self.crc.write(self.tmp[:13])
+  if self.tmp[10] != 0 {
+    return Some(unsupported_error("compression method"))
+  }
+  if self.tmp[11] != 0 {
+    return Some(unsupported_error("filter method"))
+  }
+  if self.tmp[12] != IT_NONE && self.tmp[12] != IT_ADAM7 {
+    return Some(format_error("invalid interlace method"))
+  }
+  self.interlace = self.tmp[12].to_int()
 
-// 	w := int32(binary.BigEndian.Uint32(d.tmp[0:4]))
-// 	h := int32(binary.BigEndian.Uint32(d.tmp[4:8]))
-// 	if w <= 0 || h <= 0 {
-// 		return format_error("non-positive dimension")
-// 	}
-// 	nPixels64 := int64(w) * int64(h)
-// 	nPixels := int(nPixels64)
-// 	if nPixels64 != int64(nPixels) {
-// 		return unsupported_error("dimension overflow")
-// 	}
-// 	// There can be up to 8 bytes per pixel, for 16 bits per channel RGBA.
-// 	if nPixels != (nPixels*8)/8 {
-// 		return unsupported_error("dimension overflow")
-// 	}
+  //
+  let w = be_uint32(self.tmp[0:4]).reinterpret_as_int()
+  let h = be_uint32(self.tmp[4:8]).reinterpret_as_int()
+  if w <= 0 || h <= 0 {
+    return Some(format_error("non-positive dimension"))
+  }
+  let mut n_pixels64 = w.to_int64() * h.to_int64()
+  let mut n_pixels = n_pixels64.to_int()
+  if n_pixels64 != n_pixels.to_int64() {
+    return Some(unsupported_error("dimension overflow"))
+  }
+  // There can be up to 8 bytes per pixel, for 16 bits per channel RGBA.
+  if n_pixels != n_pixels * 8 / 8 {
+    return Some(unsupported_error("dimension overflow"))
+  }
 
-// 	d.cb = cbInvalid
-// 	d.depth = int(d.tmp[8])
-// 	switch d.depth {
-// 	case 1:
-// 		switch d.tmp[9] {
-// 		case CT_GRAYSCALE:
-// 			d.cb = cbG1
-// 		case CT_PALETTED:
-// 			d.cb = CB_P1
-// 		}
-// 	case 2:
-// 		switch d.tmp[9] {
-// 		case CT_GRAYSCALE:
-// 			d.cb = cbG2
-// 		case CT_PALETTED:
-// 			d.cb = cb_p2
-// 		}
-// 	case 4:
-// 		switch d.tmp[9] {
-// 		case CT_GRAYSCALE:
-// 			d.cb = cbG4
-// 		case CT_PALETTED:
-// 			d.cb = cb_p4
-// 		}
-// 	case 8:
-// 		switch d.tmp[9] {
-// 		case CT_GRAYSCALE:
-// 			d.cb = cbG8
-// 		case CT_TRUE_COLOR:
-// 			d.cb = CB_TC8
-// 		case CT_PALETTED:
-// 			d.cb = CB_P8
-// 		case CT_GRAYSCALE_ALPHA:
-// 			d.cb = cbGA8
-// 		case CT_TRUE_COLOR_ALPHA:
-// 			d.cb = CB_TCA8
-// 		}
-// 	case 16:
-// 		switch d.tmp[9] {
-// 		case CT_GRAYSCALE:
-// 			d.cb = cbG16
-// 		case CT_TRUE_COLOR:
-// 			d.cb = CB_TC16
-// 		case CT_GRAYSCALE_ALPHA:
-// 			d.cb = cbGA16
-// 		case CT_TRUE_COLOR_ALPHA:
-// 			d.cb = CB_TCA16
-// 		}
-// 	}
-// 	if d.cb == cbInvalid {
-// 		return unsupported_error(fmt.Sprintf("bit depth %d, color type %d", d.tmp[8], d.tmp[9]))
-// 	}
-// 	d.width, d.height = int(w), int(h)
-// 	return d.verifyChecksum()
-// }
+  //
+  self.cb = CB_INVALID
+  self.depth = self.tmp[8].to_int()
+  match self.depth {
+    1 =>
+      match self.tmp[9].to_int() {
+        CT_GRAYSCALE => self.cb = CB_G1
+        CT_PALETTED => self.cb = CB_P1
+      }
+    2 =>
+      match self.tmp[9].to_int() {
+        CT_GRAYSCALE => self.cb = CB_G2
+        CT_PALETTED => self.cb = CB_P2
+      }
+    4 =>
+      match self.tmp[9].to_int() {
+        CT_GRAYSCALE => self.cb = CB_G4
+        CT_PALETTED => self.cb = CB_P4
+      }
+    8 =>
+      match self.tmp[9].to_int() {
+        CT_GRAYSCALE => self.cb = CB_G8
+        CT_TRUE_COLOR => self.cb = CB_TC8
+        CT_PALETTED => self.cb = CB_P8
+        CT_GRAYSCALE_ALPHA => self.cb = CB_GA8
+        CT_TRUE_COLOR_ALPHA => self.cb = CB_TCA8
+      }
+    16 =>
+      match self.tmp[9].to_int() {
+        CT_GRAYSCALE => self.cb = CB_G16
+        CT_TRUE_COLOR => self.cb = CB_TC16
+        CT_GRAYSCALE_ALPHA => self.cb = CB_GA16
+        CT_TRUE_COLOR_ALPHA => self.cb = CB_TCA16
+      }
+  }
+  if self.cb == CB_INVALID {
+    return Some(
+      unsupported_error(
+        "bit depth \{self.tmp[8].to_int()}, color type \{self.tmp[9].to_int()}",
+      ),
+    )
+  }
+  self.width = w
+  self.height = h
+  self.verify_checksum()
+}
+
+fn be_uint32(b : Slice[Byte]) -> UInt {
+  (b[0].to_uint() << 24) |
+  (b[1].to_uint() << 16) |
+  (b[2].to_uint() << 8) |
+  b[3].to_uint()
+}
 
 // func (d *decoder) parsePLTE(length uint32) error {
 // 	np := int(length / 3) // The number of palette entries.
 // 	if length%3 != 0 || np <= 0 || np > 256 || np > 1<<uint(d.depth) {
 // 		return format_error("bad PLTE length")
 // 	}
-// 	n, err := io.ReadFull(d.r, d.tmp[:3*np])
+// 	n, err := io.read_full(d.r, d.tmp[:3*np])
 // 	if err != nil {
 // 		return err
 // 	}
 // 	d.crc.Write(d.tmp[:n])
 // 	switch d.cb {
-// 	case CB_P1, cb_p2, cb_p4, CB_P8:
+// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
 // 		d.palette = make(color.Palette, 256)
 // 		for i := 0; i < np; i++ {
 // 			d.palette[i] = color.RGBA{d.tmp[3*i+0], d.tmp[3*i+1], d.tmp[3*i+2], 0xff}
@@ -281,22 +279,23 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			d.palette[i] = color.RGBA{0x00, 0x00, 0x00, 0xff}
 // 		}
 // 		d.palette = d.palette[:np]
-// 	case CB_TC8, CB_TCA8, CB_TC16, CB_TCA16:
+// }
+// 	CB_TC8, CB_TCA8, CB_TC16, CB_TCA16 => {
 // 		// As per the PNG spec, a PLTE chunk is optional (and for practical purposes,
 // 		// ignorable) for the CT_TRUE_COLOR and CT_TRUE_COLOR_ALPHA color types (section 4.1.2).
 // 	default:
 // 		return format_error("PLTE, color type mismatch")
 // 	}
-// 	return d.verifyChecksum()
+// 	return d.verify_checksum()
 // }
 
 // func (d *decoder) parsetRNS(length uint32) error {
 // 	switch d.cb {
-// 	case cbG1, cbG2, cbG4, cbG8, cbG16:
+// 	CB_G1, CB_G2, CB_G4, CB_G8, CB_G16 => {
 // 		if length != 2 {
 // 			return format_error("bad tRNS length")
 // 		}
-// 		n, err := io.ReadFull(d.r, d.tmp[:length])
+// 		n, err := io.read_full(d.r, d.tmp[:length])
 // 		if err != nil {
 // 			return err
 // 		}
@@ -304,20 +303,22 @@ fn unsupported_error(e : String) -> UnsupportedError {
 
 // 		copy(d.transparent[:], d.tmp[:length])
 // 		switch d.cb {
-// 		case cbG1:
+// 		CB_G1 => {
 // 			d.transparent[1] *= 0xff
-// 		case cbG2:
+// }
+// 		CB_G2 => {
 // 			d.transparent[1] *= 0x55
-// 		case cbG4:
+// }
+// 		CB_G4 => {
 // 			d.transparent[1] *= 0x11
 // 		}
 // 		d.use_transparent = true
-
-// 	case CB_TC8, CB_TC16:
+// }
+// 	CB_TC8, CB_TC16 => {
 // 		if length != 6 {
 // 			return format_error("bad tRNS length")
 // 		}
-// 		n, err := io.ReadFull(d.r, d.tmp[:length])
+// 		n, err := io.read_full(d.r, d.tmp[:length])
 // 		if err != nil {
 // 			return err
 // 		}
@@ -326,11 +327,12 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 		copy(d.transparent[:], d.tmp[:length])
 // 		d.use_transparent = true
 
-// 	case CB_P1, cb_p2, cb_p4, CB_P8:
+// }
+// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
 // 		if length > 256 {
 // 			return format_error("bad tRNS length")
 // 		}
-// 		n, err := io.ReadFull(d.r, d.tmp[:length])
+// 		n, err := io.read_full(d.r, d.tmp[:length])
 // 		if err != nil {
 // 			return err
 // 		}
@@ -347,7 +349,7 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 	default:
 // 		return format_error("tRNS, color type mismatch")
 // 	}
-// 	return d.verifyChecksum()
+// 	return d.verify_checksum()
 // }
 
 // // Read presents one or more IDAT chunks as one continuous stream (minus the
@@ -365,15 +367,15 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 	}
 // 	for d.idat_length == 0 {
 // 		// We have exhausted an IDAT chunk. Verify the checksum of that chunk.
-// 		if err := d.verifyChecksum(); err != nil {
+// 		if err := d.verify_checksum(); err != nil {
 // 			return 0, err
 // 		}
 // 		// Read the length and chunk type of the next chunk, and check that
 // 		// it is an IDAT chunk.
-// 		if _, err := io.ReadFull(d.r, d.tmp[:8]); err != nil {
+// 		if _, err := io.read_full(d.r, d.tmp[:8]); err != nil {
 // 			return 0, err
 // 		}
-// 		d.idat_length = binary.BigEndian.Uint32(d.tmp[:4])
+// 		d.idat_length = be_uint32(d.tmp[:4])
 // 		if string(d.tmp[4:8]) != "IDAT" {
 // 			return 0, format_error("not enough pixel data")
 // 		}
@@ -465,7 +467,7 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 		}
 // 	}
 // 	switch d.cb {
-// 	case cbG1, cbG2, cbG4, cbG8:
+// 	CB_G1, CB_G2, CB_G4, CB_G8 => {
 // 		bitsPerPixel = d.depth
 // 		if d.use_transparent {
 // 			nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
@@ -474,11 +476,13 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			gray = image.NewGray(image.Rect(0, 0, width, height))
 // 			img = gray
 // 		}
-// 	case cbGA8:
+// }
+// 	CB_GA8 => {
 // 		bitsPerPixel = 16
 // 		nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
 // 		img = nrgba
-// 	case CB_TC8:
+// }
+// 	CB_TC8 => {
 // 		bitsPerPixel = 24
 // 		if d.use_transparent {
 // 			nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
@@ -487,15 +491,18 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			rgba = image.NewRGBA(image.Rect(0, 0, width, height))
 // 			img = rgba
 // 		}
-// 	case CB_P1, cb_p2, cb_p4, CB_P8:
+// }
+// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
 // 		bitsPerPixel = d.depth
 // 		paletted = image.NewPaletted(image.Rect(0, 0, width, height), d.palette)
 // 		img = paletted
-// 	case CB_TCA8:
+// }
+// 	CB_TCA8 => {
 // 		bitsPerPixel = 32
 // 		nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
 // 		img = nrgba
-// 	case cbG16:
+// }
+// 	CB_G16 => {
 // 		bitsPerPixel = 16
 // 		if d.use_transparent {
 // 			nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
@@ -504,11 +511,13 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			gray16 = image.NewGray16(image.Rect(0, 0, width, height))
 // 			img = gray16
 // 		}
-// 	case cbGA16:
+// }
+// 	CB_GA16 => {
 // 		bitsPerPixel = 32
 // 		nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
 // 		img = nrgba64
-// 	case CB_TC16:
+// }
+// 	CB_TC16 => {
 // 		bitsPerPixel = 48
 // 		if d.use_transparent {
 // 			nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
@@ -517,7 +526,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			rgba64 = image.NewRGBA64(image.Rect(0, 0, width, height))
 // 			img = rgba64
 // 		}
-// 	case CB_TCA16:
+// }
+// 	CB_TCA16 => {
 // 		bitsPerPixel = 64
 // 		nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
 // 		img = nrgba64
@@ -538,7 +548,7 @@ fn unsupported_error(e : String) -> UnsupportedError {
 
 // 	for y := 0; y < height; y++ {
 // 		// Read the decompressed bytes.
-// 		_, err := io.ReadFull(r, cr)
+// 		_, err := io.read_full(r, cr)
 // 		if err != nil {
 // 			if err == io.EOF || err == io.ErrUnexpectedEOF {
 // 				return nil, format_error("not enough pixel data")
@@ -550,17 +560,20 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 		cdat := cr[1:]
 // 		pdat := pr[1:]
 // 		switch cr[0] {
-// 		case FT_NONE:
+// 		FT_NONE => {
 // 			// No-op.
-// 		case FT_SUB:
+// }
+// 		FT_SUB => {
 // 			for i := bytesPerPixel; i < len(cdat); i++ {
 // 				cdat[i] += cdat[i-bytesPerPixel]
 // 			}
-// 		case FT_UP:
+// }
+// 		FT_UP => {
 // 			for i, p := range pdat {
 // 				cdat[i] += p
 // 			}
-// 		case FT_AVERAGE:
+// }
+// 		FT_AVERAGE => {
 // 			// The first column has no column to the left of it, so it is a
 // 			// special case. We know that the first column exists because we
 // 			// check above that width != 0, and so len(cdat) != 0.
@@ -570,7 +583,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			for i := bytesPerPixel; i < len(cdat); i++ {
 // 				cdat[i] += uint8((int(cdat[i-bytesPerPixel]) + int(pdat[i])) / 2)
 // 			}
-// 		case FT_PAETH:
+// }
+// 		FT_PAETH => {
 // 			filterPaeth(cdat, pdat, bytesPerPixel)
 // 		default:
 // 			return nil, format_error("bad filter type")
@@ -578,7 +592,7 @@ fn unsupported_error(e : String) -> UnsupportedError {
 
 // 		// Convert from bytes to colors.
 // 		switch d.cb {
-// 		case cbG1:
+// 		CB_G1 => {
 // 			if d.use_transparent {
 // 				ty := d.transparent[1]
 // 				for x := 0; x < width; x += 8 {
@@ -602,7 +616,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					}
 // 				}
 // 			}
-// 		case cbG2:
+// }
+// 		CB_G2 => {
 // 			if d.use_transparent {
 // 				ty := d.transparent[1]
 // 				for x := 0; x < width; x += 4 {
@@ -626,7 +641,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					}
 // 				}
 // 			}
-// 		case cbG4:
+// }
+// 		CB_G4 => {
 // 			if d.use_transparent {
 // 				ty := d.transparent[1]
 // 				for x := 0; x < width; x += 2 {
@@ -650,7 +666,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					}
 // 				}
 // 			}
-// 		case cbG8:
+// }
+// 		CB_G8 => {
 // 			if d.use_transparent {
 // 				ty := d.transparent[1]
 // 				for x := 0; x < width; x++ {
@@ -665,12 +682,14 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 				copy(gray.Pix[pix_offset:], cdat)
 // 				pix_offset += gray.Stride
 // 			}
-// 		case cbGA8:
+// }
+// 		CB_GA8 => {
 // 			for x := 0; x < width; x++ {
 // 				ycol := cdat[2*x+0]
 // 				nrgba.SetNRGBA(x, y, color.NRGBA{ycol, ycol, ycol, cdat[2*x+1]})
 // 			}
-// 		case CB_TC8:
+// }
+// 		CB_TC8 => {
 // 			if d.use_transparent {
 // 				pix, i, j := nrgba.Pix, pix_offset, 0
 // 				tr, tg, tb := d.transparent[1], d.transparent[3], d.transparent[5]
@@ -702,7 +721,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 				}
 // 				pix_offset += rgba.Stride
 // 			}
-// 		case CB_P1:
+// }
+// 		CB_P1 => {
 // 			for x := 0; x < width; x += 8 {
 // 				b := cdat[x/8]
 // 				for x2 := 0; x2 < 8 && x+x2 < width; x2++ {
@@ -714,7 +734,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					b <<= 1
 // 				}
 // 			}
-// 		case cb_p2:
+// }
+// 		CB_P2 => {
 // 			for x := 0; x < width; x += 4 {
 // 				b := cdat[x/4]
 // 				for x2 := 0; x2 < 4 && x+x2 < width; x2++ {
@@ -726,7 +747,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					b <<= 2
 // 				}
 // 			}
-// 		case cb_p4:
+// }
+// 		CB_P4 => {
 // 			for x := 0; x < width; x += 2 {
 // 				b := cdat[x/2]
 // 				for x2 := 0; x2 < 2 && x+x2 < width; x2++ {
@@ -738,7 +760,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					b <<= 4
 // 				}
 // 			}
-// 		case CB_P8:
+// }
+// 		CB_P8 => {
 // 			if len(paletted.Palette) != 256 {
 // 				for x := 0; x < width; x++ {
 // 					if len(paletted.Palette) <= int(cdat[x]) {
@@ -748,10 +771,12 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			}
 // 			copy(paletted.Pix[pix_offset:], cdat)
 // 			pix_offset += paletted.Stride
-// 		case CB_TCA8:
+// }
+// 		CB_TCA8 => {
 // 			copy(nrgba.Pix[pix_offset:], cdat)
 // 			pix_offset += nrgba.Stride
-// 		case cbG16:
+// }
+// 		CB_G16 => {
 // 			if d.use_transparent {
 // 				ty := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
 // 				for x := 0; x < width; x++ {
@@ -768,13 +793,15 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					gray16.SetGray16(x, y, color.Gray16{ycol})
 // 				}
 // 			}
-// 		case cbGA16:
+// }
+// 		CB_GA16 => {
 // 			for x := 0; x < width; x++ {
 // 				ycol := uint16(cdat[4*x+0])<<8 | uint16(cdat[4*x+1])
 // 				acol := uint16(cdat[4*x+2])<<8 | uint16(cdat[4*x+3])
 // 				nrgba64.SetNRGBA64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
 // 			}
-// 		case CB_TC16:
+// }
+// 		CB_TC16 => {
 // 			if d.use_transparent {
 // 				tr := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
 // 				tg := uint16(d.transparent[2])<<8 | uint16(d.transparent[3])
@@ -797,7 +824,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 					rgba64.SetRGBA64(x, y, color.RGBA64{rcol, gcol, bcol, 0xffff})
 // 				}
 // 			}
-// 		case CB_TCA16:
+// }
+// 		CB_TCA16 => {
 // 			for x := 0; x < width; x++ {
 // 				rcol := uint16(cdat[8*x+0])<<8 | uint16(cdat[8*x+1])
 // 				gcol := uint16(cdat[8*x+2])<<8 | uint16(cdat[8*x+3])
@@ -825,31 +853,37 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 		bytesPerPixel int
 // 	)
 // 	switch target := dst.(type) {
-// 	case *image.Alpha:
+// 	*image.Alpha => {
 // 		srcPix = src.(*image.Alpha).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 1
-// 	case *image.Alpha16:
+// }
+// 	*image.Alpha16 => {
 // 		srcPix = src.(*image.Alpha16).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 2
-// 	case *image.Gray:
+// }
+// 	*image.Gray => {
 // 		srcPix = src.(*image.Gray).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 1
-// 	case *image.Gray16:
+// }
+// 	*image.Gray16 => {
 // 		srcPix = src.(*image.Gray16).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 2
-// 	case *image.NRGBA:
+// }
+// 	*image.NRGBA => {
 // 		srcPix = src.(*image.NRGBA).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 4
-// 	case *image.NRGBA64:
+// }
+// 	*image.NRGBA64 => {
 // 		srcPix = src.(*image.NRGBA64).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 8
-// 	case *image.Paletted:
+// }
+// 	*image.Paletted => {
 // 		source := src.(*image.Paletted)
 // 		srcPix = source.Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
@@ -861,11 +895,13 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			// same adjustment here.
 // 			target.Palette = source.Palette
 // 		}
-// 	case *image.RGBA:
+// }
+// 	*image.RGBA => {
 // 		srcPix = src.(*image.RGBA).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 4
-// 	case *image.RGBA64:
+// }
+// 	*image.RGBA64 => {
 // 		srcPix = src.(*image.RGBA64).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 8
@@ -887,40 +923,42 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 	if err != nil {
 // 		return err
 // 	}
-// 	return d.verifyChecksum()
+// 	return d.verify_checksum()
 // }
 
 // func (d *decoder) parseIEND(length uint32) error {
 // 	if length != 0 {
 // 		return format_error("bad IEND length")
 // 	}
-// 	return d.verifyChecksum()
+// 	return d.verify_checksum()
 // }
 
 // func (d *decoder) parseChunk(configOnly bool) error {
 // 	// Read the length and chunk type.
-// 	if _, err := io.ReadFull(d.r, d.tmp[:8]); err != nil {
+// 	if _, err := io.read_full(d.r, d.tmp[:8]); err != nil {
 // 		return err
 // 	}
-// 	length := binary.BigEndian.Uint32(d.tmp[:4])
+// 	length := be_uint32(d.tmp[:4])
 // 	d.crc.Reset()
 // 	d.crc.Write(d.tmp[4:8])
 
 // 	// Read the chunk data.
 // 	switch string(d.tmp[4:8]) {
-// 	case "IHDR":
+// 	"IHDR" => {
 // 		if d.stage != DS_START {
 // 			return chunk_order_error
 // 		}
 // 		d.stage = DS_SEEN_IHDR
-// 		return d.parseIHDR(length)
-// 	case "PLTE":
+// 		return d.parse_ihdr(length)
+// }
+// 	"PLTE" => {
 // 		if d.stage != DS_SEEN_IHDR {
 // 			return chunk_order_error
 // 		}
 // 		d.stage = DS_SEEN_PLTE
 // 		return d.parsePLTE(length)
-// 	case "tRNS":
+// }
+// 	"tRNS" => {
 // 		if cb_paletted(d.cb) {
 // 			if d.stage != DS_SEEN_PLTE {
 // 				return chunk_order_error
@@ -934,7 +972,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 		}
 // 		d.stage = DS_SEENT_RNS
 // 		return d.parsetRNS(length)
-// 	case "IDAT":
+// }
+// 	"IDAT" => {
 // 		if d.stage < DS_SEEN_IHDR || d.stage > DS_SEEN_IDAT || (d.stage == DS_SEEN_IHDR && cb_paletted(d.cb)) {
 // 			return chunk_order_error
 // 		} else if d.stage == DS_SEEN_IDAT {
@@ -950,7 +989,8 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 			return nil
 // 		}
 // 		return d.parseIDAT(length)
-// 	case "IEND":
+// }
+// 	"IEND" => {
 // 		if d.stage != DS_SEEN_IDAT {
 // 			return chunk_order_error
 // 		}
@@ -963,28 +1003,28 @@ fn unsupported_error(e : String) -> UnsupportedError {
 // 	// Ignore this chunk (of a known length).
 // 	var ignored [4096]byte
 // 	for length > 0 {
-// 		n, err := io.ReadFull(d.r, ignored[:min(len(ignored), int(length))])
+// 		n, err := io.read_full(d.r, ignored[:min(len(ignored), int(length))])
 // 		if err != nil {
 // 			return err
 // 		}
 // 		d.crc.Write(ignored[:n])
 // 		length -= uint32(n)
 // 	}
-// 	return d.verifyChecksum()
+// 	return d.verify_checksum()
 // }
 
-// func (d *decoder) verifyChecksum() error {
-// 	if _, err := io.ReadFull(d.r, d.tmp[:4]); err != nil {
+// func (d *decoder) verify_checksum() error {
+// 	if _, err := io.read_full(d.r, d.tmp[:4]); err != nil {
 // 		return err
 // 	}
-// 	if binary.BigEndian.Uint32(d.tmp[:4]) != d.crc.Sum32() {
+// 	if be_uint32(d.tmp[:4]) != d.crc.Sum32() {
 // 		return format_error("invalid checksum")
 // 	}
 // 	return nil
 // }
 
 // func (d *decoder) checkHeader() error {
-// 	_, err := io.ReadFull(d.r, d.tmp[:len(PNG_HEADER)])
+// 	_, err := io.read_full(d.r, d.tmp[:len(PNG_HEADER)])
 // 	if err != nil {
 // 		return err
 // 	}
@@ -1053,23 +1093,31 @@ fn unsupported_error(e : String) -> UnsupportedError {
 
 // 	var cm color.Model
 // 	switch d.cb {
-// 	case cbG1, cbG2, cbG4, cbG8:
+// 	CB_G1, CB_G2, CB_G4, CB_G8 => {
 // 		cm = color.GrayModel
-// 	case cbGA8:
+// }
+// 	CB_GA8 => {
 // 		cm = color.NRGBAModel
-// 	case CB_TC8:
+// }
+// 	CB_TC8 => {
 // 		cm = color.RGBAModel
-// 	case CB_P1, cb_p2, cb_p4, CB_P8:
+// }
+// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
 // 		cm = d.palette
-// 	case CB_TCA8:
+// }
+// 	CB_TCA8 => {
 // 		cm = color.NRGBAModel
-// 	case cbG16:
+// }
+// 	CB_G16 => {
 // 		cm = color.Gray16Model
-// 	case cbGA16:
+// }
+// 	CB_GA16 => {
 // 		cm = color.NRGBA64Model
-// 	case CB_TC16:
+// }
+// 	CB_TC16 => {
 // 		cm = color.RGBA64Model
-// 	case CB_TCA16:
+// }
+// 	CB_TCA16 => {
 // 		cm = color.NRGBA64Model
 // 	}
 // 	return image.Config{
