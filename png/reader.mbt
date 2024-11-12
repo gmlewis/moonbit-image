@@ -146,7 +146,7 @@ struct Decoder {
 
   // use_transparent and transparent are used for grayscale and truecolor
   // transparency, as opposed to palette transparency.
-  use_transparent : Bool
+  mut use_transparent : Bool
   transparent : Slice[Byte] // [6]byte
 }
 
@@ -294,68 +294,84 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
-// func (d *decoder) parsetRNS(length uint32) error {
-// 	match d.cb {
-// 	CB_G1, CB_G2, CB_G4, CB_G8, CB_G16 => {
-// 		if length != 2 {
-// 			return format_error("bad tRNS length")
-// 		}
-// 		n, err := io.read_full(d.r, d.tmp[:length])
-// 		if err != nil {
-// 			return err
-// 		}
-// 		d.crc.Write(d.tmp[:n])
+fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
+  match self.cb {
+    CB_G1 | CB_G2 | CB_G4 | CB_G8 | CB_G16 => {
+      if length != 2 {
+        return Some(format_error("bad tRNS length"))
+      }
+      let (n, err) = @io.read_full(
+        self.r,
+        self.tmp[:length.reinterpret_as_int()],
+      )
+      if err != None {
+        return err
+      }
+      guard let (_, None) = self.crc.write(self.tmp[:n])
+      let _ = slice_copy(
+        self.transparent[:],
+        self.tmp[:length.reinterpret_as_int()],
+      )
+      match self.cb {
+        CB_G1 => self.transparent[1] *= 0xff
+        CB_G2 => self.transparent[1] *= 0x55
+        CB_G4 => self.transparent[1] *= 0x11
+      }
+      self.use_transparent = true
+    }
+    CB_TC8 | CB_TC16 => {
+      if length != 6 {
+        return Some(format_error("bad tRNS length"))
+      }
+      let (n, err) = @io.read_full(
+        self.r,
+        self.tmp[:length.reinterpret_as_int()],
+      )
+      if err != None {
+        return err
+      }
+      guard let (_, None) = self.crc.write(self.tmp[:n])
+      let _ = slice_copy(
+        self.transparent,
+        self.tmp[:length.reinterpret_as_int()],
+      )
+      self.use_transparent = true
+    }
+    CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
+      if length > 256 {
+        return Some(format_error("bad tRNS length"))
+      }
+      let (n, err) = @io.read_full(
+        self.r,
+        self.tmp[:length.reinterpret_as_int()],
+      )
+      if err != None {
+        return err
+      }
+      guard let (_, None) = self.crc.write(self.tmp[:n])
+      if self.palette._.length() < n {
+        self.palette = self.palette._[:n]
+      }
+      for i = 0; i < n; i = i + 1 {
+        let (r, g, b, _) = self.palette._[i].rgba()
+        let r = (r >> 8).to_byte()
+        let g = (g >> 8).to_byte()
+        let b = (b >> 8).to_byte()
+        self.palette._[i] = @color.NRGBA::new(r, g, b, self.tmp[i])
+      }
+    }
+    _ => return Some(format_error("tRNS, color type mismatch"))
+  }
+  return self.verify_checksum()
+}
 
-// 		copy(d.transparent[:], d.tmp[:length])
-// 		match d.cb {
-// 		CB_G1 => {
-// 			d.transparent[1] *= 0xff
-// }
-// 		CB_G2 => {
-// 			d.transparent[1] *= 0x55
-// }
-// 		CB_G4 => {
-// 			d.transparent[1] *= 0x11
-// 		}
-// 		d.use_transparent = true
-// }
-// 	CB_TC8, CB_TC16 => {
-// 		if length != 6 {
-// 			return format_error("bad tRNS length")
-// 		}
-// 		n, err := io.read_full(d.r, d.tmp[:length])
-// 		if err != nil {
-// 			return err
-// 		}
-// 		d.crc.Write(d.tmp[:n])
-
-// 		copy(d.transparent[:], d.tmp[:length])
-// 		d.use_transparent = true
-
-// }
-// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-// 		if length > 256 {
-// 			return format_error("bad tRNS length")
-// 		}
-// 		n, err := io.read_full(d.r, d.tmp[:length])
-// 		if err != nil {
-// 			return err
-// 		}
-// 		d.crc.Write(d.tmp[:n])
-
-// 		if len(d.palette) < n {
-// 			d.palette = d.palette[:n]
-// 		}
-// 		for i := 0; i < n; i++ {
-// 			rgba := d.palette[i].(color.RGBA)
-// 			d.palette[i] = color.NRGBA{rgba.R, rgba.G, rgba.B, d.tmp[i]}
-// 		}
-
-// 	_ =>
-// 		return format_error("tRNS, color type mismatch")
-// 	}
-// 	return d.verify_checksum()
-// }
+fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
+  let n = @math.minimum(dst.length(), src.length())
+  for i = 0; i < n; i = i + 1 {
+    dst[i] = src[i]
+  }
+  n
+}
 
 // // Read presents one or more IDAT chunks as one continuous stream (minus the
 // // intermediate chunk headers and footers). If the PNG data looked like:
@@ -976,7 +992,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
 // 			return chunk_order_error
 // 		}
 // 		d.stage = DS_SEENT_RNS
-// 		return d.parsetRNS(length)
+// 		return d.parse_t_rns(length)
 // }
 // 	"IDAT" => {
 // 		if d.stage < DS_SEEN_IHDR || d.stage > DS_SEEN_IDAT || (d.stage == DS_SEEN_IHDR && cb_paletted(d.cb)) {

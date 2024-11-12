@@ -102,14 +102,6 @@ test "paeth decode" {
   }
 }
 
-fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
-  let n = @math.minimum(dst.length(), src.length())
-  for i = 0; i < n; i = i + 1 {
-    dst[i] = src[i]
-  }
-  n
-}
-
 fn dump(b : Slice[Byte]) -> String {
   b
   .to_bytes()
