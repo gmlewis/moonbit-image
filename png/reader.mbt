@@ -418,51 +418,57 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 }
 
 // decode decodes the IDAT data into an image.
-fn decode(self: Decoder) -> (@image.Image, IOError?) {
+fn decode(self : Decoder) -> (@image.Image, IOError?) {
   let mut img = @image.RGBA::empty()
-	let (r, err) = @zlib.Reader::new(self)
-	if err != None {
-		return (img, err)
-	}
-	// defer r.Close()
-	if self.interlace == IT_NONE.to_int() {
-		img, err = self.read_image_pass(r, 0, false)
-		if err != None {
-			return (img, err)
-		}
-	} else if self.interlace == IT_ADAM7 {
-		// Allocate a blank image of the full size.
-		img, err = self.read_image_pass(nil, 0, true)
-		if err != None {
-			return (img, err)
-		}
-		for pass := 0; pass < 7; pass++ {
-			imagePass, err := self.read_image_pass(r, pass, false)
-			if err != None {
-				return (img, err)
-			}
-			if imagePass != nil {
-				self.mergePassInto(img, imagePass, pass)
-			}
-		}
-	}
+  let (r, err) = @zlib.Reader::new(self)
+  if err != None {
+    return (img, err)
+  }
+  // defer r.Close()
+  if self.interlace == IT_NONE.to_int() {
+    let tmp = self.read_image_pass(r, 0, false)
+    img = tmp.0
+    let err = tmp.1
+    if err != None {
+      return (img, err)
+    }
+  } else if self.interlace == IT_ADAM7 {
+    // Allocate a blank image of the full size.
+    let tmp = self.read_image_pass(None, 0, true)
+    img = tmp.0
+    let err = tmp.1
+    if err != None {
+      return (img, err)
+    }
+    for pass = 0; pass < 7; pass = pass + 1 {
+      let (image_pass, err) = self.read_image_pass(r, pass, false)
+      if err != None {
+        return (img, err)
+      }
+      if image_pass != None {
+        self.merge_pass_into(img, image_pass, pass)
+      }
+    }
+  }
 
-	// Check for EOF, to verify the zlib checksum.
-	let mut n = 0
-	for i = 0; n == 0 && err == nil; i=i+1 {
-		if i == 100 {
-			return (img, io.ErrNoProgress)
-		}
-		n, err = r.Read(self.tmp[:1])
-	}
-	if err != nil && err != io.EOF {
-		return (img, Some(format_error(err.Error())))
-	}
-	if n != 0 || self.idat_length != 0 {
-		return (img, Some(format_error("too much pixel data")))
-	}
-
-	return (img, None)
+  // Check for EOF, to verify the zlib checksum.
+  let mut n = 0
+  let mut err : IOError? = None
+  for i = 0; n == 0 && err == None; i = i + 1 {
+    if i == 100 {
+      return (img, Some(@io.err_no_progress))
+    }
+    let tmp = r.read(self.tmp[:1])
+    n = tmp.0
+    err = tmp.1
+  }
+  if err != None && err != Some(@io.eof) {
+    return (img, Some(format_error(err.to_string())))
+  }
+  if n != 0 || self.idat_length != 0 {
+    return (img, Some(format_error("too much pixel data")))
+  }
+  return (img, None)
 }
 
 // // read_image_pass reads a single image pass, sized according to the pass number.
@@ -868,8 +874,8 @@ fn decode(self: Decoder) -> (@image.Image, IOError?) {
 // 	return img, nil
 // }
 
-// // mergePassInto merges a single pass into a full sized image.
-// func (d *decoder) mergePassInto(dst image.Image, src image.Image, pass int) {
+// // merge_pass_into merges a single pass into a full sized image.
+// func (d *decoder) merge_pass_into(dst image.Image, src image.Image, pass int) {
 // 	p := interlacing[pass]
 // 	var (
 // 		srcPix        []uint8
