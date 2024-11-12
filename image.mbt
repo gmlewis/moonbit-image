@@ -39,6 +39,8 @@
 /// by [Decode] may be considered a security issue, and should be reported per the
 /// [Go Security Policy](https://go.dev/security/policy).
 
+typealias Slice[T] = @io.Slice[T]
+
 /// Config holds an image's color model and dimensions.
 pub struct Config {
   color_model : @color.Model
@@ -63,6 +65,14 @@ pub(open) trait Image {
   opaque(Self) -> Bool
   set(Self, Int, Int, @color.Color) -> Unit
   sub_image(Self, Rectangle) -> Image
+}
+
+pub fn Image::new_empty() -> Image {
+  RGBA::new_empty()
+}
+
+pub fn empty(self : Image) -> Bool {
+  self.bounds().empty()
 }
 
 /// RGBA64Image is an [Image] whose pixels can be converted directly to a
@@ -117,15 +127,15 @@ fn pixel_buffer_length(
 pub struct RGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn RGBA::empty() -> RGBA {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn RGBA::new_empty() -> RGBA {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : RGBA) -> @color.Model {
@@ -225,7 +235,7 @@ pub fn sub_image(self : RGBA, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return RGBA::empty()
+    return RGBA::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   RGBA::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -253,7 +263,7 @@ pub fn opaque(self : RGBA) -> Bool {
 // RGBA::new returns a new [RGBA] image with the given bounds.
 pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(4, r, "RGBA"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "RGBA"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -263,15 +273,15 @@ pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
 pub struct RGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*8].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn RGBA64::empty() -> RGBA64 {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn RGBA64::new_empty() -> RGBA64 {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : RGBA64) -> @color.Model {
@@ -351,7 +361,7 @@ pub fn sub_image(self : RGBA64, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return RGBA64::empty()
+    return RGBA64::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   RGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -379,7 +389,7 @@ pub fn opaque(self : RGBA64) -> Bool {
 // RGBA64::new returns a new [RGBA64] image with the given bounds.
 pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(8, r, "RGBA64"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "RGBA64"), b'\x00')),
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -389,15 +399,15 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
 pub struct NRGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn NRGBA::empty() -> NRGBA {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn NRGBA::new_empty() -> NRGBA {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : NRGBA) -> @color.Model {
@@ -494,7 +504,7 @@ pub fn sub_image(self : NRGBA, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return NRGBA::empty()
+    return NRGBA::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   NRGBA::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -522,7 +532,7 @@ pub fn opaque(self : NRGBA) -> Bool {
 // NRGBA::new returns a new [NRGBA] image with the given bounds.
 pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(4, r, "NRGBA"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "NRGBA"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -532,15 +542,15 @@ pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
 pub struct NRGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*8].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn NRGBA64::empty() -> NRGBA64 {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn NRGBA64::new_empty() -> NRGBA64 {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : NRGBA64) -> @color.Model {
@@ -653,7 +663,7 @@ pub fn sub_image(self : NRGBA64, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return NRGBA64::empty()
+    return NRGBA64::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   NRGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -681,7 +691,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
 pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(8, r, "NRGBA64"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "NRGBA64"), b'\x00')),
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -691,15 +701,15 @@ pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
 pub struct Alpha {
   // pix holds the image's pixels, as alpha values. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn Alpha::empty() -> Alpha {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn Alpha::new_empty() -> Alpha {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : Alpha) -> @color.Model {
@@ -775,7 +785,7 @@ pub fn sub_image(self : Alpha, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return Alpha::empty()
+    return Alpha::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Alpha::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -803,7 +813,7 @@ pub fn opaque(self : Alpha) -> Bool {
 // Alpha::new returns a new [Alpha] image with the given bounds.
 pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(1, r, "Alpha"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Alpha"), b'\x00')),
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -813,15 +823,15 @@ pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
 pub struct Alpha16 {
   // pix holds the image's pixels, as alpha values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn Alpha16::empty() -> Alpha16 {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn Alpha16::new_empty() -> Alpha16 {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : Alpha16) -> @color.Model {
@@ -905,7 +915,7 @@ pub fn sub_image(self : Alpha16, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return Alpha16::empty()
+    return Alpha16::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Alpha16::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -933,7 +943,7 @@ pub fn opaque(self : Alpha16) -> Bool {
 // Alpha16::new returns a new [Alpha16] image with the given bounds.
 pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(2, r, "Alpha16"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Alpha16"), b'\x00')),
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -943,15 +953,15 @@ pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
 pub struct Gray {
   // pix holds the image's pixels, as gray values. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn Gray::empty() -> Gray {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn Gray::new_empty() -> Gray {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : Gray) -> @color.Model {
@@ -1029,7 +1039,7 @@ pub fn sub_image(self : Gray, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return Gray::empty()
+    return Gray::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Gray::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -1043,7 +1053,7 @@ pub fn opaque(self : Gray) -> Bool {
 // Gray::new returns a new [Gray] image with the given bounds.
 pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(1, r, "Gray"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Gray"), b'\x00')),
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -1053,15 +1063,15 @@ pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
 pub struct Gray16 {
   // pix holds the image's pixels, as gray values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn Gray16::empty() -> Gray16 {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn Gray16::new_empty() -> Gray16 {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : Gray16) -> @color.Model {
@@ -1142,7 +1152,7 @@ pub fn sub_image(self : Gray16, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return Gray16::empty()
+    return Gray16::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Gray16::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -1156,7 +1166,7 @@ pub fn opaque(self : Gray16) -> Bool {
 // Gray16::new returns a new [Gray16] image with the given bounds.
 pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(2, r, "Gray16"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Gray16"), b'\x00')),
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -1166,15 +1176,15 @@ pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
 pub struct CMYK {
   // pix holds the image's pixels, in C, M, Y, K order. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
 }
 
-pub fn CMYK::empty() -> CMYK {
-  { pix: [][:], stride: 0, rect: Rectangle::new() }
+pub fn CMYK::new_empty() -> CMYK {
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
 pub fn color_model(self : CMYK) -> @color.Model {
@@ -1264,7 +1274,7 @@ pub fn sub_image(self : CMYK, r : Rectangle) -> Image {
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
   // this, the pix[i:] expression below can panic.
   if r.empty() {
-    return CMYK::empty()
+    return CMYK::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   CMYK::{ pix: self.pix[i:], stride: self.stride, rect: r }
@@ -1278,7 +1288,7 @@ pub fn opaque(self : CMYK) -> Bool {
 // CMYK::new returns a new CMYK image with the given bounds.
 pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(4, r, "CMYK"), b'\x00')[:],
+    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "CMYK"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -1288,13 +1298,13 @@ pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
 pub struct Paletted {
   // pix holds the image's pixels, as palette indices. The pixel at
   // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
-  pix : ArrayView[Byte]
+  pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
   // rect is the image's bounds.
   rect : Rectangle
   // Palette is the image's palette.
-  palette : @color.Palette
+  mut palette : @color.Palette
 }
 
 pub fn color_model(self : Paletted) -> @color.Model {
@@ -1386,7 +1396,7 @@ pub fn sub_image(self : Paletted, r : Rectangle) -> Image {
   // this, the pix[i:] expression below can panic.
   if r.empty() {
     return Paletted::{
-      pix: [][:],
+      pix: Slice::new([]),
       stride: 0,
       rect: Rectangle::new(),
       palette: self.palette,
@@ -1429,9 +1439,20 @@ pub fn opaque(self : Paletted) -> Bool {
 // palette.
 pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted!SizeError {
   {
-    pix: Array::make(pixel_buffer_length!(1, r, "Paletted"), b'\x00')[:],
+    pix: Slice::new(
+      Array::make(pixel_buffer_length!(1, r, "Paletted"), b'\x00'),
+    ),
     stride: 1 * r.dx(),
     rect: r,
     palette: p,
+  }
+}
+
+pub fn Paletted::new_empty() -> Paletted {
+  {
+    pix: Slice::new([]),
+    stride: 0,
+    rect: Rectangle::new(),
+    palette: @color.Palette::new_empty(),
   }
 }

@@ -73,17 +73,17 @@ fn cb_true_color(cb : Int) -> Bool {
 }
 
 // Filter type, as per the PNG spec.
-const FT_NONE = 0
+const FT_NONE = b'\x00'
 
-const FT_SUB = 1
+const FT_SUB = b'\x01'
 
-const FT_UP = 2
+const FT_UP = b'\x02'
 
-const FT_AVERAGE = 3
+const FT_AVERAGE = b'\x03'
 
-const FT_PAETH = 4
+const FT_PAETH = b'\x04'
 
-const N_FILTER = 5
+const N_FILTER = b'\x05'
 
 // Interlace type.
 const IT_NONE = b'\x00'
@@ -419,7 +419,7 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 
 // decode decodes the IDAT data into an image.
 fn decode(self : Decoder) -> (@image.Image, IOError?) {
-  let mut img = @image.RGBA::empty()
+  let mut img = @image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(self)
   if err != None {
     return (img, err)
@@ -432,7 +432,7 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
     if err != None {
       return (img, err)
     }
-  } else if self.interlace == IT_ADAM7 {
+  } else if self.interlace == IT_ADAM7.to_int() {
     // Allocate a blank image of the full size.
     let tmp = self.read_image_pass(None, 0, true)
     img = tmp.0
@@ -445,7 +445,7 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
       if err != None {
         return (img, err)
       }
-      if image_pass != None {
+      if not(image_pass.empty()) {
         self.merge_pass_into(img, image_pass, pass)
       }
     }
@@ -471,408 +471,492 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
   return (img, None)
 }
 
-// // read_image_pass reads a single image pass, sized according to the pass number.
-// func (d *decoder) read_image_pass(r io.Reader, pass int, allocateOnly bool) (image.Image, error) {
-// 	bitsPerPixel := 0
-// 	pix_offset := 0
-// 	var (
-// 		gray     *image.Gray
-// 		rgba     *image.RGBA
-// 		paletted *image.Paletted
-// 		nrgba    *image.NRGBA
-// 		gray16   *image.Gray16
-// 		rgba64   *image.RGBA64
-// 		nrgba64  *image.NRGBA64
-// 		img      image.Image
-// 	)
-// 	width, height := d.width, d.height
-// 	if d.interlace == IT_ADAM7 && !allocateOnly {
-// 		p := interlacing[pass]
-// 		// Add the multiplication factor and subtract one, effectively rounding up.
-// 		width = (width - p.x_offset + p.x_factor - 1) / p.x_factor
-// 		height = (height - p.y_offset + p.y_factor - 1) / p.y_factor
-// 		// A PNG image can't have zero width or height, but for an interlaced
-// 		// image, an individual pass might have zero width or height. If so, we
-// 		// shouldn't even read a per-row filter type byte, so return early.
-// 		if width == 0 || height == 0 {
-// 			return nil, nil
-// 		}
-// 	}
-// 	match d.cb {
-// 	CB_G1, CB_G2, CB_G4, CB_G8 => {
-// 		bitsPerPixel = d.depth
-// 		if d.use_transparent {
-// 			nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
-// 			img = nrgba
-// 		} else {
-// 			gray = image.NewGray(image.Rect(0, 0, width, height))
-// 			img = gray
-// 		}
-// }
-// 	CB_GA8 => {
-// 		bitsPerPixel = 16
-// 		nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
-// 		img = nrgba
-// }
-// 	CB_TC8 => {
-// 		bitsPerPixel = 24
-// 		if d.use_transparent {
-// 			nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
-// 			img = nrgba
-// 		} else {
-// 			rgba = image.NewRGBA(image.Rect(0, 0, width, height))
-// 			img = rgba
-// 		}
-// }
-// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-// 		bitsPerPixel = d.depth
-// 		paletted = image.NewPaletted(image.Rect(0, 0, width, height), d.palette)
-// 		img = paletted
-// }
-// 	CB_TCA8 => {
-// 		bitsPerPixel = 32
-// 		nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
-// 		img = nrgba
-// }
-// 	CB_G16 => {
-// 		bitsPerPixel = 16
-// 		if d.use_transparent {
-// 			nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
-// 			img = nrgba64
-// 		} else {
-// 			gray16 = image.NewGray16(image.Rect(0, 0, width, height))
-// 			img = gray16
-// 		}
-// }
-// 	CB_GA16 => {
-// 		bitsPerPixel = 32
-// 		nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
-// 		img = nrgba64
-// }
-// 	CB_TC16 => {
-// 		bitsPerPixel = 48
-// 		if d.use_transparent {
-// 			nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
-// 			img = nrgba64
-// 		} else {
-// 			rgba64 = image.NewRGBA64(image.Rect(0, 0, width, height))
-// 			img = rgba64
-// 		}
-// }
-// 	CB_TCA16 => {
-// 		bitsPerPixel = 64
-// 		nrgba64 = image.NewNRGBA64(image.Rect(0, 0, width, height))
-// 		img = nrgba64
-// 	}
-// 	if allocateOnly {
-// 		return img, nil
-// 	}
-// 	bytesPerPixel := (bitsPerPixel + 7) / 8
+fn size_error(e : @image.SizeError) -> IOError? {
+  Some(format_error(e.to_string()))
+}
 
-// 	// The +1 is for the per-row filter type, which is at cr[0].
-// 	rowSize := 1 + (int64(bitsPerPixel)*int64(width)+7)/8
-// 	if rowSize != int64(int(rowSize)) {
-// 		return nil, unsupported_error("dimension overflow")
-// 	}
-// 	// cr and pr are the bytes for the current and previous row.
-// 	cr := make([]uint8, rowSize)
-// 	pr := make([]uint8, rowSize)
+// read_image_pass reads a single image pass, sized according to the pass number.
+fn read_image_pass(
+  self : Decoder,
+  r : @io.Reader,
+  pass : Int,
+  allocate_only : Bool
+) -> (@image.Image, IOError?) {
+  let mut bits_per_pixel = 0
+  let mut pix_offset = 0
+  let mut gray = @image.Gray::new_empty()
+  let mut rgba = @image.RGBA::new_empty()
+  let mut paletted = @image.Paletted::new_empty()
+  let mut nrgba = @image.NRGBA::new_empty()
+  let mut gray16 = @image.Gray16::new_empty()
+  let mut rgba64 = @image.RGBA64::new_empty()
+  let mut nrgba64 = @image.NRGBA64::new_empty()
+  let mut img = @image.Image::new_empty()
 
-// 	for y := 0; y < height; y++ {
-// 		// Read the decompressed bytes.
-// 		_, err := io.read_full(r, cr)
-// 		if err != nil {
-// 			if err == io.EOF || err == io.ErrUnexpectedEOF {
-// 				return nil, format_error("not enough pixel data")
-// 			}
-// 			return nil, err
-// 		}
+  //
+  let mut width = self.width
+  let mut height = self.height
+  if self.interlace == IT_ADAM7.to_int() && not(allocate_only) {
+    let p = interlacing[pass]
+    // Add the multiplication factor and subtract one, effectively rounding up.
+    width = (width - p.x_offset + p.x_factor - 1) / p.x_factor
+    height = (height - p.y_offset + p.y_factor - 1) / p.y_factor
+    // A PNG image can't have zero width or height, but for an interlaced
+    // image, an individual pass might have zero width or height. If so, we
+    // shouldn't even read a per-row filter type byte, so return early.
+    if width == 0 || height == 0 {
+      return (img, None)
+    }
+  }
+  match self.cb {
+    CB_G1 | CB_G2 | CB_G4 | CB_G8 => {
+      bits_per_pixel = self.depth
+      if self.use_transparent {
+        nrgba = try {
+          @image.NRGBA::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = nrgba
+      } else {
+        gray = try {
+          @image.Gray::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = gray
+      }
+    }
+    CB_GA8 => {
+      bits_per_pixel = 16
+      nrgba = try {
+        @image.NRGBA::new!(@image.rect(0, 0, width, height))
+      } catch {
+        e => return (img, size_error(e))
+      }
+      img = nrgba
+    }
+    CB_TC8 => {
+      bits_per_pixel = 24
+      if self.use_transparent {
+        nrgba = try {
+          @image.NRGBA::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = nrgba
+      } else {
+        rgba = try {
+          @image.RGBA::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = rgba
+      }
+    }
+    CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
+      bits_per_pixel = self.depth
+      paletted = try {
+        @image.Paletted::new!(@image.rect(0, 0, width, height), self.palette)
+      } catch {
+        e => return (img, size_error(e))
+      }
+      img = paletted
+    }
+    CB_TCA8 => {
+      bits_per_pixel = 32
+      nrgba = try {
+        @image.NRGBA::new!(@image.rect(0, 0, width, height))
+      } catch {
+        e => return (img, size_error(e))
+      }
+      img = nrgba
+    }
+    CB_G16 => {
+      bits_per_pixel = 16
+      if self.use_transparent {
+        nrgba64 = try {
+          @image.NRGBA64::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = nrgba64
+      } else {
+        gray16 = try {
+          @image.Gray16::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = gray16
+      }
+    }
+    CB_GA16 => {
+      bits_per_pixel = 32
+      nrgba64 = try {
+        @image.NRGBA64::new!(@image.rect(0, 0, width, height))
+      } catch {
+        e => return (img, size_error(e))
+      }
+      img = nrgba64
+    }
+    CB_TC16 => {
+      bits_per_pixel = 48
+      if self.use_transparent {
+        nrgba64 = try {
+          @image.NRGBA64::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = nrgba64
+      } else {
+        rgba64 = try {
+          @image.RGBA64::new!(@image.rect(0, 0, width, height))
+        } catch {
+          e => return (img, size_error(e))
+        }
+        img = rgba64
+      }
+    }
+    CB_TCA16 => {
+      bits_per_pixel = 64
+      nrgba64 = try {
+        @image.NRGBA64::new!(@image.rect(0, 0, width, height))
+      } catch {
+        e => return (img, size_error(e))
+      }
+      img = nrgba64
+    }
+  }
+  if allocate_only {
+    return (img, None)
+  }
+  let bytes_per_pixel = (bits_per_pixel + 7) / 8
 
-// 		// Apply the filter.
-// 		cdat := cr[1:]
-// 		pdat := pr[1:]
-// 		match cr[0] {
-// 		FT_NONE => {
-// 			// No-op.
-// }
-// 		FT_SUB => {
-// 			for i := bytesPerPixel; i < len(cdat); i++ {
-// 				cdat[i] += cdat[i-bytesPerPixel]
-// 			}
-// }
-// 		FT_UP => {
-// 			for i, p := range pdat {
-// 				cdat[i] += p
-// 			}
-// }
-// 		FT_AVERAGE => {
-// 			// The first column has no column to the left of it, so it is a
-// 			// special case. We know that the first column exists because we
-// 			// check above that width != 0, and so len(cdat) != 0.
-// 			for i := 0; i < bytesPerPixel; i++ {
-// 				cdat[i] += pdat[i] / 2
-// 			}
-// 			for i := bytesPerPixel; i < len(cdat); i++ {
-// 				cdat[i] += uint8((int(cdat[i-bytesPerPixel]) + int(pdat[i])) / 2)
-// 			}
-// }
-// 		FT_PAETH => {
-// 			filterPaeth(cdat, pdat, bytesPerPixel)
-// 		_ =>
-// 			return nil, format_error("bad filter type")
-// 		}
+  // The +1 is for the per-row filter type, which is at cr[0].
+  let row_size = 1L + (bits_per_pixel.to_int64() * width.to_int64() + 7) / 8
+  if row_size != row_size.to_int().to_int64() {
+    return (img, Some(unsupported_error("dimension overflow")))
+  }
+  let row_size = row_size.to_int()
+  // cr and pr are the bytes for the current and previous row.
+  let mut cr = Slice::new(Array::make(row_size, b'\x00'))
+  let mut pr = Slice::new(Array::make(row_size, b'\x00'))
 
-// 		// Convert from bytes to colors.
-// 		match d.cb {
-// 		CB_G1 => {
-// 			if d.use_transparent {
-// 				ty := d.transparent[1]
-// 				for x := 0; x < width; x += 8 {
-// 					b := cdat[x/8]
-// 					for x2 := 0; x2 < 8 && x+x2 < width; x2++ {
-// 						ycol := (b >> 7) * 0xff
-// 						acol := uint8(0xff)
-// 						if ycol == ty {
-// 							acol = 0x00
-// 						}
-// 						nrgba.SetNRGBA(x+x2, y, color.NRGBA{ycol, ycol, ycol, acol})
-// 						b <<= 1
-// 					}
-// 				}
-// 			} else {
-// 				for x := 0; x < width; x += 8 {
-// 					b := cdat[x/8]
-// 					for x2 := 0; x2 < 8 && x+x2 < width; x2++ {
-// 						gray.SetGray(x+x2, y, color.Gray{(b >> 7) * 0xff})
-// 						b <<= 1
-// 					}
-// 				}
-// 			}
-// }
-// 		CB_G2 => {
-// 			if d.use_transparent {
-// 				ty := d.transparent[1]
-// 				for x := 0; x < width; x += 4 {
-// 					b := cdat[x/4]
-// 					for x2 := 0; x2 < 4 && x+x2 < width; x2++ {
-// 						ycol := (b >> 6) * 0x55
-// 						acol := uint8(0xff)
-// 						if ycol == ty {
-// 							acol = 0x00
-// 						}
-// 						nrgba.SetNRGBA(x+x2, y, color.NRGBA{ycol, ycol, ycol, acol})
-// 						b <<= 2
-// 					}
-// 				}
-// 			} else {
-// 				for x := 0; x < width; x += 4 {
-// 					b := cdat[x/4]
-// 					for x2 := 0; x2 < 4 && x+x2 < width; x2++ {
-// 						gray.SetGray(x+x2, y, color.Gray{(b >> 6) * 0x55})
-// 						b <<= 2
-// 					}
-// 				}
-// 			}
-// }
-// 		CB_G4 => {
-// 			if d.use_transparent {
-// 				ty := d.transparent[1]
-// 				for x := 0; x < width; x += 2 {
-// 					b := cdat[x/2]
-// 					for x2 := 0; x2 < 2 && x+x2 < width; x2++ {
-// 						ycol := (b >> 4) * 0x11
-// 						acol := uint8(0xff)
-// 						if ycol == ty {
-// 							acol = 0x00
-// 						}
-// 						nrgba.SetNRGBA(x+x2, y, color.NRGBA{ycol, ycol, ycol, acol})
-// 						b <<= 4
-// 					}
-// 				}
-// 			} else {
-// 				for x := 0; x < width; x += 2 {
-// 					b := cdat[x/2]
-// 					for x2 := 0; x2 < 2 && x+x2 < width; x2++ {
-// 						gray.SetGray(x+x2, y, color.Gray{(b >> 4) * 0x11})
-// 						b <<= 4
-// 					}
-// 				}
-// 			}
-// }
-// 		CB_G8 => {
-// 			if d.use_transparent {
-// 				ty := d.transparent[1]
-// 				for x := 0; x < width; x++ {
-// 					ycol := cdat[x]
-// 					acol := uint8(0xff)
-// 					if ycol == ty {
-// 						acol = 0x00
-// 					}
-// 					nrgba.SetNRGBA(x, y, color.NRGBA{ycol, ycol, ycol, acol})
-// 				}
-// 			} else {
-// 				copy(gray.Pix[pix_offset:], cdat)
-// 				pix_offset += gray.Stride
-// 			}
-// }
-// 		CB_GA8 => {
-// 			for x := 0; x < width; x++ {
-// 				ycol := cdat[2*x+0]
-// 				nrgba.SetNRGBA(x, y, color.NRGBA{ycol, ycol, ycol, cdat[2*x+1]})
-// 			}
-// }
-// 		CB_TC8 => {
-// 			if d.use_transparent {
-// 				pix, i, j := nrgba.Pix, pix_offset, 0
-// 				tr, tg, tb := d.transparent[1], d.transparent[3], d.transparent[5]
-// 				for x := 0; x < width; x++ {
-// 					r := cdat[j+0]
-// 					g := cdat[j+1]
-// 					b := cdat[j+2]
-// 					a := uint8(0xff)
-// 					if r == tr && g == tg && b == tb {
-// 						a = 0x00
-// 					}
-// 					pix[i+0] = r
-// 					pix[i+1] = g
-// 					pix[i+2] = b
-// 					pix[i+3] = a
-// 					i += 4
-// 					j += 3
-// 				}
-// 				pix_offset += nrgba.Stride
-// 			} else {
-// 				pix, i, j := rgba.Pix, pix_offset, 0
-// 				for x := 0; x < width; x++ {
-// 					pix[i+0] = cdat[j+0]
-// 					pix[i+1] = cdat[j+1]
-// 					pix[i+2] = cdat[j+2]
-// 					pix[i+3] = 0xff
-// 					i += 4
-// 					j += 3
-// 				}
-// 				pix_offset += rgba.Stride
-// 			}
-// }
-// 		CB_P1 => {
-// 			for x := 0; x < width; x += 8 {
-// 				b := cdat[x/8]
-// 				for x2 := 0; x2 < 8 && x+x2 < width; x2++ {
-// 					idx := b >> 7
-// 					if len(paletted.Palette) <= int(idx) {
-// 						paletted.Palette = paletted.Palette[:int(idx)+1]
-// 					}
-// 					paletted.SetColorIndex(x+x2, y, idx)
-// 					b <<= 1
-// 				}
-// 			}
-// }
-// 		CB_P2 => {
-// 			for x := 0; x < width; x += 4 {
-// 				b := cdat[x/4]
-// 				for x2 := 0; x2 < 4 && x+x2 < width; x2++ {
-// 					idx := b >> 6
-// 					if len(paletted.Palette) <= int(idx) {
-// 						paletted.Palette = paletted.Palette[:int(idx)+1]
-// 					}
-// 					paletted.SetColorIndex(x+x2, y, idx)
-// 					b <<= 2
-// 				}
-// 			}
-// }
-// 		CB_P4 => {
-// 			for x := 0; x < width; x += 2 {
-// 				b := cdat[x/2]
-// 				for x2 := 0; x2 < 2 && x+x2 < width; x2++ {
-// 					idx := b >> 4
-// 					if len(paletted.Palette) <= int(idx) {
-// 						paletted.Palette = paletted.Palette[:int(idx)+1]
-// 					}
-// 					paletted.SetColorIndex(x+x2, y, idx)
-// 					b <<= 4
-// 				}
-// 			}
-// }
-// 		CB_P8 => {
-// 			if len(paletted.Palette) != 256 {
-// 				for x := 0; x < width; x++ {
-// 					if len(paletted.Palette) <= int(cdat[x]) {
-// 						paletted.Palette = paletted.Palette[:int(cdat[x])+1]
-// 					}
-// 				}
-// 			}
-// 			copy(paletted.Pix[pix_offset:], cdat)
-// 			pix_offset += paletted.Stride
-// }
-// 		CB_TCA8 => {
-// 			copy(nrgba.Pix[pix_offset:], cdat)
-// 			pix_offset += nrgba.Stride
-// }
-// 		CB_G16 => {
-// 			if d.use_transparent {
-// 				ty := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
-// 				for x := 0; x < width; x++ {
-// 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
-// 					acol := uint16(0xffff)
-// 					if ycol == ty {
-// 						acol = 0x0000
-// 					}
-// 					nrgba64.SetNRGBA64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
-// 				}
-// 			} else {
-// 				for x := 0; x < width; x++ {
-// 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
-// 					gray16.SetGray16(x, y, color.Gray16{ycol})
-// 				}
-// 			}
-// }
-// 		CB_GA16 => {
-// 			for x := 0; x < width; x++ {
-// 				ycol := uint16(cdat[4*x+0])<<8 | uint16(cdat[4*x+1])
-// 				acol := uint16(cdat[4*x+2])<<8 | uint16(cdat[4*x+3])
-// 				nrgba64.SetNRGBA64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
-// 			}
-// }
-// 		CB_TC16 => {
-// 			if d.use_transparent {
-// 				tr := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
-// 				tg := uint16(d.transparent[2])<<8 | uint16(d.transparent[3])
-// 				tb := uint16(d.transparent[4])<<8 | uint16(d.transparent[5])
-// 				for x := 0; x < width; x++ {
-// 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
-// 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
-// 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
-// 					acol := uint16(0xffff)
-// 					if rcol == tr && gcol == tg && bcol == tb {
-// 						acol = 0x0000
-// 					}
-// 					nrgba64.SetNRGBA64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
-// 				}
-// 			} else {
-// 				for x := 0; x < width; x++ {
-// 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
-// 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
-// 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
-// 					rgba64.SetRGBA64(x, y, color.RGBA64{rcol, gcol, bcol, 0xffff})
-// 				}
-// 			}
-// }
-// 		CB_TCA16 => {
-// 			for x := 0; x < width; x++ {
-// 				rcol := uint16(cdat[8*x+0])<<8 | uint16(cdat[8*x+1])
-// 				gcol := uint16(cdat[8*x+2])<<8 | uint16(cdat[8*x+3])
-// 				bcol := uint16(cdat[8*x+4])<<8 | uint16(cdat[8*x+5])
-// 				acol := uint16(cdat[8*x+6])<<8 | uint16(cdat[8*x+7])
-// 				nrgba64.SetNRGBA64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
-// 			}
-// 		}
+  //
+  for y = 0; y < height; y = y + 1 {
+    // Read the decompressed bytes.
+    let (_, err) = @io.read_full(r, cr)
+    if err != None {
+      if err == Some(@io.eof) || err == Some(@io.err_unexpected_eof) {
+        return (img, Some(format_error("not enough pixel data")))
+      }
+      return (img, err)
+    }
 
-// 		// The current row for y is the previous row for y+1.
-// 		pr, cr = cr, pr
-// 	}
+    // Apply the filter.
+    let cdat = cr[1:]
+    let pdat = pr[1:]
+    match cr[0] {
+      FT_NONE =>
+        // No-op.
+        ()
+      FT_SUB =>
+        for i = bytes_per_pixel; i < cdat.length(); i = i + 1 {
+          cdat[i] += cdat[i - bytes_per_pixel]
+        }
+      FT_UP =>
+        for i, p in pdat {
+          cdat[i] += p
+        }
+      FT_AVERAGE => {
+        // The first column has no column to the left of it, so it is a
+        // special case. We know that the first column exists because we
+        // check above that width != 0, and so len(cdat) != 0.
+        for i = 0; i < bytes_per_pixel; i = i + 1 {
+          cdat[i] += pdat[i] / 2
+        }
+        for i = bytes_per_pixel; i < cdat.length(); i = i + 1 {
+          cdat[i] += ((cdat[i - bytes_per_pixel].to_int() + pdat[i].to_int()) /
+          2).to_byte()
+        }
+      }
+      FT_PAETH => filter_paeth(cdat, pdat, bytes_per_pixel)
+      _ => return (img, Some(format_error("bad filter type")))
+    }
 
-// 	return img, nil
-// }
+    // Convert from bytes to colors.
+    match self.cb {
+      CB_G1 =>
+        if self.use_transparent {
+          let ty = self.transparent[1]
+          for x = 0; x < width; x = x + 8 {
+            let mut b = cdat[x / 8]
+            for x2 = 0; x2 < 8 && x + x2 < width; x2 = x2 + 1 {
+              let ycol = (b >> 7) * 0xff
+              let mut acol = b'\xff'
+              if ycol == ty {
+                acol = b'\x00'
+              }
+              nrgba.set_nrgba(
+                x + x2,
+                y,
+                @color.NRGBA::new(ycol, ycol, ycol, acol),
+              )
+              b = b << 1
+            }
+          }
+        } else {
+          for x = 0; x < width; x = x + 8 {
+            let mut b = cdat[x / 8]
+            for x2 = 0; x2 < 8 && x + x2 < width; x2 = x2 + 1 {
+              gray.set_gray(x + x2, y, @color.Gray::new((b >> 7) * 0xff))
+              b = b << 1
+            }
+          }
+        }
+      CB_G2 =>
+        if self.use_transparent {
+          let ty = self.transparent[1]
+          for x = 0; x < width; x = x + 4 {
+            let mut b = cdat[x / 4]
+            for x2 = 0; x2 < 4 && x + x2 < width; x2 = x2 + 1 {
+              let ycol = (b >> 6) * 0x55
+              let mut acol = b'\xff'
+              if ycol == ty {
+                acol = b'\x00'
+              }
+              nrgba.set_nrgba(
+                x + x2,
+                y,
+                @color.NRGBA::new(ycol, ycol, ycol, acol),
+              )
+              b = b << 2
+            }
+          }
+        } else {
+          for x = 0; x < width; x = x + 4 {
+            let mut b = cdat[x / 4]
+            for x2 = 0; x2 < 4 && x + x2 < width; x2 = x2 + 1 {
+              gray.set_gray(x + x2, y, @color.Gray::new((b >> 6) * 0x55))
+              b = b << 2
+            }
+          }
+        }
+      CB_G4 =>
+        if self.use_transparent {
+          let ty = self.transparent[1]
+          for x = 0; x < width; x = x + 2 {
+            let mut b = cdat[x / 2]
+            for x2 = 0; x2 < 2 && x + x2 < width; x2 = x2 + 1 {
+              let ycol = (b >> 4) * 0x11
+              let mut acol = b'\xff'
+              if ycol == ty {
+                acol = b'\x00'
+              }
+              nrgba.set_nrgba(
+                x + x2,
+                y,
+                @color.NRGBA::new(ycol, ycol, ycol, acol),
+              )
+              b = b << 4
+            }
+          }
+        } else {
+          for x = 0; x < width; x = x + 2 {
+            let mut b = cdat[x / 2]
+            for x2 = 0; x2 < 2 && x + x2 < width; x2 = x2 + 1 {
+              gray.set_gray(x + x2, y, @color.Gray::new((b >> 4) * 0x11))
+              b = b << 4
+            }
+          }
+        }
+      CB_G8 =>
+        if self.use_transparent {
+          let ty = self.transparent[1]
+          for x = 0; x < width; x = x + 1 {
+            let ycol = cdat[x]
+            let mut acol = b'\xff'
+            if ycol == ty {
+              acol = 0x00
+            }
+            nrgba.set_nrgba(x, y, @color.NRGBA::new(ycol, ycol, ycol, acol))
+          }
+        } else {
+          let _ = slice_copy(gray.pix[pix_offset:], cdat)
+          pix_offset += gray.stride
+        }
+      CB_GA8 =>
+        for x = 0; x < width; x = x + 1 {
+          let ycol = cdat[2 * x + 0]
+          nrgba.set_nrgba(
+            x,
+            y,
+            @color.NRGBA::new(ycol, ycol, ycol, cdat[2 * x + 1]),
+          )
+        }
+      CB_TC8 =>
+        if self.use_transparent {
+          let pix = nrgba.pix
+          let mut i = pix_offset
+          let mut j = 0
+          let (tr, tg, tb) = (
+            self.transparent[1],
+            self.transparent[3],
+            self.transparent[5],
+          )
+          for x = 0; x < width; x = x + 1 {
+            let r = cdat[j + 0]
+            let g = cdat[j + 1]
+            let mut b = cdat[j + 2]
+            let mut a = b'\xff'
+            if r == tr && g == tg && b == tb {
+              a = b'\x00'
+            }
+            pix[i + 0] = r
+            pix[i + 1] = g
+            pix[i + 2] = b
+            pix[i + 3] = a
+            i += 4
+            j += 3
+          }
+          pix_offset += nrgba.stride
+        } else {
+          let pix = rgba.pix
+          let mut i = pix_offset
+          let mut j = 0
+          for x = 0; x < width; x = x + 1 {
+            pix[i + 0] = cdat[j + 0]
+            pix[i + 1] = cdat[j + 1]
+            pix[i + 2] = cdat[j + 2]
+            pix[i + 3] = 0xff
+            i += 4
+            j += 3
+          }
+          pix_offset += rgba.stride
+        }
+      CB_P1 =>
+        for x = 0; x < width; x = x + 8 {
+          let mut b = cdat[x / 8]
+          for x2 = 0; x2 < 8 && x + x2 < width; x2 = x2 + 1 {
+            let idx = b >> 7
+            if paletted.palette.length() <= idx.to_int() {
+              paletted.palette = paletted.palette[:idx.to_int() + 1]
+            }
+            paletted.set_color_index(x + x2, y, idx)
+            b = b << 1
+          }
+        }
+
+      // 		CB_P2 => {
+      // 			for x = 0; x < width; x += 4 {
+      // 				let mut b = cdat[x/4]
+      // 				for x2 = 0; x2 < 4 && x+x2 < width; x2=x2+1 {
+      // 					idx := b >> 6
+      // 					if len(paletted.palette) <= int(idx) {
+      // 						paletted.palette = paletted.palette[:int(idx)+1]
+      // 					}
+      // 					paletted.set_color_index(x+x2, y, idx)
+      // 					b=b << 2
+      // 				}
+      // 			}
+      //     }
+      // 		CB_P4 => {
+      // 			for x = 0; x < width; x=x + 2 {
+      // 				let mut b = cdat[x/2]
+      // 				for x2 = 0; x2 < 2 && x+x2 < width; x2=x2+1 {
+      // 					idx := b >> 4
+      // 					if len(paletted.palette) <= int(idx) {
+      // 						paletted.palette = paletted.palette[:int(idx)+1]
+      // 					}
+      // 					paletted.set_color_index(x+x2, y, idx)
+      // 					b=b << 4
+      // 				}
+      // 			}
+      //     }
+      // 		CB_P8 => {
+      // 			if len(paletted.palette) != 256 {
+      // 				for x = 0; x < width; x=x+1 {
+      // 					if len(paletted.palette) <= int(cdat[x]) {
+      // 						paletted.palette = paletted.palette[:int(cdat[x])+1]
+      // 					}
+      // 				}
+      // 			}
+      // 			slice_copy(paletted.Pix[pix_offset:], cdat)
+      // 			pix_offset += paletted.Stride
+      //     }
+      // 		CB_TCA8 => {
+      // 			slice_copy(nrgba.Pix[pix_offset:], cdat)
+      // 			pix_offset += nrgba.Stride
+      //     }
+      // 		CB_G16 => {
+      // 			if d.use_transparent {
+      // 				let ty = uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
+      // 				for x = 0; x < width; x=x+1 {
+      // 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
+      // 					acol := uint16(0xffff)
+      // 					if ycol == ty {
+      // 						acol = 0x0000
+      // 					}
+      // 					nrgba64.set_nrgba64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
+      // 				}
+      // 			} else {
+      // 				for x = 0; x < width; x=x+1 {
+      // 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
+      // 					gray16.set_gray16(x, y, color.Gray16{ycol})
+      // 				}
+      // 			}
+      //     }
+      // 		CB_GA16 => {
+      // 			for x = 0; x < width; x=x+1 {
+      // 				ycol := uint16(cdat[4*x+0])<<8 | uint16(cdat[4*x+1])
+      // 				acol := uint16(cdat[4*x+2])<<8 | uint16(cdat[4*x+3])
+      // 				nrgba64.set_nrgba64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
+      // 			}
+      //     }
+      // 		CB_TC16 => {
+      // 			if d.use_transparent {
+      // 				tr := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
+      // 				tg := uint16(d.transparent[2])<<8 | uint16(d.transparent[3])
+      // 				tb := uint16(d.transparent[4])<<8 | uint16(d.transparent[5])
+      // 				for x = 0; x < width; x=x+1 {
+      // 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
+      // 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
+      // 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
+      // 					acol := uint16(0xffff)
+      // 					if rcol == tr && gcol == tg && bcol == tb {
+      // 						acol = 0x0000
+      // 					}
+      // 					nrgba64.set_nrgba64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
+      // 				}
+      // 			} else {
+      // 				for x = 0; x < width; x=x+1 {
+      // 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
+      // 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
+      // 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
+      // 					rgba64.SetRGBA64(x, y, color.RGBA64{rcol, gcol, bcol, 0xffff})
+      // 				}
+      // 			}
+      //     }
+      // 		CB_TCA16 => {
+      // 			for x = 0; x < width; x=x+1 {
+      // 				rcol := uint16(cdat[8*x+0])<<8 | uint16(cdat[8*x+1])
+      // 				gcol := uint16(cdat[8*x+2])<<8 | uint16(cdat[8*x+3])
+      // 				bcol := uint16(cdat[8*x+4])<<8 | uint16(cdat[8*x+5])
+      // 				acol := uint16(cdat[8*x+6])<<8 | uint16(cdat[8*x+7])
+      // 				nrgba64.set_nrgba64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
+      // 			}
+      // 		}
+    }
+
+    // The current row for y is the previous row for y+1.
+    let tmp = cr
+    cr = pr
+    pr = tmp
+  }
+
+  //
+  (img, None)
+}
 
 // // merge_pass_into merges a single pass into a full sized image.
 // func (d *decoder) merge_pass_into(dst image.Image, src image.Image, pass int) {
@@ -882,44 +966,44 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
 // 		dstPix        []uint8
 // 		stride        int
 // 		rect          image.Rectangle
-// 		bytesPerPixel int
+// 		bytes_per_pixel int
 // 	)
 // 	match target := dst.(type) {
 // 	*image.Alpha => {
 // 		srcPix = src.(*image.Alpha).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 1
+// 		bytes_per_pixel = 1
 // }
 // 	*image.Alpha16 => {
 // 		srcPix = src.(*image.Alpha16).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 2
+// 		bytes_per_pixel = 2
 // }
 // 	*image.Gray => {
 // 		srcPix = src.(*image.Gray).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 1
+// 		bytes_per_pixel = 1
 // }
 // 	*image.Gray16 => {
 // 		srcPix = src.(*image.Gray16).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 2
+// 		bytes_per_pixel = 2
 // }
 // 	*image.NRGBA => {
 // 		srcPix = src.(*image.NRGBA).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 4
+// 		bytes_per_pixel = 4
 // }
 // 	*image.NRGBA64 => {
 // 		srcPix = src.(*image.NRGBA64).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 8
+// 		bytes_per_pixel = 8
 // }
 // 	*image.Paletted => {
 // 		source := src.(*image.Paletted)
 // 		srcPix = source.Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 1
+// 		bytes_per_pixel = 1
 // 		if len(target.Palette) < len(source.Palette) {
 // 			// read_image_pass can return a paletted image whose implicit palette
 // 			// length (one more than the maximum Pix value) is larger than the
@@ -931,20 +1015,20 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
 // 	*image.RGBA => {
 // 		srcPix = src.(*image.RGBA).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 4
+// 		bytes_per_pixel = 4
 // }
 // 	*image.RGBA64 => {
 // 		srcPix = src.(*image.RGBA64).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytesPerPixel = 8
+// 		bytes_per_pixel = 8
 // 	}
 // 	s, bounds := 0, src.Bounds()
 // 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-// 		dBase := (y*p.y_factor+p.y_offset-rect.Min.Y)*stride + (p.x_offset-rect.Min.X)*bytesPerPixel
-// 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-// 			d := dBase + x*p.x_factor*bytesPerPixel
-// 			copy(dstPix[d:], srcPix[s:s+bytesPerPixel])
-// 			s += bytesPerPixel
+// 		dBase := (y*p.y_factor+p.y_offset-rect.Min.Y)*stride + (p.x_offset-rect.Min.X)*bytes_per_pixel
+// 		for x = bounds.Min.X; x < bounds.Max.X; x=x+1 {
+// 			d := dBase + x*p.x_factor*bytes_per_pixel
+// 			slice_copy(dstPix[d:], srcPix[s:s+bytes_per_pixel])
+// 			s += bytes_per_pixel
 // 		}
 // 	}
 // }
@@ -1075,14 +1159,14 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
 // 	}
 // 	if err := d.checkHeader(); err != nil {
 // 		if err == io.EOF {
-// 			err = io.ErrUnexpectedEOF
+// 			err = io.err_unexpected_eof
 // 		}
 // 		return nil, err
 // 	}
 // 	for d.stage != DS_SEEN_IEND {
 // 		if err := d.parseChunk(false); err != nil {
 // 			if err == io.EOF {
-// 				err = io.ErrUnexpectedEOF
+// 				err = io.err_unexpected_eof
 // 			}
 // 			return nil, err
 // 		}
@@ -1099,7 +1183,7 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
 // 	}
 // 	if err := d.checkHeader(); err != nil {
 // 		if err == io.EOF {
-// 			err = io.ErrUnexpectedEOF
+// 			err = io.err_unexpected_eof
 // 		}
 // 		return image.Config{}, err
 // 	}
@@ -1107,7 +1191,7 @@ fn decode(self : Decoder) -> (@image.Image, IOError?) {
 // 	for {
 // 		if err := d.parseChunk(true); err != nil {
 // 			if err == io.EOF {
-// 				err = io.ErrUnexpectedEOF
+// 				err = io.err_unexpected_eof
 // 			}
 // 			return image.Config{}, err
 // 		}

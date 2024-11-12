@@ -460,6 +460,18 @@ pub fn Palette::new(n : Int) -> Palette {
   Slice::new(arr)
 }
 
+pub fn Palette::new_empty() -> Palette {
+  Slice::new([])
+}
+
+pub fn length(self : Palette) -> Int {
+  self._.length()
+}
+
+pub fn op_as_view(self : Palette, ~start : Int, ~end : Int) -> Palette {
+  self._[start:end]
+}
+
 /// convert returns the palette color closest to c in Euclidean R,G,B space.
 pub fn convert(self : Palette, c : Color) -> Color {
   if self._.length() == 0 {
