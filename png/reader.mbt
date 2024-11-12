@@ -140,7 +140,7 @@ struct Decoder {
   mut palette : @color.Palette
   mut cb : Int
   stage : Int
-  idat_length : UInt
+  mut idat_length : UInt
   tmp : Slice[Byte] // [3 * 256]byte
   mut interlace : Int
 
@@ -373,44 +373,49 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
   n
 }
 
-// // Read presents one or more IDAT chunks as one continuous stream (minus the
-// // intermediate chunk headers and footers). If the PNG data looked like:
-// //
-// //	... len0 IDAT xxx crc0 len1 IDAT yy crc1 len2 IEND crc2
-// //
-// // then this reader presents xxxyy. For well-formed PNG data, the decoder state
-// // immediately before the first Read call is that d.r is positioned between the
-// // first IDAT and xxx, and the decoder state immediately after the last Read
-// // call is that d.r is positioned between yy and crc1.
-// func (d *decoder) Read(p []byte) (int, error) {
-// 	if len(p) == 0 {
-// 		return 0, nil
-// 	}
-// 	for d.idat_length == 0 {
-// 		// We have exhausted an IDAT chunk. Verify the checksum of that chunk.
-// 		if err := d.verify_checksum(); err != nil {
-// 			return 0, err
-// 		}
-// 		// Read the length and chunk type of the next chunk, and check that
-// 		// it is an IDAT chunk.
-// 		if _, err := io.read_full(d.r, d.tmp[:8]); err != nil {
-// 			return 0, err
-// 		}
-// 		d.idat_length = be_uint32(d.tmp[:4])
-// 		if string(d.tmp[4:8]) != "IDAT" {
-// 			return 0, format_error("not enough pixel data")
-// 		}
-// 		d.crc.Reset()
-// 		d.crc.Write(d.tmp[4:8])
-// 	}
-// 	if int(d.idat_length) < 0 {
-// 		return 0, unsupported_error("IDAT chunk length overflow")
-// 	}
-// 	n, err := d.r.Read(p[:min(len(p), int(d.idat_length))])
-// 	d.crc.Write(p[:n])
-// 	d.idat_length -= uint32(n)
-// 	return n, err
-// }
+// Read presents one or more IDAT chunks as one continuous stream (minus the
+// intermediate chunk headers and footers). If the PNG data looked like:
+//
+//	... len0 IDAT xxx crc0 len1 IDAT yy crc1 len2 IEND crc2
+//
+// then this reader presents xxxyy. For well-formed PNG data, the decoder state
+// immediately before the first Read call is that d.r is positioned between the
+// first IDAT and xxx, and the decoder state immediately after the last Read
+// call is that d.r is positioned between yy and crc1.
+pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
+  if p.length() == 0 {
+    return (0, None)
+  }
+  while self.idat_length == 0 {
+    // We have exhausted an IDAT chunk. Verify the checksum of that chunk.
+    let err = self.verify_checksum()
+    if err != None {
+      return (0, err)
+    }
+    // Read the length and chunk type of the next chunk, and check that
+    // it is an IDAT chunk.
+    let (_, err) = @io.read_full(self.r, self.tmp[:8])
+    if err != None {
+      return (0, err)
+    }
+    self.idat_length = be_uint32(self.tmp[:4])
+    if self.tmp[4:8].to_bytes() != b"IDAT" {
+      return (0, Some(format_error("not enough pixel data")))
+    }
+    self.crc.reset()
+    guard let (_, None) = self.crc.write(self.tmp[4:8])
+
+  }
+  if self.idat_length.reinterpret_as_int() < 0 {
+    return (0, Some(unsupported_error("IDAT chunk length overflow")))
+  }
+  let (n, err) = self.r.read(
+    p[:@math.minimum(p.length(), self.idat_length.reinterpret_as_int())],
+  )
+  guard let (_, None) = self.crc.write(p[:n])
+  self.idat_length -= n.reinterpret_as_uint()
+  (n, err)
+}
 
 // // decode decodes the IDAT data into an image.
 // func (d *decoder) decode() (image.Image, error) {
