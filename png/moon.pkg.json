@@ -1,8 +1,10 @@
 {
   "import": [
+    "gmlewis/flate",
+    "gmlewis/hash",
     "gmlewis/image",
     "gmlewis/image/color",
-    "gmlewis/hash",
-    "gmlewis/io"
+    "gmlewis/io",
+    "gmlewis/zlib"
   ]
 }

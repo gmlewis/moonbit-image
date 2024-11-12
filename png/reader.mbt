@@ -417,56 +417,56 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
   (n, err)
 }
 
-// // decode decodes the IDAT data into an image.
-// func (d *decoder) decode() (image.Image, error) {
-// 	r, err := zlib.NewReader(d)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer r.Close()
-// 	var img image.Image
-// 	if d.interlace == IT_NONE {
-// 		img, err = d.readImagePass(r, 0, false)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	} else if d.interlace == IT_ADAM7 {
-// 		// Allocate a blank image of the full size.
-// 		img, err = d.readImagePass(nil, 0, true)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		for pass := 0; pass < 7; pass++ {
-// 			imagePass, err := d.readImagePass(r, pass, false)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			if imagePass != nil {
-// 				d.mergePassInto(img, imagePass, pass)
-// 			}
-// 		}
-// 	}
+// decode decodes the IDAT data into an image.
+fn decode(self: Decoder) -> (@image.Image, IOError?) {
+  let mut img = @image.RGBA::empty()
+	let (r, err) = @zlib.Reader::new(self)
+	if err != None {
+		return (img, err)
+	}
+	// defer r.Close()
+	if self.interlace == IT_NONE.to_int() {
+		img, err = self.read_image_pass(r, 0, false)
+		if err != None {
+			return (img, err)
+		}
+	} else if self.interlace == IT_ADAM7 {
+		// Allocate a blank image of the full size.
+		img, err = self.read_image_pass(nil, 0, true)
+		if err != None {
+			return (img, err)
+		}
+		for pass := 0; pass < 7; pass++ {
+			imagePass, err := self.read_image_pass(r, pass, false)
+			if err != None {
+				return (img, err)
+			}
+			if imagePass != nil {
+				self.mergePassInto(img, imagePass, pass)
+			}
+		}
+	}
 
-// 	// Check for EOF, to verify the zlib checksum.
-// 	n := 0
-// 	for i := 0; n == 0 && err == nil; i++ {
-// 		if i == 100 {
-// 			return nil, io.ErrNoProgress
-// 		}
-// 		n, err = r.Read(d.tmp[:1])
-// 	}
-// 	if err != nil && err != io.EOF {
-// 		return nil, format_error(err.Error())
-// 	}
-// 	if n != 0 || d.idat_length != 0 {
-// 		return nil, format_error("too much pixel data")
-// 	}
+	// Check for EOF, to verify the zlib checksum.
+	let mut n = 0
+	for i = 0; n == 0 && err == nil; i=i+1 {
+		if i == 100 {
+			return (img, io.ErrNoProgress)
+		}
+		n, err = r.Read(self.tmp[:1])
+	}
+	if err != nil && err != io.EOF {
+		return (img, Some(format_error(err.Error())))
+	}
+	if n != 0 || self.idat_length != 0 {
+		return (img, Some(format_error("too much pixel data")))
+	}
 
-// 	return img, nil
-// }
+	return (img, None)
+}
 
-// // readImagePass reads a single image pass, sized according to the pass number.
-// func (d *decoder) readImagePass(r io.Reader, pass int, allocateOnly bool) (image.Image, error) {
+// // read_image_pass reads a single image pass, sized according to the pass number.
+// func (d *decoder) read_image_pass(r io.Reader, pass int, allocateOnly bool) (image.Image, error) {
 // 	bitsPerPixel := 0
 // 	pix_offset := 0
 // 	var (
@@ -915,7 +915,7 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
 // 		bytesPerPixel = 1
 // 		if len(target.Palette) < len(source.Palette) {
-// 			// readImagePass can return a paletted image whose implicit palette
+// 			// read_image_pass can return a paletted image whose implicit palette
 // 			// length (one more than the maximum Pix value) is larger than the
 // 			// explicit palette length (what's in the PLTE chunk). Make the
 // 			// same adjustment here.
