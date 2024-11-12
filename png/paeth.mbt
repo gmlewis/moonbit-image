@@ -5,70 +5,78 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// package png
+typealias Slice[T] = @io.Slice[T]
 
-// // intSize is either 32 or 64.
-// const intSize = 32 << (^uint(0) >> 63)
+fn abs(x : Int) -> Int {
+  // m = -1 if x < 0. m = 0 otherwise.
+  let m = x >> 31
 
-// func abs(x int) int {
-// 	// m := -1 if x < 0. m := 0 otherwise.
-// 	m := x >> (intSize - 1)
+  // In two's complement representation, the negative number
+  // of any number (except the smallest one) can be computed
+  // by flipping all the bits and add 1. This is faster than
+  // code with a branch.
+  // See Hacker's Delight, section 2-4.
+  (x ^ m) - m
+}
 
-// 	// In two's complement representation, the negative number
-// 	// of any number (except the smallest one) can be computed
-// 	// by flipping all the bits and add 1. This is faster than
-// 	// code with a branch.
-// 	// See Hacker's Delight, section 2-4.
-// 	return (x ^ m) - m
-// }
+// paeth implements the Paeth filter function, as per the PNG specification.
+fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
+  // This is an optimized version of the sample code in the PNG spec.
+  // For example, the sample code starts with:
+  //	p := int(a) + int(b) - int(c)
+  //	pa := abs(p - int(a))
+  // but the optimized form uses fewer arithmetic operations:
+  //	pa := int(b) - int(c)
+  //	pa = abs(pa)
+  let mut pc = c.to_int()
+  let mut pa = b.to_int() - pc
+  let mut pb = a.to_int() - pc
+  pc = abs(pa + pb)
+  pa = abs(pa)
+  pb = abs(pb)
+  if pa <= pb && pa <= pc {
+    return a
+  }
+  if pb <= pc {
+    return b
+  }
+  c
+}
 
-// // paeth implements the Paeth filter function, as per the PNG specification.
-// func paeth(a, b, c uint8) uint8 {
-// 	// This is an optimized version of the sample code in the PNG spec.
-// 	// For example, the sample code starts with:
-// 	//	p := int(a) + int(b) - int(c)
-// 	//	pa := abs(p - int(a))
-// 	// but the optimized form uses fewer arithmetic operations:
-// 	//	pa := int(b) - int(c)
-// 	//	pa = abs(pa)
-// 	pc := int(c)
-// 	pa := int(b) - pc
-// 	pb := int(a) - pc
-// 	pc = abs(pa + pb)
-// 	pa = abs(pa)
-// 	pb = abs(pb)
-// 	if pa <= pb && pa <= pc {
-// 		return a
-// 	} else if pb <= pc {
-// 		return b
-// 	}
-// 	return c
-// }
-
-// // filterPaeth applies the Paeth filter to the cdat slice.
-// // cdat is the current row's data, pdat is the previous row's data.
-// func filterPaeth(cdat, pdat []byte, bytesPerPixel int) {
-// 	var a, b, c, pa, pb, pc int
-// 	for i := 0; i < bytesPerPixel; i++ {
-// 		a, c = 0, 0
-// 		for j := i; j < len(cdat); j += bytesPerPixel {
-// 			b = int(pdat[j])
-// 			pa = b - c
-// 			pb = a - c
-// 			pc = abs(pa + pb)
-// 			pa = abs(pa)
-// 			pb = abs(pb)
-// 			if pa <= pb && pa <= pc {
-// 				// No-op.
-// 			} else if pb <= pc {
-// 				a = b
-// 			} else {
-// 				a = c
-// 			}
-// 			a += int(cdat[j])
-// 			a &= 0xff
-// 			cdat[j] = uint8(a)
-// 			c = b
-// 		}
-// 	}
-// }
+// filter_paeth applies the Paeth filter to the cdat slice.
+// cdat is the current row's data, pdat is the previous row's data.
+fn filter_paeth(
+  cdat : Slice[Byte],
+  pdat : Slice[Byte],
+  bytes_per_pixel : Int
+) -> Unit {
+  let mut a = 0
+  let mut b = 0
+  let mut c = 0
+  let mut pa = 0
+  let mut pb = 0
+  let mut pc = 0
+  for i = 0; i < bytes_per_pixel; i = i + 1 {
+    a = 0
+    c = 0
+    for j = i; j < cdat.length(); j = j + bytes_per_pixel {
+      b = pdat[j].to_int()
+      pa = b - c
+      pb = a - c
+      pc = abs(pa + pb)
+      pa = abs(pa)
+      pb = abs(pb)
+      if pa <= pb && pa <= pc {
+        // No-op.
+      } else if pb <= pc {
+        a = b
+      } else {
+        a = c
+      }
+      a += cdat[j].to_int()
+      a = a & 0xff
+      cdat[j] = a.to_byte()
+      c = b
+    }
+  }
+}
