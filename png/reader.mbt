@@ -150,6 +150,12 @@ struct Decoder {
   transparent : Slice[Byte] // [6]byte
 }
 
+fn read_byte(self : Decoder) -> (Byte, IOError?) {
+  let b = Slice::new([b'\x00'])
+  let (_, err) = self.r.read(b)
+  (b[0], err)
+}
+
 fn Decoder::new(r : @io.Reader) -> Decoder {
   {
     r,
@@ -209,8 +215,8 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if w <= 0 || h <= 0 {
     return Some(format_error("non-positive dimension"))
   }
-  let mut n_pixels64 = w.to_int64() * h.to_int64()
-  let mut n_pixels = n_pixels64.to_int()
+  let n_pixels64 = w.to_int64() * h.to_int64()
+  let n_pixels = n_pixels64.to_int()
   if n_pixels64 != n_pixels.to_int64() {
     return Some(unsupported_error("dimension overflow"))
   }
@@ -227,16 +233,19 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
       match self.tmp[9].to_int() {
         CT_GRAYSCALE => self.cb = CB_G1
         CT_PALETTED => self.cb = CB_P1
+        _ => ()
       }
     2 =>
       match self.tmp[9].to_int() {
         CT_GRAYSCALE => self.cb = CB_G2
         CT_PALETTED => self.cb = CB_P2
+        _ => ()
       }
     4 =>
       match self.tmp[9].to_int() {
         CT_GRAYSCALE => self.cb = CB_G4
         CT_PALETTED => self.cb = CB_P4
+        _ => ()
       }
     8 =>
       match self.tmp[9].to_int() {
@@ -245,6 +254,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
         CT_PALETTED => self.cb = CB_P8
         CT_GRAYSCALE_ALPHA => self.cb = CB_GA8
         CT_TRUE_COLOR_ALPHA => self.cb = CB_TCA8
+        _ => ()
       }
     16 =>
       match self.tmp[9].to_int() {
@@ -252,7 +262,9 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
         CT_TRUE_COLOR => self.cb = CB_TC16
         CT_GRAYSCALE_ALPHA => self.cb = CB_GA16
         CT_TRUE_COLOR_ALPHA => self.cb = CB_TCA16
+        _ => ()
       }
+    _ => ()
   }
   if self.cb == CB_INVALID {
     return Some(
@@ -335,6 +347,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
         CB_G1 => self.transparent[1] *= 0xff
         CB_G2 => self.transparent[1] *= 0x55
         CB_G4 => self.transparent[1] *= 0x11
+        _ => ()
       }
       self.use_transparent = true
     }
@@ -453,7 +466,7 @@ fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
     }
   } else if self.interlace == IT_ADAM7.to_int() {
     // Allocate a blank image of the full size.
-    let tmp = self.read_image_pass(None, 0, true)
+    let tmp = self.read_image_pass(r, 0, true)
     img = tmp.0
     let err = tmp.1
     if err != None {
@@ -645,6 +658,7 @@ fn read_image_pass(
       }
       img = nrgba64
     }
+    _ => ()
   }
   if allocate_only {
     return (img, None)
@@ -826,7 +840,7 @@ fn read_image_pass(
           for x = 0; x < width; x = x + 1 {
             let r = cdat[j + 0]
             let g = cdat[j + 1]
-            let mut b = cdat[j + 2]
+            let b = cdat[j + 2]
             let mut a = b'\xff'
             if r == tr && g == tg && b == tb {
               a = b'\x00'
@@ -988,6 +1002,7 @@ fn read_image_pass(
             cdat[8 * x + 7].to_uint()
           nrgba64.set_nrgba64(x, y, @color.NRGBA64::new(rcol, gcol, bcol, acol))
         }
+      _ => ()
     }
 
     // The current row for y is the previous row for y+1.
@@ -1000,80 +1015,85 @@ fn read_image_pass(
   (img, None)
 }
 
-// // merge_pass_into merges a single pass into a full sized image.
-// func (d *decoder) merge_pass_into(dst image.Image, src image.Image, pass int) {
-// 	p := interlacing[pass]
-// 	var (
-// 		srcPix        []uint8
-// 		dstPix        []uint8
-// 		stride        int
-// 		rect          image.Rectangle
-// 		bytes_per_pixel int
-// 	)
-// 	match target := dst.(type) {
-// 	*image.Alpha => {
-// 		srcPix = src.(*image.Alpha).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 1
-// }
-// 	*image.Alpha16 => {
-// 		srcPix = src.(*image.Alpha16).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 2
-// }
-// 	*image.Gray => {
-// 		srcPix = src.(*image.Gray).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 1
-// }
-// 	*image.Gray16 => {
-// 		srcPix = src.(*image.Gray16).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 2
-// }
-// 	*image.NRGBA => {
-// 		srcPix = src.(*image.NRGBA).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 4
-// }
-// 	*image.NRGBA64 => {
-// 		srcPix = src.(*image.NRGBA64).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 8
-// }
-// 	*image.Paletted => {
-// 		source := src.(*image.Paletted)
-// 		srcPix = source.Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 1
-// 		if len(target.Palette) < len(source.Palette) {
-// 			// read_image_pass can return a paletted image whose implicit palette
-// 			// length (one more than the maximum Pix value) is larger than the
-// 			// explicit palette length (what's in the PLTE chunk). Make the
-// 			// same adjustment here.
-// 			target.Palette = source.Palette
-// 		}
-// }
-// 	*image.RGBA => {
-// 		srcPix = src.(*image.RGBA).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 4
-// }
-// 	*image.RGBA64 => {
-// 		srcPix = src.(*image.RGBA64).Pix
-// 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-// 		bytes_per_pixel = 8
-// 	}
-// 	s, bounds := 0, src.Bounds()
-// 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-// 		dBase := (y*p.y_factor+p.y_offset-rect.Min.Y)*stride + (p.x_offset-rect.Min.X)*bytes_per_pixel
-// 		for x = bounds.Min.X; x < bounds.Max.X; x=x+1 {
-// 			d := dBase + x*p.x_factor*bytes_per_pixel
-// 			slice_copy(dstPix[d:], srcPix[s:s+bytes_per_pixel])
-// 			s += bytes_per_pixel
-// 		}
-// 	}
-// }
+// merge_pass_into merges a single pass into a full sized image.
+fn merge_pass_into(
+  self : Decoder,
+  dst : @image.Image,
+  src : @image.Image,
+  pass : Int
+) -> Unit {
+  // 	p := interlacing[pass]
+  // 	var (
+  // 		srcPix        []uint8
+  // 		dstPix        []uint8
+  // 		stride        int
+  // 		rect          image.Rectangle
+  // 		bytes_per_pixel int
+  // 	)
+  // 	match target := dst.(type) {
+  // 	*image.Alpha => {
+  // 		srcPix = src.(*image.Alpha).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 1
+  // }
+  // 	*image.Alpha16 => {
+  // 		srcPix = src.(*image.Alpha16).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 2
+  // }
+  // 	*image.Gray => {
+  // 		srcPix = src.(*image.Gray).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 1
+  // }
+  // 	*image.Gray16 => {
+  // 		srcPix = src.(*image.Gray16).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 2
+  // }
+  // 	*image.NRGBA => {
+  // 		srcPix = src.(*image.NRGBA).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 4
+  // }
+  // 	*image.NRGBA64 => {
+  // 		srcPix = src.(*image.NRGBA64).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 8
+  // }
+  // 	*image.Paletted => {
+  // 		source := src.(*image.Paletted)
+  // 		srcPix = source.Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 1
+  // 		if len(target.Palette) < len(source.Palette) {
+  // 			// read_image_pass can return a paletted image whose implicit palette
+  // 			// length (one more than the maximum Pix value) is larger than the
+  // 			// explicit palette length (what's in the PLTE chunk). Make the
+  // 			// same adjustment here.
+  // 			target.Palette = source.Palette
+  // 		}
+  // }
+  // 	*image.RGBA => {
+  // 		srcPix = src.(*image.RGBA).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 4
+  // }
+  // 	*image.RGBA64 => {
+  // 		srcPix = src.(*image.RGBA64).Pix
+  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
+  // 		bytes_per_pixel = 8
+  // 	}
+  // 	s, bounds := 0, src.Bounds()
+  // 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+  // 		dBase := (y*p.y_factor+p.y_offset-rect.Min.Y)*stride + (p.x_offset-rect.Min.X)*bytes_per_pixel
+  // 		for x = bounds.Min.X; x < bounds.Max.X; x=x+1 {
+  // 			d := dBase + x*p.x_factor*bytes_per_pixel
+  // 			slice_copy(dstPix[d:], srcPix[s:s+bytes_per_pixel])
+  // 			s += bytes_per_pixel
+  // 		}
+  // 	}
+}
 
 fn parse_idat(self : Decoder, length : UInt) -> IOError? {
   self.idat_length = length
@@ -1250,36 +1270,19 @@ pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
       break
     }
   }
-
-  // 	var cm color.Model
-  // 	match self.cb {
-  // 	CB_G1, CB_G2, CB_G4, CB_G8 => {
-  // 		cm = color.GrayModel
-  // }
-  // 	CB_GA8 => {
-  // 		cm = color.NRGBAModel
-  // }
-  // 	CB_TC8 => {
-  // 		cm = color.RGBAModel
-  // }
-  // 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-  // 		cm = self.palette
-  // }
-  // 	CB_TCA8 => {
-  // 		cm = color.NRGBAModel
-  // }
-  // 	CB_G16 => {
-  // 		cm = color.Gray16Model
-  // }
-  // 	CB_GA16 => {
-  // 		cm = color.NRGBA64Model
-  // }
-  // 	CB_TC16 => {
-  // 		cm = color.RGBA64Model
-  // }
-  // 	CB_TCA16 => {
-  // 		cm = color.NRGBA64Model
-  // 	}
+  let mut cm = @color.rgba_model
+  match d.cb {
+    CB_G1 | CB_G2 | CB_G4 | CB_G8 => cm = @color.gray_model
+    CB_GA8 => cm = @color.nrgba_model
+    CB_TC8 => cm = @color.rgba_model
+    CB_P1 | CB_P2 | CB_P4 | CB_P8 => cm = d.palette
+    CB_TCA8 => cm = @color.nrgba_model
+    CB_G16 => cm = @color.gray16_model
+    CB_GA16 => cm = @color.nrgba64_model
+    CB_TC16 => cm = @color.rgba64_model
+    CB_TCA16 => cm = @color.nrgba64_model
+    _ => ()
+  }
 
   //
   ({ color_model: cm, width: d.width, height: d.height }, None)
