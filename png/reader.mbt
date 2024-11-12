@@ -132,7 +132,7 @@ const PNG_HEADER = b"\x89PNG\r\n\x1a\n"
 
 struct Decoder {
   r : @io.Reader
-  img : @image.Image
+  mut img : @image.Image
   crc : @hash.Hash32
   mut width : Int
   mut height : Int
@@ -846,106 +846,129 @@ fn read_image_pass(
             b = b << 1
           }
         }
-
-      // 		CB_P2 => {
-      // 			for x = 0; x < width; x += 4 {
-      // 				let mut b = cdat[x/4]
-      // 				for x2 = 0; x2 < 4 && x+x2 < width; x2=x2+1 {
-      // 					idx := b >> 6
-      // 					if len(paletted.palette) <= int(idx) {
-      // 						paletted.palette = paletted.palette[:int(idx)+1]
-      // 					}
-      // 					paletted.set_color_index(x+x2, y, idx)
-      // 					b=b << 2
-      // 				}
-      // 			}
-      //     }
-      // 		CB_P4 => {
-      // 			for x = 0; x < width; x=x + 2 {
-      // 				let mut b = cdat[x/2]
-      // 				for x2 = 0; x2 < 2 && x+x2 < width; x2=x2+1 {
-      // 					idx := b >> 4
-      // 					if len(paletted.palette) <= int(idx) {
-      // 						paletted.palette = paletted.palette[:int(idx)+1]
-      // 					}
-      // 					paletted.set_color_index(x+x2, y, idx)
-      // 					b=b << 4
-      // 				}
-      // 			}
-      //     }
-      // 		CB_P8 => {
-      // 			if len(paletted.palette) != 256 {
-      // 				for x = 0; x < width; x=x+1 {
-      // 					if len(paletted.palette) <= int(cdat[x]) {
-      // 						paletted.palette = paletted.palette[:int(cdat[x])+1]
-      // 					}
-      // 				}
-      // 			}
-      // 			slice_copy(paletted.Pix[pix_offset:], cdat)
-      // 			pix_offset += paletted.Stride
-      //     }
-      // 		CB_TCA8 => {
-      // 			slice_copy(nrgba.Pix[pix_offset:], cdat)
-      // 			pix_offset += nrgba.Stride
-      //     }
-      // 		CB_G16 => {
-      // 			if d.use_transparent {
-      // 				let ty = uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
-      // 				for x = 0; x < width; x=x+1 {
-      // 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
-      // 					acol := uint16(0xffff)
-      // 					if ycol == ty {
-      // 						acol = 0x0000
-      // 					}
-      // 					nrgba64.set_nrgba64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
-      // 				}
-      // 			} else {
-      // 				for x = 0; x < width; x=x+1 {
-      // 					ycol := uint16(cdat[2*x+0])<<8 | uint16(cdat[2*x+1])
-      // 					gray16.set_gray16(x, y, color.Gray16{ycol})
-      // 				}
-      // 			}
-      //     }
-      // 		CB_GA16 => {
-      // 			for x = 0; x < width; x=x+1 {
-      // 				ycol := uint16(cdat[4*x+0])<<8 | uint16(cdat[4*x+1])
-      // 				acol := uint16(cdat[4*x+2])<<8 | uint16(cdat[4*x+3])
-      // 				nrgba64.set_nrgba64(x, y, color.NRGBA64{ycol, ycol, ycol, acol})
-      // 			}
-      //     }
-      // 		CB_TC16 => {
-      // 			if d.use_transparent {
-      // 				tr := uint16(d.transparent[0])<<8 | uint16(d.transparent[1])
-      // 				tg := uint16(d.transparent[2])<<8 | uint16(d.transparent[3])
-      // 				tb := uint16(d.transparent[4])<<8 | uint16(d.transparent[5])
-      // 				for x = 0; x < width; x=x+1 {
-      // 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
-      // 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
-      // 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
-      // 					acol := uint16(0xffff)
-      // 					if rcol == tr && gcol == tg && bcol == tb {
-      // 						acol = 0x0000
-      // 					}
-      // 					nrgba64.set_nrgba64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
-      // 				}
-      // 			} else {
-      // 				for x = 0; x < width; x=x+1 {
-      // 					rcol := uint16(cdat[6*x+0])<<8 | uint16(cdat[6*x+1])
-      // 					gcol := uint16(cdat[6*x+2])<<8 | uint16(cdat[6*x+3])
-      // 					bcol := uint16(cdat[6*x+4])<<8 | uint16(cdat[6*x+5])
-      // 					rgba64.SetRGBA64(x, y, color.RGBA64{rcol, gcol, bcol, 0xffff})
-      // 				}
-      // 			}
-      //     }
-      // 		CB_TCA16 => {
-      // 			for x = 0; x < width; x=x+1 {
-      // 				rcol := uint16(cdat[8*x+0])<<8 | uint16(cdat[8*x+1])
-      // 				gcol := uint16(cdat[8*x+2])<<8 | uint16(cdat[8*x+3])
-      // 				bcol := uint16(cdat[8*x+4])<<8 | uint16(cdat[8*x+5])
-      // 				acol := uint16(cdat[8*x+6])<<8 | uint16(cdat[8*x+7])
-      // 				nrgba64.set_nrgba64(x, y, color.NRGBA64{rcol, gcol, bcol, acol})
-      // 			}
-      // 		}
+      CB_P2 =>
+        for x = 0; x < width; x = x + 4 {
+          let mut b = cdat[x / 4]
+          for x2 = 0; x2 < 4 && x + x2 < width; x2 = x2 + 1 {
+            let idx = b >> 6
+            if paletted.palette.length() <= idx.to_int() {
+              paletted.palette = paletted.palette[:idx.to_int() + 1]
+            }
+            paletted.set_color_index(x + x2, y, idx)
+            b = b << 2
+          }
+        }
+      CB_P4 =>
+        for x = 0; x < width; x = x + 2 {
+          let mut b = cdat[x / 2]
+          for x2 = 0; x2 < 2 && x + x2 < width; x2 = x2 + 1 {
+            let idx = b >> 4
+            if paletted.palette.length() <= idx.to_int() {
+              paletted.palette = paletted.palette[:idx.to_int() + 1]
+            }
+            paletted.set_color_index(x + x2, y, idx)
+            b = b << 4
+          }
+        }
+      CB_P8 => {
+        if paletted.palette.length() != 256 {
+          for x = 0; x < width; x = x + 1 {
+            if paletted.palette.length() <= cdat[x].to_int() {
+              paletted.palette = paletted.palette[:cdat[x].to_int() + 1]
+            }
+          }
+        }
+        let _ = slice_copy(paletted.pix[pix_offset:], cdat)
+        pix_offset += paletted.stride
+      }
+      CB_TCA8 => {
+        let _ = slice_copy(nrgba.pix[pix_offset:], cdat)
+        pix_offset += nrgba.stride
+      }
+      CB_G16 =>
+        if self.use_transparent {
+          let ty = (self.transparent[0].to_uint() << 8) |
+            self.transparent[1].to_uint()
+          for x = 0; x < width; x = x + 1 {
+            let ycol = (cdat[2 * x + 0].to_uint() << 8) |
+              cdat[2 * x + 1].to_uint()
+            let mut acol = 0xffffU
+            if ycol == ty {
+              acol = 0x0000U
+            }
+            nrgba64.set_nrgba64(
+              x,
+              y,
+              @color.NRGBA64::new(ycol, ycol, ycol, acol),
+            )
+          }
+        } else {
+          for x = 0; x < width; x = x + 1 {
+            let ycol = (cdat[2 * x + 0].to_uint() << 8) |
+              cdat[2 * x + 1].to_uint()
+            gray16.set_gray16(x, y, @color.Gray16::new(ycol))
+          }
+        }
+      CB_GA16 =>
+        for x = 0; x < width; x = x + 1 {
+          let ycol = (cdat[4 * x + 0].to_uint() << 8) |
+            cdat[4 * x + 1].to_uint()
+          let acol = (cdat[4 * x + 2].to_uint() << 8) |
+            cdat[4 * x + 3].to_uint()
+          nrgba64.set_nrgba64(x, y, @color.NRGBA64::new(ycol, ycol, ycol, acol))
+        }
+      CB_TC16 =>
+        if self.use_transparent {
+          let tr = (self.transparent[0].to_uint() << 8) |
+            self.transparent[1].to_uint()
+          let tg = (self.transparent[2].to_uint() << 8) |
+            self.transparent[3].to_uint()
+          let tb = (self.transparent[4].to_uint() << 8) |
+            self.transparent[5].to_uint()
+          for x = 0; x < width; x = x + 1 {
+            let rcol = (cdat[6 * x + 0].to_uint() << 8) |
+              cdat[6 * x + 1].to_uint()
+            let gcol = (cdat[6 * x + 2].to_uint() << 8) |
+              cdat[6 * x + 3].to_uint()
+            let bcol = (cdat[6 * x + 4].to_uint() << 8) |
+              cdat[6 * x + 5].to_uint()
+            let mut acol = 0xffffU
+            if rcol == tr && gcol == tg && bcol == tb {
+              acol = 0x0000U
+            }
+            nrgba64.set_nrgba64(
+              x,
+              y,
+              @color.NRGBA64::new(rcol, gcol, bcol, acol),
+            )
+          }
+        } else {
+          for x = 0; x < width; x = x + 1 {
+            let rcol = (cdat[6 * x + 0].to_uint() << 8) |
+              cdat[6 * x + 1].to_uint()
+            let gcol = (cdat[6 * x + 2].to_uint() << 8) |
+              cdat[6 * x + 3].to_uint()
+            let bcol = (cdat[6 * x + 4].to_uint() << 8) |
+              cdat[6 * x + 5].to_uint()
+            rgba64.set_rgba64(
+              x,
+              y,
+              @color.RGBA64::new(rcol, gcol, bcol, 0xffff),
+            )
+          }
+        }
+      CB_TCA16 =>
+        for x = 0; x < width; x = x + 1 {
+          let rcol = (cdat[8 * x + 0].to_uint() << 8) |
+            cdat[8 * x + 1].to_uint()
+          let gcol = (cdat[8 * x + 2].to_uint() << 8) |
+            cdat[8 * x + 3].to_uint()
+          let bcol = (cdat[8 * x + 4].to_uint() << 8) |
+            cdat[8 * x + 5].to_uint()
+          let acol = (cdat[8 * x + 6].to_uint() << 8) |
+            cdat[8 * x + 7].to_uint()
+          nrgba64.set_nrgba64(x, y, @color.NRGBA64::new(rcol, gcol, bcol, acol))
+        }
     }
 
     // The current row for y is the previous row for y+1.
@@ -1033,85 +1056,86 @@ fn read_image_pass(
 // 	}
 // }
 
-// func (d *decoder) parseIDAT(length uint32) (err error) {
-// 	d.idat_length = length
-// 	d.img, err = d.decode()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return d.verify_checksum()
-// }
+fn parse_idat(self : Decoder, length : UInt) -> IOError? {
+  self.idat_length = length
+  let (img, err) = self.decode()
+  self.img = img
+  if err != None {
+    return err
+  }
+  self.verify_checksum()
+}
 
-// func (d *decoder) parseIEND(length uint32) error {
-// 	if length != 0 {
-// 		return format_error("bad IEND length")
-// 	}
-// 	return d.verify_checksum()
-// }
+fn parse_iend(self : Decoder, length : UInt) -> IOError? {
+  if length != 0 {
+    return Some(format_error("bad IEND length"))
+  }
+  self.verify_checksum()
+}
 
 // func (d *decoder) parseChunk(configOnly bool) error {
 // 	// Read the length and chunk type.
-// 	if _, err := io.read_full(d.r, d.tmp[:8]); err != nil {
+// 	if _, err := io.read_full(self.r, self.tmp[:8]); err != nil {
 // 		return err
 // 	}
-// 	length := be_uint32(d.tmp[:4])
-// 	d.crc.Reset()
-// 	d.crc.Write(d.tmp[4:8])
+// 	length := be_uint32(self.tmp[:4])
+// 	self.crc.Reset()
+// 	self.crc.Write(self.tmp[4:8])
 
 // 	// Read the chunk data.
-// 	match string(d.tmp[4:8]) {
+// 	match string(self.tmp[4:8]) {
 // 	"IHDR" => {
-// 		if d.stage != DS_START {
+// 		if self.stage != DS_START {
 // 			return chunk_order_error
 // 		}
-// 		d.stage = DS_SEEN_IHDR
-// 		return d.parse_ihdr(length)
+// 		self.stage = DS_SEEN_IHDR
+// 		return self.parse_ihdr(length)
 // }
 // 	"PLTE" => {
-// 		if d.stage != DS_SEEN_IHDR {
+// 		if self.stage != DS_SEEN_IHDR {
 // 			return chunk_order_error
 // 		}
-// 		d.stage = DS_SEEN_PLTE
-// 		return d.parse_plte(length)
+// 		self.stage = DS_SEEN_PLTE
+// 		return self.parse_plte(length)
 // }
 // 	"tRNS" => {
-// 		if cb_paletted(d.cb) {
-// 			if d.stage != DS_SEEN_PLTE {
+// 		if cb_paletted(self.cb) {
+// 			if self.stage != DS_SEEN_PLTE {
 // 				return chunk_order_error
 // 			}
-// 		} else if cb_true_color(d.cb) {
-// 			if d.stage != DS_SEEN_IHDR && d.stage != DS_SEEN_PLTE {
+// 		} else if cb_true_color(self.cb) {
+// 			if self.stage != DS_SEEN_IHDR && self.stage != DS_SEEN_PLTE {
 // 				return chunk_order_error
 // 			}
-// 		} else if d.stage != DS_SEEN_IHDR {
+// 		} else if self.stage != DS_SEEN_IHDR {
 // 			return chunk_order_error
 // 		}
-// 		d.stage = DS_SEENT_RNS
-// 		return d.parse_t_rns(length)
+// 		self.stage = DS_SEENT_RNS
+// 		return self.parse_t_rns(length)
 // }
 // 	"IDAT" => {
-// 		if d.stage < DS_SEEN_IHDR || d.stage > DS_SEEN_IDAT || (d.stage == DS_SEEN_IHDR && cb_paletted(d.cb)) {
+// 		if self.stage < DS_SEEN_IHDR || self.stage > DS_SEEN_IDAT || (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
 // 			return chunk_order_error
-// 		} else if d.stage == DS_SEEN_IDAT {
+// 		} else if self.stage == DS_SEEN_IDAT {
 // 			// Ignore trailing zero-length or garbage IDAT chunks.
 // 			//
 // 			// This does not affect valid PNG images that contain multiple IDAT
-// 			// chunks, since the first call to parseIDAT below will consume all
+// 			// chunks, since the first call to parse_idat below will consume all
 // 			// consecutive IDAT chunks required for decoding the image.
 // 			break
 // 		}
-// 		d.stage = DS_SEEN_IDAT
+// 		self.stage = DS_SEEN_IDAT
 // 		if configOnly {
 // 			return nil
 // 		}
-// 		return d.parseIDAT(length)
+// 		return self.parse_idat(length)
 // }
 // 	"IEND" => {
-// 		if d.stage != DS_SEEN_IDAT {
+// 		if self.stage != DS_SEEN_IDAT {
 // 			return chunk_order_error
 // 		}
-// 		d.stage = DS_SEEN_IEND
-// 		return d.parseIEND(length)
+// 		self.stage = DS_SEEN_IEND
+// 		return self.parse_iend(length)
 // 	}
 // 	if length > 0x7fffffff {
 // 		return format_error(fmt.Sprintf("Bad chunk length: %d", length))
@@ -1119,32 +1143,33 @@ fn read_image_pass(
 // 	// Ignore this chunk (of a known length).
 // 	var ignored [4096]byte
 // 	for length > 0 {
-// 		n, err := io.read_full(d.r, ignored[:min(len(ignored), int(length))])
+// 		n, err := io.read_full(self.r, ignored[:min(len(ignored), int(length))])
 // 		if err != nil {
 // 			return err
 // 		}
-// 		d.crc.Write(ignored[:n])
+// 		self.crc.Write(ignored[:n])
 // 		length -= uint32(n)
 // 	}
-// 	return d.verify_checksum()
+// 	return self.verify_checksum()
 // }
 
-// func (d *decoder) verify_checksum() error {
-// 	if _, err := io.read_full(d.r, d.tmp[:4]); err != nil {
-// 		return err
-// 	}
-// 	if be_uint32(d.tmp[:4]) != d.crc.Sum32() {
-// 		return format_error("invalid checksum")
-// 	}
-// 	return nil
-// }
+fn verify_checksum(self : Decoder) -> IOError? {
+  let (_, err) = @io.read_full(self.r, self.tmp[:4])
+  if err != None {
+    return err
+  }
+  if be_uint32(self.tmp[:4]) != self.crc.sum32() {
+    return Some(format_error("invalid checksum"))
+  }
+  None
+}
 
-// func (d *decoder) checkHeader() error {
-// 	_, err := io.read_full(d.r, d.tmp[:len(PNG_HEADER)])
+// func (d *decoder) check_header() error {
+// 	_, err := io.read_full(self.r, self.tmp[:len(PNG_HEADER)])
 // 	if err != nil {
 // 		return err
 // 	}
-// 	if string(d.tmp[:len(PNG_HEADER)]) != PNG_HEADER {
+// 	if string(self.tmp[:len(PNG_HEADER)]) != PNG_HEADER {
 // 		return format_error("not a PNG file")
 // 	}
 // 	return nil
@@ -1157,21 +1182,21 @@ fn read_image_pass(
 // 		r:   r,
 // 		crc: crc32.NewIEEE(),
 // 	}
-// 	if err := d.checkHeader(); err != nil {
+// 	if err := self.check_header(); err != nil {
 // 		if err == io.EOF {
 // 			err = io.err_unexpected_eof
 // 		}
 // 		return nil, err
 // 	}
-// 	for d.stage != DS_SEEN_IEND {
-// 		if err := d.parseChunk(false); err != nil {
+// 	for self.stage != DS_SEEN_IEND {
+// 		if err := self.parseChunk(false); err != nil {
 // 			if err == io.EOF {
 // 				err = io.err_unexpected_eof
 // 			}
 // 			return nil, err
 // 		}
 // 	}
-// 	return d.img, nil
+// 	return self.img, nil
 // }
 
 // // DecodeConfig returns the color model and dimensions of a PNG image without
@@ -1181,7 +1206,7 @@ fn read_image_pass(
 // 		r:   r,
 // 		crc: crc32.NewIEEE(),
 // 	}
-// 	if err := d.checkHeader(); err != nil {
+// 	if err := self.check_header(); err != nil {
 // 		if err == io.EOF {
 // 			err = io.err_unexpected_eof
 // 		}
@@ -1189,26 +1214,26 @@ fn read_image_pass(
 // 	}
 
 // 	for {
-// 		if err := d.parseChunk(true); err != nil {
+// 		if err := self.parseChunk(true); err != nil {
 // 			if err == io.EOF {
 // 				err = io.err_unexpected_eof
 // 			}
 // 			return image.Config{}, err
 // 		}
 
-// 		if cb_paletted(d.cb) {
-// 			if d.stage >= DS_SEENT_RNS {
+// 		if cb_paletted(self.cb) {
+// 			if self.stage >= DS_SEENT_RNS {
 // 				break
 // 			}
 // 		} else {
-// 			if d.stage >= DS_SEEN_IHDR {
+// 			if self.stage >= DS_SEEN_IHDR {
 // 				break
 // 			}
 // 		}
 // 	}
 
 // 	var cm color.Model
-// 	match d.cb {
+// 	match self.cb {
 // 	CB_G1, CB_G2, CB_G4, CB_G8 => {
 // 		cm = color.GrayModel
 // }
@@ -1219,7 +1244,7 @@ fn read_image_pass(
 // 		cm = color.RGBAModel
 // }
 // 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-// 		cm = d.palette
+// 		cm = self.palette
 // }
 // 	CB_TCA8 => {
 // 		cm = color.NRGBAModel
@@ -1238,8 +1263,8 @@ fn read_image_pass(
 // 	}
 // 	return image.Config{
 // 		ColorModel: cm,
-// 		Width:      d.width,
-// 		Height:     d.height,
+// 		Width:      self.width,
+// 		Height:     self.height,
 // 	}, nil
 // }
 
