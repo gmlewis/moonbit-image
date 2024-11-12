@@ -139,7 +139,7 @@ struct Decoder {
   mut depth : Int
   mut palette : @color.Palette
   mut cb : Int
-  stage : Int
+  mut stage : Int
   mut idat_length : UInt
   tmp : Slice[Byte] // [3 * 256]byte
   mut interlace : Int
@@ -148,6 +148,25 @@ struct Decoder {
   // transparency, as opposed to palette transparency.
   mut use_transparent : Bool
   transparent : Slice[Byte] // [6]byte
+}
+
+fn Decoder::new(r : @io.Reader) -> Decoder {
+  {
+    r,
+    img: @image.Image::new_empty(),
+    crc: @crc32.new(),
+    width: 0,
+    height: 0,
+    depth: 0,
+    palette: @color.Palette::new_empty(),
+    cb: 0,
+    stage: 0,
+    idat_length: 0U,
+    tmp: Slice::new(Array::make(3 * 256, b'\x00')), // [3 * 256]byte
+    interlace: 0,
+    use_transparent: false,
+    transparent: Slice::new([0, 0, 0, 0, 0, 0]), // [6]byte
+  }
 }
 
 typealias IOError = @io.IOError
@@ -1079,73 +1098,80 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   if err != None {
     return err
   }
-  let length = be_uint32(self.tmp[:4])
+  let mut length = be_uint32(self.tmp[:4])
   self.crc.reset()
   guard let (_, None) = self.crc.write(self.tmp[4:8])
 
   // Read the chunk data.
   let chunk = be_uint32(self.tmp[4:8])
   if chunk == be_uint32(Slice::new(b"IHDR".to_array())) {
-    // 		if self.stage != DS_START {
-    // 			return chunk_order_error
-    // 		}
-    // 		self.stage = DS_SEEN_IHDR
-    // 		return self.parse_ihdr(length)
+    if self.stage != DS_START {
+      return Some(chunk_order_error)
+    }
+    self.stage = DS_SEEN_IHDR
+    return self.parse_ihdr(length)
   } else if chunk == be_uint32(Slice::new(b"PLTE".to_array())) {
-    // 		if self.stage != DS_SEEN_IHDR {
-    // 			return chunk_order_error
-    // 		}
-    // 		self.stage = DS_SEEN_PLTE
-    // 		return self.parse_plte(length)
+    if self.stage != DS_SEEN_IHDR {
+      return Some(chunk_order_error)
+    }
+    self.stage = DS_SEEN_PLTE
+    return self.parse_plte(length)
   } else if chunk == be_uint32(Slice::new(b"tRNS".to_array())) {
-    // 		if cb_paletted(self.cb) {
-    // 			if self.stage != DS_SEEN_PLTE {
-    // 				return chunk_order_error
-    // 			}
-    // 		} else if cb_true_color(self.cb) {
-    // 			if self.stage != DS_SEEN_IHDR && self.stage != DS_SEEN_PLTE {
-    // 				return chunk_order_error
-    // 			}
-    // 		} else if self.stage != DS_SEEN_IHDR {
-    // 			return chunk_order_error
-    // 		}
-    // 		self.stage = DS_SEENT_RNS
-    // 		return self.parse_t_rns(length)
+    if cb_paletted(self.cb) {
+      if self.stage != DS_SEEN_PLTE {
+        return Some(chunk_order_error)
+      }
+    } else if cb_true_color(self.cb) {
+      if self.stage != DS_SEEN_IHDR && self.stage != DS_SEEN_PLTE {
+        return Some(chunk_order_error)
+      }
+    } else if self.stage != DS_SEEN_IHDR {
+      return Some(chunk_order_error)
+    }
+    self.stage = DS_SEENT_RNS
+    return self.parse_t_rns(length)
   } else if chunk == be_uint32(Slice::new(b"IDAT".to_array())) {
-    // 		if self.stage < DS_SEEN_IHDR || self.stage > DS_SEEN_IDAT || (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
-    // 			return chunk_order_error
-    // 		} else if self.stage == DS_SEEN_IDAT {
-    // 			// Ignore trailing zero-length or garbage IDAT chunks.
-    // 			//
-    // 			// This does not affect valid PNG images that contain multiple IDAT
-    // 			// chunks, since the first call to parse_idat below will consume all
-    // 			// consecutive IDAT chunks required for decoding the image.
-    // 			break
-    // 		}
-    // 		self.stage = DS_SEEN_IDAT
-    // 		if config_only {
-    // 			return nil
-    // 		}
-    // 		return self.parse_idat(length)
+    if self.stage < DS_SEEN_IHDR ||
+      self.stage > DS_SEEN_IDAT ||
+      (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
+      return Some(chunk_order_error)
+    } else if self.stage == DS_SEEN_IDAT {
+      // Ignore trailing zero-length or garbage IDAT chunks.
+      //
+      // This does not affect valid PNG images that contain multiple IDAT
+      // chunks, since the first call to parse_idat below will consume all
+      // consecutive IDAT chunks required for decoding the image.
+      return self.verify_checksum()
+    }
+    self.stage = DS_SEEN_IDAT
+    if config_only {
+      return None
+    }
+    return self.parse_idat(length)
   } else if chunk == be_uint32(Slice::new(b"IEND".to_array())) {
-    // 		if self.stage != DS_SEEN_IDAT {
-    // 			return chunk_order_error
-    // 		}
-    // 		self.stage = DS_SEEN_IEND
-    // 		return self.parse_iend(length)
-    // 	}
-    // 	if length > 0x7fffffff {
-    // 		return format_error(fmt.Sprintf("Bad chunk length: %d", length))
-    // 	}
-    // 	// Ignore this chunk (of a known length).
-    // 	var ignored [4096]byte
-    // 	for length > 0 {
-    // 		n, err := io.read_full(self.r, ignored[:min(len(ignored), int(length))])
-    // 		if err != nil {
-    // 			return err
-    // 		}
-    // 		self.crc.Write(ignored[:n])
-    // 		length -= uint32(n)
+    if self.stage != DS_SEEN_IDAT {
+      return Some(chunk_order_error)
+    }
+    self.stage = DS_SEEN_IEND
+    return self.parse_iend(length)
+  }
+
+  //
+  if length > 0x7fffffff {
+    return Some(format_error("Bad chunk length: \{length}"))
+  }
+  // Ignore this chunk (of a known length).
+  let ignored = Slice::new(Array::make(4096, b'\x00'))
+  while length > 0 {
+    let (n, err) = @io.read_full(
+      self.r,
+      ignored[:@math.minimum(ignored.length(), length.reinterpret_as_int())],
+    )
+    if err != None {
+      return err
+    }
+    guard let (_, None) = self.crc.write(ignored[:n])
+    length -= n.reinterpret_as_uint()
   }
   self.verify_checksum()
 }
@@ -1175,7 +1201,7 @@ fn check_header(self : Decoder) -> IOError? {
 // decode reads a PNG image from r and returns it as an [image.Image].
 // The type of Image returned depends on the PNG contents.
 pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
-  let d : Decoder = { r, crc: @crc32.new() }
+  let d = Decoder::new(r)
   let mut err = d.check_header()
   if err != None {
     if err == Some(@io.eof) {
@@ -1195,75 +1221,70 @@ pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
   (d.img, None)
 }
 
-// // DecodeConfig returns the color model and dimensions of a PNG image without
-// // decoding the entire image.
-// func DecodeConfig(r io.Reader) (image.Config, error) {
-// 	d := &decoder{
-// 		r:   r,
-// 		crc: crc32.NewIEEE(),
-// 	}
-// 	if err := self.check_header(); err != nil {
-// 		if err == io.EOF {
-// 			err = io.err_unexpected_eof
-// 		}
-// 		return image.Config{}, err
-// 	}
+// decode_config returns the color model and dimensions of a PNG image without
+// decoding the entire image.
+pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
+  let d = Decoder::new(r)
+  let mut err = d.check_header()
+  if err != None {
+    if err == Some(@io.eof) {
+      err = Some(@io.err_unexpected_eof)
+    }
+    return (@image.Config::new_empty(), err)
+  }
 
-// 	for {
-// 		if err := self.parse_chunk(true); err != nil {
-// 			if err == io.EOF {
-// 				err = io.err_unexpected_eof
-// 			}
-// 			return image.Config{}, err
-// 		}
+  //
+  while true {
+    let mut err = d.parse_chunk(true)
+    if err != None {
+      if err == Some(@io.eof) {
+        err = Some(@io.err_unexpected_eof)
+      }
+      return (@image.Config::new_empty(), err)
+    }
+    if cb_paletted(d.cb) {
+      if d.stage >= DS_SEENT_RNS {
+        break
+      }
+    } else if d.stage >= DS_SEEN_IHDR {
+      break
+    }
+  }
 
-// 		if cb_paletted(self.cb) {
-// 			if self.stage >= DS_SEENT_RNS {
-// 				break
-// 			}
-// 		} else {
-// 			if self.stage >= DS_SEEN_IHDR {
-// 				break
-// 			}
-// 		}
-// 	}
+  // 	var cm color.Model
+  // 	match self.cb {
+  // 	CB_G1, CB_G2, CB_G4, CB_G8 => {
+  // 		cm = color.GrayModel
+  // }
+  // 	CB_GA8 => {
+  // 		cm = color.NRGBAModel
+  // }
+  // 	CB_TC8 => {
+  // 		cm = color.RGBAModel
+  // }
+  // 	CB_P1, CB_P2, CB_P4, CB_P8 => {
+  // 		cm = self.palette
+  // }
+  // 	CB_TCA8 => {
+  // 		cm = color.NRGBAModel
+  // }
+  // 	CB_G16 => {
+  // 		cm = color.Gray16Model
+  // }
+  // 	CB_GA16 => {
+  // 		cm = color.NRGBA64Model
+  // }
+  // 	CB_TC16 => {
+  // 		cm = color.RGBA64Model
+  // }
+  // 	CB_TCA16 => {
+  // 		cm = color.NRGBA64Model
+  // 	}
 
-// 	var cm color.Model
-// 	match self.cb {
-// 	CB_G1, CB_G2, CB_G4, CB_G8 => {
-// 		cm = color.GrayModel
-// }
-// 	CB_GA8 => {
-// 		cm = color.NRGBAModel
-// }
-// 	CB_TC8 => {
-// 		cm = color.RGBAModel
-// }
-// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-// 		cm = self.palette
-// }
-// 	CB_TCA8 => {
-// 		cm = color.NRGBAModel
-// }
-// 	CB_G16 => {
-// 		cm = color.Gray16Model
-// }
-// 	CB_GA16 => {
-// 		cm = color.NRGBA64Model
-// }
-// 	CB_TC16 => {
-// 		cm = color.RGBA64Model
-// }
-// 	CB_TCA16 => {
-// 		cm = color.NRGBA64Model
-// 	}
-// 	return image.Config{
-// 		ColorModel: cm,
-// 		Width:      self.width,
-// 		Height:     self.height,
-// 	}, nil
-// }
+  //
+  ({ color_model: cm, width: d.width, height: d.height }, None)
+}
 
 // func init() {
-// 	image.RegisterFormat("png", PNG_HEADER, Decode, DecodeConfig)
+// 	image.RegisterFormat("png", PNG_HEADER, Decode, decode_config)
 // }

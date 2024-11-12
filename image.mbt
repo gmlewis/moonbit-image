@@ -48,6 +48,10 @@ pub struct Config {
   height : Int
 }
 
+pub fn Config::new_empty() -> Config {
+  { color_model: @color.rgba_model, width: 0, height: 0 }
+}
+
 /// Image is a finite rectangular grid of [color.Color] values taken from a color
 /// model.
 pub(open) trait Image {
