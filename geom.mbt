@@ -97,6 +97,18 @@ pub fn sub_image(self : Rectangle, o : Rectangle) -> Image {
   self
 }
 
+pub fn raw_data(self : Rectangle) -> Slice[Byte] {
+  Slice::new([])
+}
+
+pub fn get_bytes_per_pixel(self : Rectangle) -> Int {
+  0
+}
+
+pub fn get_stride(self : Rectangle) -> Int {
+  0
+}
+
 /// copy makes a copy of the provided rectangle without changing it.
 pub fn copy(self : Rectangle) -> Rectangle {
   { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }

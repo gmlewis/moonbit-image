@@ -5,6 +5,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+typealias Slice[T] = @io.Slice[T]
+
 typealias Rectangle = @image.Rectangle
 
 typealias Image = @image.Image
@@ -54,7 +56,7 @@ let test_images : Array[TestT] = [
     image: fn() {
       @image.Paletted::new!(
         @image.rect(0, 0, 10, 10),
-        [@color.transparent, @color.opaque],
+        @color.Palette::from([@color.transparent, @color.opaque]),
       )
     },
   },
@@ -155,7 +157,12 @@ test "new xxx bad rectangle" {
     { name: "CMYK", f: fn(r) { @image.CMYK::new!(r) } },
     {
       name: "Paletted",
-      f: fn(r) { @image.Paletted::new!(r, [@color.black, @color.white]) },
+      f: fn(r) {
+        @image.Paletted::new!(
+          r,
+          @color.Palette::from([@color.black, @color.white]),
+        )
+      },
     },
     // {name: "YCbCr", f: fn(r ) { @image.YCbCr::new(r, YCbCrSubsampleRatio422) }},
     // {name: "NYCbCrA", f: fn(r ) { @image.NYCbCrA::new(r, YCbCrSubsampleRatio444) }},

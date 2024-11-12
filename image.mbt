@@ -69,6 +69,12 @@ pub(open) trait Image {
   opaque(Self) -> Bool
   set(Self, Int, Int, @color.Color) -> Unit
   sub_image(Self, Rectangle) -> Image
+
+  // Because MoonBit does not have reflection, the following methods must
+  // also be made available:
+  raw_data(Self) -> Slice[Byte]
+  get_bytes_per_pixel(Self) -> Int
+  get_stride(Self) -> Int
 }
 
 pub fn Image::new_empty() -> Image {
@@ -140,6 +146,18 @@ pub struct RGBA {
 
 pub fn RGBA::new_empty() -> RGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : RGBA) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : RGBA) -> Int {
+  4
+}
+
+pub fn get_stride(self : RGBA) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : RGBA) -> @color.Model {
@@ -288,6 +306,18 @@ pub fn RGBA64::new_empty() -> RGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+pub fn raw_data(self : RGBA64) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : RGBA64) -> Int {
+  8
+}
+
+pub fn get_stride(self : RGBA64) -> Int {
+  self.stride
+}
+
 pub fn color_model(self : RGBA64) -> @color.Model {
   @color.rgba64_model
 }
@@ -412,6 +442,18 @@ pub struct NRGBA {
 
 pub fn NRGBA::new_empty() -> NRGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : NRGBA) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : NRGBA) -> Int {
+  4
+}
+
+pub fn get_stride(self : NRGBA) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : NRGBA) -> @color.Model {
@@ -555,6 +597,18 @@ pub struct NRGBA64 {
 
 pub fn NRGBA64::new_empty() -> NRGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : NRGBA64) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : NRGBA64) -> Int {
+  8
+}
+
+pub fn get_stride(self : NRGBA64) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : NRGBA64) -> @color.Model {
@@ -716,6 +770,18 @@ pub fn Alpha::new_empty() -> Alpha {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+pub fn raw_data(self : Alpha) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : Alpha) -> Int {
+  1
+}
+
+pub fn get_stride(self : Alpha) -> Int {
+  self.stride
+}
+
 pub fn color_model(self : Alpha) -> @color.Model {
   @color.alpha_model
 }
@@ -836,6 +902,18 @@ pub struct Alpha16 {
 
 pub fn Alpha16::new_empty() -> Alpha16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : Alpha16) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : Alpha16) -> Int {
+  2
+}
+
+pub fn get_stride(self : Alpha16) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : Alpha16) -> @color.Model {
@@ -968,6 +1046,18 @@ pub fn Gray::new_empty() -> Gray {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+pub fn raw_data(self : Gray) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : Gray) -> Int {
+  1
+}
+
+pub fn get_stride(self : Gray) -> Int {
+  self.stride
+}
+
 pub fn color_model(self : Gray) -> @color.Model {
   @color.gray_model
 }
@@ -1076,6 +1166,18 @@ pub struct Gray16 {
 
 pub fn Gray16::new_empty() -> Gray16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : Gray16) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : Gray16) -> Int {
+  2
+}
+
+pub fn get_stride(self : Gray16) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : Gray16) -> @color.Model {
@@ -1189,6 +1291,18 @@ pub struct CMYK {
 
 pub fn CMYK::new_empty() -> CMYK {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+}
+
+pub fn raw_data(self : CMYK) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : CMYK) -> Int {
+  4
+}
+
+pub fn get_stride(self : CMYK) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : CMYK) -> @color.Model {
@@ -1309,6 +1423,18 @@ pub struct Paletted {
   rect : Rectangle
   // Palette is the image's palette.
   mut palette : @color.Palette
+}
+
+pub fn raw_data(self : Paletted) -> Slice[Byte] {
+  self.pix
+}
+
+pub fn get_bytes_per_pixel(self : Paletted) -> Int {
+  1
+}
+
+pub fn get_stride(self : Paletted) -> Int {
+  self.stride
 }
 
 pub fn color_model(self : Paletted) -> @color.Model {

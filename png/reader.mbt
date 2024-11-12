@@ -83,7 +83,7 @@ const FT_AVERAGE = b'\x03'
 
 const FT_PAETH = b'\x04'
 
-const N_FILTER = b'\x05'
+// const N_FILTER = b'\x05'
 
 // Interlace type.
 const IT_NONE = b'\x00'
@@ -478,7 +478,7 @@ fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
         return (img, err)
       }
       if not(image_pass.empty()) {
-        self.merge_pass_into(img, image_pass, pass)
+        merge_pass_into(img, image_pass, pass)
       }
     }
   }
@@ -1016,83 +1016,26 @@ fn read_image_pass(
 }
 
 // merge_pass_into merges a single pass into a full sized image.
-fn merge_pass_into(
-  self : Decoder,
-  dst : @image.Image,
-  src : @image.Image,
-  pass : Int
-) -> Unit {
-  // 	p := interlacing[pass]
-  // 	var (
-  // 		srcPix        []uint8
-  // 		dstPix        []uint8
-  // 		stride        int
-  // 		rect          image.Rectangle
-  // 		bytes_per_pixel int
-  // 	)
-  // 	match target := dst.(type) {
-  // 	*image.Alpha => {
-  // 		srcPix = src.(*image.Alpha).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 1
-  // }
-  // 	*image.Alpha16 => {
-  // 		srcPix = src.(*image.Alpha16).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 2
-  // }
-  // 	*image.Gray => {
-  // 		srcPix = src.(*image.Gray).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 1
-  // }
-  // 	*image.Gray16 => {
-  // 		srcPix = src.(*image.Gray16).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 2
-  // }
-  // 	*image.NRGBA => {
-  // 		srcPix = src.(*image.NRGBA).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 4
-  // }
-  // 	*image.NRGBA64 => {
-  // 		srcPix = src.(*image.NRGBA64).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 8
-  // }
-  // 	*image.Paletted => {
-  // 		source := src.(*image.Paletted)
-  // 		srcPix = source.Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 1
-  // 		if len(target.Palette) < len(source.Palette) {
-  // 			// read_image_pass can return a paletted image whose implicit palette
-  // 			// length (one more than the maximum Pix value) is larger than the
-  // 			// explicit palette length (what's in the PLTE chunk). Make the
-  // 			// same adjustment here.
-  // 			target.Palette = source.Palette
-  // 		}
-  // }
-  // 	*image.RGBA => {
-  // 		srcPix = src.(*image.RGBA).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 4
-  // }
-  // 	*image.RGBA64 => {
-  // 		srcPix = src.(*image.RGBA64).Pix
-  // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
-  // 		bytes_per_pixel = 8
-  // 	}
-  // 	s, bounds := 0, src.Bounds()
-  // 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-  // 		dBase := (y*p.y_factor+p.y_offset-rect.Min.Y)*stride + (p.x_offset-rect.Min.X)*bytes_per_pixel
-  // 		for x = bounds.Min.X; x < bounds.Max.X; x=x+1 {
-  // 			d := dBase + x*p.x_factor*bytes_per_pixel
-  // 			slice_copy(dstPix[d:], srcPix[s:s+bytes_per_pixel])
-  // 			s += bytes_per_pixel
-  // 		}
-  // 	}
+fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
+  let dst_pix = dst.raw_data()
+  let stride = dst.get_stride()
+  let rect = dst.bounds()
+  let bytes_per_pixel = src.get_bytes_per_pixel()
+  let src_pix = src.raw_data()
+  let bounds = src.bounds()
+
+  //
+  let mut s = 0
+  let p = interlacing[pass]
+  for y = bounds.min.y; y < bounds.max.y; y = y + 1 {
+    let d_base = (y * p.y_factor + p.y_offset - rect.min.y) * stride +
+      (p.x_offset - rect.min.x) * bytes_per_pixel
+    for x = bounds.min.x; x < bounds.max.x; x = x + 1 {
+      let d = d_base + x * p.x_factor * bytes_per_pixel
+      let _ = slice_copy(dst_pix[d:], src_pix[s:s + bytes_per_pixel])
+      s += bytes_per_pixel
+    }
+  }
 }
 
 fn parse_idat(self : Decoder, length : UInt) -> IOError? {

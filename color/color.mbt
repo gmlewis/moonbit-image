@@ -460,6 +460,11 @@ pub fn Palette::new(n : Int) -> Palette {
   Slice::new(arr)
 }
 
+/// Palette::from makes a new palette from the provided colors.
+pub fn Palette::from(arr : Array[Color]) -> Palette {
+  Slice::new(arr)
+}
+
 pub fn Palette::new_empty() -> Palette {
   Slice::new([])
 }
