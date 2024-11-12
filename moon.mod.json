@@ -2,6 +2,7 @@
   "name": "gmlewis/image",
   "version": "0.1.0",
   "deps": {
+    "gmlewis/hash": "0.3.0",
     "gmlewis/io": "0.5.0"
   },
   "readme": "README.md",
