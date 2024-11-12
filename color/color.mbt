@@ -446,8 +446,19 @@ pub fn Gray16::from(c : Color) -> Gray16 {
   { y, }
 }
 
+typealias Slice[T] = @io.Slice[T]
+
 /// Palette is a palette of colors.
-pub type Palette Array[Color]
+pub type Palette Slice[Color]
+
+/// Palette::new makes a new palette with `n` colors (initially all black).
+pub fn Palette::new(n : Int) -> Palette {
+  let arr : Array[Color] = Array::new(capacity=n)
+  for i in 0..<n {
+    arr.push(black)
+  }
+  Slice::new(arr)
+}
 
 /// convert returns the palette color closest to c in Euclidean R,G,B space.
 pub fn convert(self : Palette, c : Color) -> Color {

@@ -137,7 +137,7 @@ struct Decoder {
   mut width : Int
   mut height : Int
   mut depth : Int
-  palette : @color.Palette
+  mut palette : @color.Palette
   mut cb : Int
   stage : Int
   idat_length : UInt
@@ -254,43 +254,48 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
   b[3].to_uint()
 }
 
-// func (d *decoder) parsePLTE(length uint32) error {
-// 	np := int(length / 3) // The number of palette entries.
-// 	if length%3 != 0 || np <= 0 || np > 256 || np > 1<<uint(d.depth) {
-// 		return format_error("bad PLTE length")
-// 	}
-// 	n, err := io.read_full(d.r, d.tmp[:3*np])
-// 	if err != nil {
-// 		return err
-// 	}
-// 	d.crc.Write(d.tmp[:n])
-// 	switch d.cb {
-// 	CB_P1, CB_P2, CB_P4, CB_P8 => {
-// 		d.palette = make(color.Palette, 256)
-// 		for i := 0; i < np; i++ {
-// 			d.palette[i] = color.RGBA{d.tmp[3*i+0], d.tmp[3*i+1], d.tmp[3*i+2], 0xff}
-// 		}
-// 		for i := np; i < 256; i++ {
-// 			// Initialize the rest of the palette to opaque black. The spec (section
-// 			// 11.2.3) says that "any out-of-range pixel value found in the image data
-// 			// is an error", but some real-world PNG files have out-of-range pixel
-// 			// values. We fall back to opaque black, the same as libpng 1.5.13;
-// 			// ImageMagick 6.5.7 returns an error.
-// 			d.palette[i] = color.RGBA{0x00, 0x00, 0x00, 0xff}
-// 		}
-// 		d.palette = d.palette[:np]
-// }
-// 	CB_TC8, CB_TCA8, CB_TC16, CB_TCA16 => {
-// 		// As per the PNG spec, a PLTE chunk is optional (and for practical purposes,
-// 		// ignorable) for the CT_TRUE_COLOR and CT_TRUE_COLOR_ALPHA color types (section 4.1.2).
-// 	default:
-// 		return format_error("PLTE, color type mismatch")
-// 	}
-// 	return d.verify_checksum()
-// }
+fn parse_plte(self : Decoder, length : UInt) -> IOError? {
+  let np = (length / 3).reinterpret_as_int() // The number of palette entries.
+  if length % 3 != 0 || np <= 0 || np > 256 || np > (1 << self.depth) {
+    return Some(format_error("bad PLTE length"))
+  }
+  let (n, err) = @io.read_full(self.r, self.tmp[:3 * np])
+  if err != None {
+    return err
+  }
+  guard let (_, None) = self.crc.write(self.tmp[:n])
+  match self.cb {
+    CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
+      self.palette = @color.Palette::new(256)
+      for i = 0; i < np; i = i + 1 {
+        self.palette._[i] = @color.RGBA::new(
+          self.tmp[3 * i + 0],
+          self.tmp[3 * i + 1],
+          self.tmp[3 * i + 2],
+          0xff,
+        )
+      }
+      for i = np; i < 256; i = i + 1 {
+        // Initialize the rest of the palette to opaque black. The spec (section
+        // 11.2.3) says that "any out-of-range pixel value found in the image data
+        // is an error", but some real-world PNG files have out-of-range pixel
+        // values. We fall back to opaque black, the same as libpng 1.5.13;
+        // ImageMagick 6.5.7 returns an error.
+        self.palette._[i] = @color.RGBA::new(0x00, 0x00, 0x00, 0xff)
+      }
+      self.palette = @color.Palette(self.palette._[:np])
+    }
+    CB_TC8 | CB_TCA8 | CB_TC16 | CB_TCA16 =>
+      // As per the PNG spec, a PLTE chunk is optional (and for practical purposes,
+      // ignorable) for the CT_TRUE_COLOR and CT_TRUE_COLOR_ALPHA color types (section 4.1.2).
+      ()
+    _ => return Some(format_error("PLTE, color type mismatch"))
+  }
+  self.verify_checksum()
+}
 
 // func (d *decoder) parsetRNS(length uint32) error {
-// 	switch d.cb {
+// 	match d.cb {
 // 	CB_G1, CB_G2, CB_G4, CB_G8, CB_G16 => {
 // 		if length != 2 {
 // 			return format_error("bad tRNS length")
@@ -302,7 +307,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 		d.crc.Write(d.tmp[:n])
 
 // 		copy(d.transparent[:], d.tmp[:length])
-// 		switch d.cb {
+// 		match d.cb {
 // 		CB_G1 => {
 // 			d.transparent[1] *= 0xff
 // }
@@ -346,7 +351,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 			d.palette[i] = color.NRGBA{rgba.R, rgba.G, rgba.B, d.tmp[i]}
 // 		}
 
-// 	default:
+// 	_ =>
 // 		return format_error("tRNS, color type mismatch")
 // 	}
 // 	return d.verify_checksum()
@@ -466,7 +471,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 			return nil, nil
 // 		}
 // 	}
-// 	switch d.cb {
+// 	match d.cb {
 // 	CB_G1, CB_G2, CB_G4, CB_G8 => {
 // 		bitsPerPixel = d.depth
 // 		if d.use_transparent {
@@ -559,7 +564,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 		// Apply the filter.
 // 		cdat := cr[1:]
 // 		pdat := pr[1:]
-// 		switch cr[0] {
+// 		match cr[0] {
 // 		FT_NONE => {
 // 			// No-op.
 // }
@@ -586,12 +591,12 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // }
 // 		FT_PAETH => {
 // 			filterPaeth(cdat, pdat, bytesPerPixel)
-// 		default:
+// 		_ =>
 // 			return nil, format_error("bad filter type")
 // 		}
 
 // 		// Convert from bytes to colors.
-// 		switch d.cb {
+// 		match d.cb {
 // 		CB_G1 => {
 // 			if d.use_transparent {
 // 				ty := d.transparent[1]
@@ -852,7 +857,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 		rect          image.Rectangle
 // 		bytesPerPixel int
 // 	)
-// 	switch target := dst.(type) {
+// 	match target := dst.(type) {
 // 	*image.Alpha => {
 // 		srcPix = src.(*image.Alpha).Pix
 // 		dstPix, stride, rect = target.Pix, target.Stride, target.Rect
@@ -943,7 +948,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 	d.crc.Write(d.tmp[4:8])
 
 // 	// Read the chunk data.
-// 	switch string(d.tmp[4:8]) {
+// 	match string(d.tmp[4:8]) {
 // 	"IHDR" => {
 // 		if d.stage != DS_START {
 // 			return chunk_order_error
@@ -956,7 +961,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 			return chunk_order_error
 // 		}
 // 		d.stage = DS_SEEN_PLTE
-// 		return d.parsePLTE(length)
+// 		return d.parse_plte(length)
 // }
 // 	"tRNS" => {
 // 		if cb_paletted(d.cb) {
@@ -1092,7 +1097,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // 	}
 
 // 	var cm color.Model
-// 	switch d.cb {
+// 	match d.cb {
 // 	CB_G1, CB_G2, CB_G4, CB_G8 => {
 // 		cm = color.GrayModel
 // }
