@@ -128,7 +128,7 @@ const DS_SEEN_IDAT = 4
 
 const DS_SEEN_IEND = 5
 
-const PNG_HEADER = b"\x89PNG\r\n\x1a\n"
+const HEADER = b"\x89PNG\r\n\x1a\n"
 
 struct Decoder {
   r : @io.Reader
@@ -1151,11 +1151,11 @@ fn verify_checksum(self : Decoder) -> IOError? {
 }
 
 fn check_header(self : Decoder) -> IOError? {
-  let (_, err) = @io.read_full(self.r, self.tmp[:PNG_HEADER.length()])
+  let (_, err) = @io.read_full(self.r, self.tmp[:HEADER.length()])
   if err != None {
     return err
   }
-  if self.tmp[:PNG_HEADER.length()].to_bytes() != PNG_HEADER {
+  if self.tmp[:HEADER.length()].to_bytes() != HEADER {
     return Some(format_error("not a PNG file"))
   }
   None
@@ -1232,5 +1232,5 @@ pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
 }
 
 // func init() {
-// 	image.RegisterFormat("png", PNG_HEADER, Decode, decode_config)
+// 	image.RegisterFormat("png", HEADER, Decode, decode_config)
 // }
