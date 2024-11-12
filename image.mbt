@@ -48,7 +48,7 @@ pub struct Config {
 
 /// Image is a finite rectangular grid of [color.Color] values taken from a color
 /// model.
-pub trait Image {
+pub(open) trait Image {
   /// color_model returns the Image's color model.
   color_model(Self) -> @color.Model
   /// bounds returns the domain for which At can return non-zero color.
@@ -67,7 +67,7 @@ pub trait Image {
 
 /// RGBA64Image is an [Image] whose pixels can be converted directly to a
 /// color.RGBA64.
-pub trait RGBA64Image {
+pub(open) trait RGBA64Image {
   /// rgba64_at returns the RGBA64 color of the pixel at (x, y). It is
   /// equivalent to calling at(x, y).rgba() and converting the resulting
   /// 32-bit return values to a color.RGBA64, but it can avoid allocations
@@ -84,7 +84,7 @@ pub trait RGBA64Image {
 /// then m.At(x, y) should be equivalent to p[m.color_index_at(x, y)]. If m's
 /// color model is not a color.Palette, then color_index_at's behavior is
 /// undefined.
-pub trait PalettedImage {
+pub(open) trait PalettedImage {
   /// color_index_at returns the palette index of the pixel at (x, y).
   color_index_at(Self, Int, Int) -> Byte
   /// Image trait:
