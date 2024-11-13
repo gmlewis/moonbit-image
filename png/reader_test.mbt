@@ -1,3 +1,5 @@
+// -*- compile-command: "moon test --target js > got.txt"; -*-
+
 // This file is based on the Go implementation found here:
 // https://cs.opensource.google/go/go/+/refs/tags/go1.23.3:src/image/png/reader_test.go
 // which has the copyright notice:
@@ -11,6 +13,7 @@ type! TestError String derive(Show)
 const HEADER = b"\x89PNG\r\n\x1a\n"
 
 test "incomplete idat on row boundary" {
+  println("\n=== RUN   TestIncompleteIDATOnRowBoundary")
   // The following is an invalid 1x2 grayscale PNG image. The header is OK,
   // but the zlib-compressed IDAT payload contains two bytes "\x02\x00",
   // which is only one row of data (the leading "\x02" is a row filter).
@@ -31,6 +34,7 @@ test "incomplete idat on row boundary" {
 }
 
 test "training idat chunks" {
+  println("\n=== RUN   TestTrailingIDATChunks")
   // The following is a valid 1x1 PNG image containing color.Gray{255} and
   // a trailing zero-length IDAT chunk (see PNG specification section 12.9):
   let ihdr = b"\x00\x00\x00\x0dIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x00\x00\x00\x00\x3a\x7e\x9b\x55"

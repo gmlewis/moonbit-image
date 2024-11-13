@@ -1,3 +1,21 @@
+// -*- compile-command: "moon test --target js > got.txt"; -*-
+
+pub let gml_debug : Ref[Bool] = { val: true }
+
+pub fn gmldbg(s : String) -> Unit {
+  if gml_debug.val {
+    println(s)
+  }
+}
+
+pub fn dump_slice(buf : Slice[Byte]) -> String {
+  let arr = Array::new(capacity=buf.length())
+  for i in 0..<buf.length() {
+    arr.push(buf[i].to_int())
+  }
+  arr.to_string().replace_all(old=",", new="")
+}
+
 /// Package png implements a PNG image decoder and encoder.
 ///
 /// The PNG specification is at https://www.w3.org/TR/PNG/.
@@ -65,10 +83,12 @@ const CB_TC16 = 14
 const CB_TCA16 = 15
 
 fn cb_paletted(cb : Int) -> Bool {
+  gmldbg("GML: ENTER cbPaletted(cb int) bool {")
   CB_P1 <= cb && cb <= CB_P8
 }
 
 fn cb_true_color(cb : Int) -> Bool {
+  gmldbg("GML: ENTER cbTrueColor(cb int) bool {")
   cb == CB_TC8 || cb == CB_TC16
 }
 
@@ -190,6 +210,7 @@ fn unsupported_error(e : String) -> IOError {
 }
 
 fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) parseIHDR(length=\{length}) error {")
   if length != 13 {
     return Some(format_error("bad IHDR length"))
   }
@@ -197,6 +218,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
+  gmldbg("GML: parseIHDR: hdr=\{dump_slice(self.tmp[:13])}")
   guard let (_, None) = self.crc.write(self.tmp[:13])
   if self.tmp[10] != 0 {
     return Some(unsupported_error("compression method"))
@@ -208,15 +230,19 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
     return Some(format_error("invalid interlace method"))
   }
   self.interlace = self.tmp[12].to_int()
+  gmldbg("GML: parseIHDR: d.interlace=\{self.interlace}")
 
   //
   let w = be_uint32(self.tmp[0:4]).reinterpret_as_int()
   let h = be_uint32(self.tmp[4:8]).reinterpret_as_int()
+  gmldbg("GML: parseIHDR: w=\{w}, h=\{h}")
   if w <= 0 || h <= 0 {
     return Some(format_error("non-positive dimension"))
   }
   let n_pixels64 = w.to_int64() * h.to_int64()
+  gmldbg("GML: parseIHDR: nPixels64=\{n_pixels64}")
   let n_pixels = n_pixels64.to_int()
+  gmldbg("GML: parseIHDR: nPixels=\{n_pixels}")
   if n_pixels64 != n_pixels.to_int64() {
     return Some(unsupported_error("dimension overflow"))
   }
@@ -228,6 +254,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   //
   self.cb = CB_INVALID
   self.depth = self.tmp[8].to_int()
+  gmldbg("GML: parseIHDR: d.depth=\{self.depth}")
   match self.depth {
     1 =>
       match self.tmp[9].to_int() {
@@ -266,6 +293,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
       }
     _ => ()
   }
+  gmldbg("GML: parseIHDR: d.cb=\{self.cb}")
   if self.cb == CB_INVALID {
     return Some(
       unsupported_error(
@@ -286,6 +314,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 }
 
 fn parse_plte(self : Decoder, length : UInt) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) parsePLTE(length=\{length}) error {")
   let np = (length / 3).reinterpret_as_int() // The number of palette entries.
   if length % 3 != 0 || np <= 0 || np > 256 || np > (1 << self.depth) {
     return Some(format_error("bad PLTE length"))
@@ -294,6 +323,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
+  gmldbg("GML: parsePLTE: d.crc.Write(\{dump_slice(self.tmp[:n])})")
   guard let (_, None) = self.crc.write(self.tmp[:n])
   match self.cb {
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
@@ -326,6 +356,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
 }
 
 fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) parsetRNS(length=\{length}) error {")
   match self.cb {
     CB_G1 | CB_G2 | CB_G4 | CB_G8 | CB_G16 => {
       if length != 2 {
@@ -338,6 +369,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
+      gmldbg("GML: parseRNS: d.crc.Write(\{dump_slice(self.tmp[:n])})")
       guard let (_, None) = self.crc.write(self.tmp[:n])
       let _ = slice_copy(
         self.transparent[:],
@@ -362,6 +394,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
+      gmldbg("GML: parseRNS: d.crc.Write(\{dump_slice(self.tmp[:n])})")
       guard let (_, None) = self.crc.write(self.tmp[:n])
       let _ = slice_copy(
         self.transparent,
@@ -380,6 +413,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
+      gmldbg("GML: parseRNS: d.crc.Write(\{dump_slice(self.tmp[:n])})")
       guard let (_, None) = self.crc.write(self.tmp[:n])
       if self.palette._.length() < n {
         self.palette = self.palette._[:n]
@@ -415,44 +449,57 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
 // first IDAT and xxx, and the decoder state immediately after the last Read
 // call is that d.r is positioned between yy and crc1.
 pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
+  gmldbg("GML: ENTER (d *decoder) Read(p (\{p.length()} bytes)) (int, error) {")
   if p.length() == 0 {
+    gmldbg("GML: LEAVE Read: (0, nil): A")
     return (0, None)
   }
   while self.idat_length == 0 {
     // We have exhausted an IDAT chunk. Verify the checksum of that chunk.
     let err = self.verify_checksum()
     if err != None {
+      gmldbg("GML: LEAVE Read: (0, err=\{err}): B")
       return (0, err)
     }
     // Read the length and chunk type of the next chunk, and check that
     // it is an IDAT chunk.
     let (_, err) = @io.read_full(self.r, self.tmp[:8])
     if err != None {
+      gmldbg("GML: LEAVE Read: (0, err=\{err}): C")
       return (0, err)
     }
     self.idat_length = be_uint32(self.tmp[:4])
+    gmldbg("GML: Read: d.idatLength=\{self.idat_length}")
     if self.tmp[4:8].to_bytes() != b"IDAT" {
+      gmldbg("GML: LEAVE Read: (0, err='not enough pixel data'): E")
       return (0, Some(format_error("not enough pixel data")))
     }
     self.crc.reset()
+    gmldbg("GML: Read: d.crc.Write(\{dump_slice(self.tmp[4:8])})")
     guard let (_, None) = self.crc.write(self.tmp[4:8])
 
   }
   if self.idat_length.reinterpret_as_int() < 0 {
+    gmldbg("GML: LEAVE Read: (0, err='IDAT chunk length overflow'): F")
     return (0, Some(unsupported_error("IDAT chunk length overflow")))
   }
-  let (n, err) = self.r.read(
-    p[:@math.minimum(p.length(), self.idat_length.reinterpret_as_int())],
-  )
+  gmldbg("GML: Read: len(p)=\{p.length()}, d.idatLength=\{self.idat_length}")
+  let want_len = self.idat_length.reinterpret_as_int()
+  let read_len = @math.minimum(p.length(), want_len)
+  gmldbg("GML: p=\{dump_slice(p[:read_len])}")
+  let (n, err) = self.r.read(p[:read_len])
+  gmldbg("GML: Read: d.crc.Write(\{dump_slice(p[:n])})")
   guard let (_, None) = self.crc.write(p[:n])
   self.idat_length -= n.reinterpret_as_uint()
+  gmldbg("GML: LEAVE Read: (n=\{n}, err=\{err}): end")
   (n, err)
 }
 
 // decode decodes the IDAT data into an image.
 fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
+  gmldbg("GML: ENTER (d *decoder) decode() (image.Image, error) {")
   let mut img = @image.Image::new_empty()
-  let (r, err) = @zlib.Reader::new(self)
+  let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
   if err != None {
     return (img, err)
   }
@@ -521,6 +568,9 @@ fn read_image_pass(
   pass : Int,
   allocate_only : Bool
 ) -> (@image.Image, IOError?) {
+  gmldbg(
+    "GML: ENTER (d *decoder) readImagePass(r io.Reader, pass=\{pass}, allocateOnly=\{allocate_only}) (image.Image, error) {",
+  )
   let mut bits_per_pixel = 0
   let mut pix_offset = 0
   let mut gray = @image.Gray::new_empty()
@@ -540,13 +590,16 @@ fn read_image_pass(
     // Add the multiplication factor and subtract one, effectively rounding up.
     width = (width - p.x_offset + p.x_factor - 1) / p.x_factor
     height = (height - p.y_offset + p.y_factor - 1) / p.y_factor
+    gmldbg("GML: readImagePass: width=\{width}, height=\{height}")
     // A PNG image can't have zero width or height, but for an interlaced
     // image, an individual pass might have zero width or height. If so, we
     // shouldn't even read a per-row filter type byte, so return early.
     if width == 0 || height == 0 {
+      gmldbg("GML: LEAVE readImagePass: (nil, nil): A")
       return (img, None)
     }
   }
+  gmldbg("GML: readImagePass: d.cb=\{self.cb}")
   match self.cb {
     CB_G1 | CB_G2 | CB_G4 | CB_G8 => {
       bits_per_pixel = self.depth
@@ -668,13 +721,17 @@ fn read_image_pass(
     _ => ()
   }
   if allocate_only {
+    gmldbg("GML: LEAVE readImagePass: (img, nil): B")
     return (img, None)
   }
   let bytes_per_pixel = (bits_per_pixel + 7) / 8
+  gmldbg("GML: readImagePass: bytesPerPixel=\{bytes_per_pixel}")
 
   // The +1 is for the per-row filter type, which is at cr[0].
   let row_size = 1L + (bits_per_pixel.to_int64() * width.to_int64() + 7) / 8
+  gmldbg("GML: readImagePass: rowSize=\{row_size}")
   if row_size != row_size.to_int().to_int64() {
+    gmldbg("GML: LEAVE readImagePass: (nil, err='dimension overflow'): C")
     return (img, Some(unsupported_error("dimension overflow")))
   }
   let row_size = row_size.to_int()
@@ -684,18 +741,25 @@ fn read_image_pass(
 
   //
   for y = 0; y < height; y = y + 1 {
+    gmldbg("GML: readImagePass: y=\{y}/\{height}")
     // Read the decompressed bytes.
     let (_, err) = @io.read_full(r, cr)
     if err != None {
       if err == Some(@io.eof) || err == Some(@io.err_unexpected_eof) {
+        gmldbg(
+          "GML: LEAVE readImagePass: (nil, err='not enough pixel data'): D",
+        )
         return (img, Some(format_error("not enough pixel data")))
       }
+      gmldbg("GML: LEAVE readImagePass: (nil, err=\{err}): E")
       return (img, err)
     }
+    gmldbg("GML: readImagePass: cr (\{cr.length()} bytes)=\{dump_slice(cr)}")
 
     // Apply the filter.
     let cdat = cr[1:]
     let pdat = pr[1:]
+    gmldbg("GML: readImagePass: cr[0]=\{cr[0].to_int()}")
     match cr[0] {
       FT_NONE =>
         // No-op.
@@ -721,10 +785,14 @@ fn read_image_pass(
         }
       }
       FT_PAETH => filter_paeth(cdat, pdat, bytes_per_pixel)
-      _ => return (img, Some(format_error("bad filter type")))
+      _ => {
+        gmldbg("GML: LEAVE readImagePass: (nil, err='bad filter type'): F")
+        return (img, Some(format_error("bad filter type")))
+      }
     }
 
     // Convert from bytes to colors.
+    gmldbg("GML: readImagePass: d.cb=\{self.cb}")
     match self.cb {
       CB_G1 =>
         if self.use_transparent {
@@ -1016,14 +1084,20 @@ fn read_image_pass(
     let tmp = cr
     cr = pr
     pr = tmp
+    gmldbg("GML: readImagePass: pr=\{dump_slice(pr)}")
+    gmldbg("GML: readImagePass: cr=\{dump_slice(cr)}")
   }
 
   //
+  gmldbg("GML: LEAVE readImagePass: (img, nil): end")
   (img, None)
 }
 
 // merge_pass_into merges a single pass into a full sized image.
 fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
+  gmldbg(
+    "GML: ENTER (d *decoder) mergePassInto(dst image.Image, src image.Image, pass int) {",
+  )
   let dst_pix = dst.raw_data()
   let stride = dst.get_stride()
   let rect = dst.bounds()
@@ -1046,6 +1120,7 @@ fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
 }
 
 fn parse_idat(self : Decoder, length : UInt) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) parseIDAT(length=\{length}) (err error) {")
   self.idat_length = length
   let (img, err) = self.decode_idat()
   self.img = img
@@ -1056,6 +1131,7 @@ fn parse_idat(self : Decoder, length : UInt) -> IOError? {
 }
 
 fn parse_iend(self : Decoder, length : UInt) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) parseIEND(length=\{length}) error {")
   if length != 0 {
     return Some(format_error("bad IEND length"))
   }
@@ -1063,16 +1139,26 @@ fn parse_iend(self : Decoder, length : UInt) -> IOError? {
 }
 
 fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
+  gmldbg(
+    "GML: ENTER (d *decoder) parseChunk(configOnly=\{config_only}) error {",
+  )
   // Read the length and chunk type.
   let (_, err) = @io.read_full(self.r, self.tmp[:8])
   if err != None {
     return err
   }
   let mut length = be_uint32(self.tmp[:4])
+  gmldbg(
+    "GML: parseChunk: length=\{length}, tmp[4:8]=\{dump_slice(self.tmp[4:8])}",
+  )
   self.crc.reset()
+  gmldbg("GML: parseChunk: d.crc.Write(\{dump_slice(self.tmp[4:8])})")
   guard let (_, None) = self.crc.write(self.tmp[4:8])
 
   // Read the chunk data.
+  gmldbg(
+    "GML: parseChunk: chunk=\{dump_slice(self.tmp[4:8])}='\{Char::from_int(self.tmp[4].to_int())}\{Char::from_int(self.tmp[5].to_int())}\{Char::from_int(self.tmp[6].to_int())}\{Char::from_int(self.tmp[7].to_int())}'",
+  )
   let chunk = be_uint32(self.tmp[4:8])
   if chunk == be_uint32(Slice::new(b"IHDR".to_array())) {
     if self.stage != DS_START {
@@ -1105,19 +1191,20 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
       self.stage > DS_SEEN_IDAT ||
       (self.stage == DS_SEEN_IHDR && cb_paletted(self.cb)) {
       return Some(chunk_order_error)
-    } else if self.stage == DS_SEEN_IDAT {
+    }
+    if self.stage == DS_SEEN_IDAT {
       // Ignore trailing zero-length or garbage IDAT chunks.
       //
       // This does not affect valid PNG images that contain multiple IDAT
       // chunks, since the first call to parse_idat below will consume all
       // consecutive IDAT chunks required for decoding the image.
-      return self.verify_checksum()
+    } else {
+      self.stage = DS_SEEN_IDAT
+      if config_only {
+        return None
+      }
+      return self.parse_idat(length)
     }
-    self.stage = DS_SEEN_IDAT
-    if config_only {
-      return None
-    }
-    return self.parse_idat(length)
   } else if chunk == be_uint32(Slice::new(b"IEND".to_array())) {
     if self.stage != DS_SEEN_IDAT {
       return Some(chunk_order_error)
@@ -1127,6 +1214,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   }
 
   //
+  gmldbg("GML: parseChunk: length=\{length}")
   if length > 0x7fffffff {
     return Some(format_error("Bad chunk length: \{length}"))
   }
@@ -1140,6 +1228,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
     if err != None {
       return err
     }
+    gmldbg("GML: parseChunk: ignored: d.crc.Write(\{dump_slice(ignored[:n])})")
     guard let (_, None) = self.crc.write(ignored[:n])
     length -= n.reinterpret_as_uint()
   }
@@ -1147,30 +1236,42 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
 }
 
 fn verify_checksum(self : Decoder) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) verifyChecksum() error {")
   let (_, err) = @io.read_full(self.r, self.tmp[:4])
   if err != None {
+    gmldbg("GML: verifyChecksum err=\{err}: A")
     return err
   }
+  gmldbg(
+    "GML: verifyChecksum: d.tmp=\{dump_slice(self.tmp[:4])}, self.crc.sum32=\{self.crc.sum32()}",
+  )
   if be_uint32(self.tmp[:4]) != self.crc.sum32() {
+    gmldbg("GML: verifyChecksum err='invalid checksum': B")
     return Some(format_error("invalid checksum"))
   }
+  gmldbg("GML: verifyChecksum: nil: end")
   None
 }
 
 fn check_header(self : Decoder) -> IOError? {
+  gmldbg("GML: ENTER (d *decoder) checkHeader() error {")
   let (_, err) = @io.read_full(self.r, self.tmp[:HEADER.length()])
   if err != None {
+    gmldbg("GML: checkHeader err=\{err}: A")
     return err
   }
   if self.tmp[:HEADER.length()].to_bytes() != HEADER {
+    gmldbg("GML: checkHeader err='not a PNG file': B")
     return Some(format_error("not a PNG file"))
   }
+  gmldbg("GML: checkHeader: nil: end")
   None
 }
 
 // decode reads a PNG image from r and returns it as an [image.Image].
 // The type of Image returned depends on the PNG contents.
 pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
+  gmldbg("GML: ENTER Decode(r io.Reader) (image.Image, error) {")
   let d = Decoder::new(r)
   let mut err = d.check_header()
   if err != None {
@@ -1194,6 +1295,7 @@ pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
 // decode_config returns the color model and dimensions of a PNG image without
 // decoding the entire image.
 pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
+  gmldbg("GML: ENTER DecodeConfig(r io.Reader) (image.Config, error) {")
   let d = Decoder::new(r)
   let mut err = d.check_header()
   if err != None {
