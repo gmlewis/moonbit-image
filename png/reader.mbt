@@ -490,7 +490,7 @@ fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
     if i == 100 {
       return (img, Some(@io.err_no_progress))
     }
-    let tmp = r.read(self.tmp[:1])
+    let tmp = r.read(self.tmp[:1]) // discard data
     n = tmp.0
     err = tmp.1
   }
@@ -498,7 +498,14 @@ fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
     return (img, Some(format_error(err.to_string())))
   }
   if n != 0 || self.idat_length != 0 {
-    return (img, Some(format_error("too much pixel data")))
+    return (
+      img,
+      Some(
+        format_error(
+          "too much pixel data: n=\{n}, idat_length=\{self.idat_length}",
+        ),
+      ),
+    )
   }
   return (img, None)
 }
