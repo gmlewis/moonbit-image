@@ -75,6 +75,7 @@ pub(open) trait Image {
   raw_data(Self) -> Slice[Byte]
   get_bytes_per_pixel(Self) -> Int
   get_stride(Self) -> Int
+  pix_offset(Self, Int, Int) -> Int
 }
 
 pub fn Image::new_empty() -> Image {

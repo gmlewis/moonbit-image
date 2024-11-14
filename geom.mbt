@@ -109,6 +109,10 @@ pub fn get_stride(self : Rectangle) -> Int {
   0
 }
 
+pub fn pix_offset(self : Rectangle, x : Int, y : Int) -> Int {
+  0
+}
+
 /// copy makes a copy of the provided rectangle without changing it.
 pub fn copy(self : Rectangle) -> Rectangle {
   { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }

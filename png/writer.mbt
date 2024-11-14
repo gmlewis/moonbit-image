@@ -328,6 +328,8 @@ fn write_image(
   let is_paletted = model_name == "Paletted"
   // let  	nrgba, _ = m.(*image.NRGBA)
   let is_nrgba = model_name == "NRGBA"
+  let stride = m.get_stride()
+  let pix = m.raw_data()
 
   //
   for y = b.min.y; y < b.max.y; y = y + 1 {
@@ -336,8 +338,7 @@ fn write_image(
     match cb {
       CB_G8 =>
         if is_gray {
-          let offset = (y - b.min.y) * m.get_stride()
-          let pix = m.raw_data()
+          let offset = (y - b.min.y) * stride
           let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx()])
 
         } else {
@@ -350,8 +351,6 @@ fn write_image(
       CB_TC8 => {
         // We have previously verified that the alpha value is fully opaque.
         let cr0 = cr[0]
-        let stride = m.get_stride()
-        let pix = m.raw_data()
         if stride != 0 {
           let j0 = (y - b.min.y) * stride
           let j1 = j0 + b.dx() * 4
@@ -371,84 +370,82 @@ fn write_image(
           }
         }
       }
-      // 		CB_P8 => {
-      // 			if paletted != None {
-      // let  				offset = (y - b.min.y) * paletted.stride
-      // 				slice_copy(cr[0][1:], paletted.pix[offset:offset+b.dx()])
-      // 			}
-      // }
-      // 		CB_P4 => { cbP2, cbP1:
-      // let  			pi = m.(image.PalettedImage)
+      CB_P8 =>
+        if is_paletted {
+          let offset = (y - b.min.y) * stride
+          let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx()])
 
-      // 			var a uint8
-      // 			var c int
-      // let  			pixelsPerByte = 8 / bits_per_pixel
-      // 			for x = b.min.x; x < b.max.x; x=x+1 {
-      // 				a = a<<uint(bits_per_pixel) | pi.ColorIndexAt(x, y)
-      // 				c++
-      // 				if c == pixelsPerByte {
-      // 					cr[0][i] = a
-      // 					i += 1
-      // 					a = 0
-      // 					c = 0
-      // 				}
-      // 			}
-      // 			if c != 0 {
-      // 				for c != pixelsPerByte {
-      // 					a = a << uint(bits_per_pixel)
-      // 					c++
-      // 				}
-      // 				cr[0][i] = a
-      // 			}
-      // }
-      // 		CB_TCA8 => {
-      // 			if nrgba != None {
-      // let  				offset = (y - b.Min.Y) * nrgba.Stride
-      // 				copy(cr[0][1:], nrgba.Pix[offset:offset+b.Dx()*4])
-      // 			} else if rgba != None {
-      // let  				dst = cr[0][1:]
-      // let  				src = rgba.Pix[rgba.PixOffset(b.Min.X, y):rgba.PixOffset(b.Max.X, y)]
-      // 				while len(src) >= 4 {
-      // let  					d = (*[4]byte)(dst)
-      // let  					s = (*[4]byte)(src)
-      // 					if s[3] == 0x00 {
-      // 						d[0] = 0
-      // 						d[1] = 0
-      // 						d[2] = 0
-      // 						d[3] = 0
-      // 					} else if s[3] == 0xff {
-      // 						slice_copy(d[:], s[:])
-      // 					} else {
-      // 						// This code does the same as color.NRGBAModel.Convert(
-      // 						// rgba.At(x, y)).(color.NRGBA) but with no extra memory
-      // 						// allocations or interface/function call overhead.
-      // 						//
-      // 						// The multiplier m combines 0x101 (which converts
-      // 						// 8-bit color to 16-bit color) and 0xffff (which, when
-      // 						// combined with the division-by-a, converts from
-      // 						// alpha-premultiplied to non-alpha-premultiplied).
-      // 						const m = 0x101 * 0xffff
-      // let  						a = uint32(s[3]) * 0x101
-      // 						d[0] = uint8((uint32(s[0]) * m / a) >> 8)
-      // 						d[1] = uint8((uint32(s[1]) * m / a) >> 8)
-      // 						d[2] = uint8((uint32(s[2]) * m / a) >> 8)
-      // 						d[3] = s[3]
-      // 					}
-      //          dst = dst[4:]
-      //          src = src[4:]
-      // 				}
-      // 			} else {
-      // 				// Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
-      // 				for x = b.min.x; x < b.max.x; x=x+1 {
-      // let  					c = color.NRGBAModel.Convert(m.at(x, y)).(color.NRGBA)
-      // 					cr[0][i+0] = c.R
-      // 					cr[0][i+1] = c.G
-      // 					cr[0][i+2] = c.B
-      // 					cr[0][i+3] = c.A
-      // 					i += 4
-      // 				}
-      // 			}
-      // }
+        }
+      CB_P4 | CB_P2 | CB_P1 =>
+        if is_paletted {
+          let mut a = b'\x00'
+          let mut c = 0
+          let pixels_per_byte = 8 / bits_per_pixel
+          for x = b.min.x; x < b.max.x; x = x + 1 {
+            a = (a << bits_per_pixel) | m.color_index_at(x, y)
+            c += 1
+            if c == pixels_per_byte {
+              cr[0][i] = a
+              i += 1
+              a = 0
+              c = 0
+            }
+          }
+          if c != 0 {
+            while c != pixels_per_byte {
+              a = a << bits_per_pixel
+              c += 1
+            }
+            cr[0][i] = a
+          }
+        }
+      CB_TCA8 =>
+        if is_nrgba {
+          let offset = (y - b.min.y) * stride
+          let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx() * 4])
+
+        } else if is_rgba {
+          let mut d = cr[0][1:]
+          let mut s = pix[m.pix_offset(b.min.x, y):m.pix_offset(b.max.x, y)]
+          while s.length() >= 4 {
+            if s[3] == 0x00 {
+              d[0] = 0
+              d[1] = 0
+              d[2] = 0
+              d[3] = 0
+            } else if s[3] == 0xff {
+              let _ = slice_copy(d[:], s[:])
+
+            } else {
+              // This code does the same as color.NRGBAModel.Convert(
+              // rgba.At(x, y)).(color.NRGBA) but with no extra memory
+              // allocations or interface/function call overhead.
+              //
+              // The multiplier m combines 0x101 (which converts
+              // 8-bit color to 16-bit color) and 0xffff (which, when
+              // combined with the division-by-a, converts from
+              // alpha-premultiplied to non-alpha-premultiplied).
+              let mult = 0x101U * 0xffff
+              let a = s[3].to_uint() * 0x101
+              d[0] = ((s[0].to_uint() * mult / a) >> 8).to_byte()
+              d[1] = ((s[1].to_uint() * mult / a) >> 8).to_byte()
+              d[2] = ((s[2].to_uint() * mult / a) >> 8).to_byte()
+              d[3] = s[3]
+            }
+            d = d[4:]
+            s = s[4:]
+          }
+        } else {
+          // Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
+          for x = b.min.x; x < b.max.x; x = x + 1 {
+            let c = @color.NRGBA::from(m.at(x, y))
+            cr[0][i + 0] = c.r
+            cr[0][i + 1] = c.g
+            cr[0][i + 2] = c.b
+            cr[0][i + 3] = c.a
+            i += 4
+          }
+        }
       CB_G16 =>
         for x = b.min.x; x < b.max.x; x = x + 1 {
           let c = @color.Gray16::from(m.at(x, y))
