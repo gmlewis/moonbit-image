@@ -239,7 +239,7 @@ pub fn rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// y_cb_cr_model is the [Model] for Y'CbCr colors.
-pub let y_cb_cr_model : Model = model_func(y_cb_cr_model_fn)
+pub let y_cb_cr_model : Model = model_func(y_cb_cr_model_fn, "YCbCr")
 
 fn y_cb_cr_model_fn(c : Color) -> Color {
   if c.model() == "YCbCr" {
@@ -317,7 +317,7 @@ pub fn rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
 
 /// n_y_cb_cr_a_model is the [Model] for non-alpha-premultiplied Y'CbCr-with-alpha
 /// colors.
-pub let n_y_cb_cr_a_model : Model = model_func(n_y_cb_cr_a_model_fn)
+pub let n_y_cb_cr_a_model : Model = model_func(n_y_cb_cr_a_model_fn, "NYCbCrA")
 
 fn n_y_cb_cr_a_model_fn(c : Color) -> Color {
   if c.model() == "NYCbCrA" {
@@ -419,7 +419,7 @@ pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// cmyk_model is the [Model] for CMYK colors.
-pub let cmyk_model : Model = model_func(cmyk_model_fn)
+pub let cmyk_model : Model = model_func(cmyk_model_fn, "CMYK")
 
 fn cmyk_model_fn(c : Color) -> Color {
   CMYK::from(c)

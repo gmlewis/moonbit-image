@@ -257,43 +257,49 @@ pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
 /// may be lossy.
 pub(open) trait Model {
   convert(Self, Color) -> Color
+  name(Self) -> String
 }
 
 /// model_func returns a [Model] that invokes f to implement the conversion.
-pub fn model_func(f : (Color) -> Color) -> Model {
+pub fn model_func(f : (Color) -> Color, name : String) -> Model {
   // Note: using ModelFunc as the implementation
   // means that callers can still use comparisons
   // like m == rgba_model. This is not possible if
   // we use the func value directly, because funcs
   // are no longer comparable.
-  let mf : ModelFunc = { f, }
+  let mf : ModelFunc = { f, name }
   mf
 }
 
 struct ModelFunc {
   f : (Color) -> Color
+  name : String
 }
 
 pub fn convert(self : ModelFunc, c : Color) -> Color {
   (self.f)(c)
 }
 
+pub fn name(self : ModelFunc) -> String {
+  self.name
+}
+
 /// Models for the standard color types.
-pub let rgba_model : Model = model_func(rgba_model_fn)
+pub let rgba_model : Model = model_func(rgba_model_fn, "RGBA")
 
-pub let rgba64_model : Model = model_func(rgba64_model_fn)
+pub let rgba64_model : Model = model_func(rgba64_model_fn, "RGBA64")
 
-pub let nrgba_model : Model = model_func(nrgba_model_fn)
+pub let nrgba_model : Model = model_func(nrgba_model_fn, "NRGBA")
 
-pub let nrgba64_model : Model = model_func(nrgba64_model_fn)
+pub let nrgba64_model : Model = model_func(nrgba64_model_fn, "NRGBA64")
 
-pub let alpha_model : Model = model_func(alpha_model_fn)
+pub let alpha_model : Model = model_func(alpha_model_fn, "Alpha")
 
-pub let alpha16_model : Model = model_func(alpha16_model_fn)
+pub let alpha16_model : Model = model_func(alpha16_model_fn, "Alpha16")
 
-pub let gray_model : Model = model_func(gray_model_fn)
+pub let gray_model : Model = model_func(gray_model_fn, "Gray")
 
-pub let gray16_model : Model = model_func(gray16_model_fn)
+pub let gray16_model : Model = model_func(gray16_model_fn, "Gray16")
 
 fn rgba_model_fn(c : Color) -> Color {
   RGBA::from(c)
@@ -463,6 +469,10 @@ pub fn Palette::new(n : Int) -> Palette {
 /// Palette::from makes a new palette from the provided colors.
 pub fn Palette::from(arr : Array[Color]) -> Palette {
   Slice::new(arr)
+}
+
+pub fn name(self : Palette) -> String {
+  "Paletted"
 }
 
 pub fn Palette::new_empty() -> Palette {
