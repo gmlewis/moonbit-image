@@ -181,98 +181,98 @@ pub fn write(self : EncoderBuffer, b : Slice[Byte]) -> (Int, IOError?) {
   (b.length(), None)
 }
 
-// // Chooses the filter to use for encoding the current row, and applies it.
-// // The return value is the index of the filter and also of the row in cr that has had it applied.
-// func filter(cr *[nFilter][]byte, pr []byte, bpp int) int {
-// 	// We try all five filter types, and pick the one that minimizes the sum of absolute differences.
-// 	// This is the same heuristic that libpng uses, although the filters are attempted in order of
-// 	// estimated most likely to be minimal (ftUp, ftPaeth, ftNone, ftSub, ftAverage), rather than
-// 	// in their enumeration order (ftNone, ftSub, ftUp, ftAverage, ftPaeth).
-// 	cdat0 := cr[0][1:]
-// 	cdat1 := cr[1][1:]
-// 	cdat2 := cr[2][1:]
-// 	cdat3 := cr[3][1:]
-// 	cdat4 := cr[4][1:]
-// 	pdat := pr[1:]
-// 	n := len(cdat0)
+// Chooses the filter to use for encoding the current row, and applies it.
+// The return value is the index of the filter and also of the row in cr that has had it applied.
+fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
+  // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
+  // This is the same heuristic that libpng uses, although the filters are attempted in order of
+  // estimated most likely to be minimal (ftUp, ftPaeth, ftNone, ftSub, ftAverage), rather than
+  // in their enumeration order (ftNone, ftSub, ftUp, ftAverage, ftPaeth).
+  let cdat0 = cr[0][1:]
+  let cdat1 = cr[1][1:]
+  let cdat2 = cr[2][1:]
+  let cdat3 = cr[3][1:]
+  let cdat4 = cr[4][1:]
+  let pdat = pr[1:]
+  let n = cdat0.length()
 
-// 	// The up filter.
-// 	sum := 0
-// 	for i := 0; i < n; i++ {
-// 		cdat2[i] = cdat0[i] - pdat[i]
-// 		sum += abs8(cdat2[i])
-// 	}
-// 	best := sum
-// 	filter := ftUp
+  // The up filter.
+  let mut sum = 0
+  for i = 0; i < n; i = i + 1 {
+    cdat2[i] = cdat0[i] - pdat[i]
+    sum += abs8(cdat2[i])
+  }
+  let mut best = sum
+  let mut filter = FT_UP
 
-// 	// The Paeth filter.
-// 	sum = 0
-// 	for i := 0; i < bpp; i++ {
-// 		cdat4[i] = cdat0[i] - pdat[i]
-// 		sum += abs8(cdat4[i])
-// 	}
-// 	for i := bpp; i < n; i++ {
-// 		cdat4[i] = cdat0[i] - paeth(cdat0[i-bpp], pdat[i], pdat[i-bpp])
-// 		sum += abs8(cdat4[i])
-// 		if sum >= best {
-// 			break
-// 		}
-// 	}
-// 	if sum < best {
-// 		best = sum
-// 		filter = ftPaeth
-// 	}
+  // The Paeth filter.
+  sum = 0
+  for i = 0; i < bpp; i = i + 1 {
+    cdat4[i] = cdat0[i] - pdat[i]
+    sum += abs8(cdat4[i])
+  }
+  for i = bpp; i < n; i = i + 1 {
+    cdat4[i] = cdat0[i] - paeth(cdat0[i - bpp], pdat[i], pdat[i - bpp])
+    sum += abs8(cdat4[i])
+    if sum >= best {
+      break
+    }
+  }
+  if sum < best {
+    best = sum
+    filter = FT_PAETH
+  }
 
-// 	// The none filter.
-// 	sum = 0
-// 	for i := 0; i < n; i++ {
-// 		sum += abs8(cdat0[i])
-// 		if sum >= best {
-// 			break
-// 		}
-// 	}
-// 	if sum < best {
-// 		best = sum
-// 		filter = ftNone
-// 	}
+  // The none filter.
+  sum = 0
+  for i = 0; i < n; i = i + 1 {
+    sum += abs8(cdat0[i])
+    if sum >= best {
+      break
+    }
+  }
+  if sum < best {
+    best = sum
+    filter = FT_NONE
+  }
 
-// 	// The sub filter.
-// 	sum = 0
-// 	for i := 0; i < bpp; i++ {
-// 		cdat1[i] = cdat0[i]
-// 		sum += abs8(cdat1[i])
-// 	}
-// 	for i := bpp; i < n; i++ {
-// 		cdat1[i] = cdat0[i] - cdat0[i-bpp]
-// 		sum += abs8(cdat1[i])
-// 		if sum >= best {
-// 			break
-// 		}
-// 	}
-// 	if sum < best {
-// 		best = sum
-// 		filter = ftSub
-// 	}
+  // The sub filter.
+  sum = 0
+  for i = 0; i < bpp; i = i + 1 {
+    cdat1[i] = cdat0[i]
+    sum += abs8(cdat1[i])
+  }
+  for i = bpp; i < n; i = i + 1 {
+    cdat1[i] = cdat0[i] - cdat0[i - bpp]
+    sum += abs8(cdat1[i])
+    if sum >= best {
+      break
+    }
+  }
+  if sum < best {
+    best = sum
+    filter = FT_SUB
+  }
 
-// 	// The average filter.
-// 	sum = 0
-// 	for i := 0; i < bpp; i++ {
-// 		cdat3[i] = cdat0[i] - pdat[i]/2
-// 		sum += abs8(cdat3[i])
-// 	}
-// 	for i := bpp; i < n; i++ {
-// 		cdat3[i] = cdat0[i] - uint8((int(cdat0[i-bpp])+int(pdat[i]))/2)
-// 		sum += abs8(cdat3[i])
-// 		if sum >= best {
-// 			break
-// 		}
-// 	}
-// 	if sum < best {
-// 		filter = ftAverage
-// 	}
-
-// 	return filter
-// }
+  // The average filter.
+  sum = 0
+  for i = 0; i < bpp; i = i + 1 {
+    cdat3[i] = cdat0[i] - pdat[i] / 2
+    sum += abs8(cdat3[i])
+  }
+  for i = bpp; i < n; i = i + 1 {
+    cdat3[i] = cdat0[i] -
+      ((cdat0[i - bpp].to_int() + pdat[i].to_int()) / 2).to_byte()
+    sum += abs8(cdat3[i])
+    if sum >= best {
+      break
+    }
+  }
+  if sum < best {
+    filter = FT_AVERAGE
+  }
+  filter
+}
 
 // func (e *encoder) write_image(w io.Writer, m image.Image, cb int, level int) error {
 // 	if e.zw == nil || e.zwLevel != level {
@@ -519,7 +519,7 @@ pub fn write(self : EncoderBuffer, b : Slice[Byte]) -> (Int, IOError?) {
 // 		// Skip filter for NoCompression and paletted images (cbP8) as
 // 		// "filters are rarely useful on palette images" and will result
 // 		// in larger files (see http://www.libpng.org/pub/png/book/chapter09.html).
-// 		f := ftNone
+// 		f := FT_NONE
 // 		if level != zlib.NoCompression && cb != cbP8 && cb != cbP4 && cb != cbP2 && cb != cbP1 {
 // 			// Since we skip paletted images we don't have to worry about
 // 			// bitsPerPixel not being a multiple of 8
