@@ -319,65 +319,62 @@ fn write_image(
   }
   let mut pr = self.pr
 
-  // let  	gray, _ = m.(*imagself.Gray)
+  // let  	gray, _ = m.(*image.Gray)
+  let model_name = m.color_model().name()
+  let is_gray = model_name == "Gray"
   // let  	rgba, _ = m.(*image.RGBA)
+  let is_rgba = model_name == "RGBA"
   // let  	paletted, _ = m.(*image.Paletted)
+  let is_paletted = model_name == "Paletted"
   // let  	nrgba, _ = m.(*image.NRGBA)
+  let is_nrgba = model_name == "NRGBA"
 
+  //
   for y = b.min.y; y < b.max.y; y = y + 1 {
     // Convert from colors to bytes.
     let mut i = 1
     match cb {
-      // 		CB_G8 => {
-      // 			if gray != None {
-      // let  				offset = (y - b.Min.Y) * gray.Stride
-      // 				copy(cr[0][1:], gray.Pix[offset:offset+b.Dx()])
-      // 			} else {
-      // 				for x = b.min.x; x < b.max.x; x=x+1 {
-      // let  					c = color.GrayModel.Convert(m.at(x, y)).(color.Gray)
-      // 					cr[0][i] = c.y
-      // 					i+= 1
-      // 				}
-      // 			}
-      // }
-      // 		CB_TC8 => {
-      // 			// We have previously verified that the alpha value is fully opaque.
-      // let  			cr0 = cr[0]
-      // let  			stride, pix = 0, []byte(nil)
-      // 			if rgba != None {
-      // 				stride, pix = rgba.Stride, rgba.Pix
-      // 			} else if nrgba != None {
-      // 				stride, pix = nrgba.Stride, nrgba.Pix
-      // 			}
-      // 			if stride != 0 {
-      // let  				j0 = (y - b.Min.Y) * stride
-      // let  				j1 = j0 + b.Dx()*4
-      // let  				for j = j0; j < j1; j += 4 {
-      // 					cr0[i+0] = pix[j+0]
-      // 					cr0[i+1] = pix[j+1]
-      // 					cr0[i+2] = pix[j+2]
-      // 					i += 3
-      // 				}
-      // 			} else {
-      // 				for x = b.min.x; x < b.max.x; x=x+1 {
-      // let  					r, g, b, _ = m.at(x, y).RGBA()
-      // 					cr0[i+0] = uint8(r >> 8)
-      // 					cr0[i+1] = uint8(g >> 8)
-      // 					cr0[i+2] = uint8(b >> 8)
-      // 					i += 3
-      // 				}
-      // 			}
-      // }
+      CB_G8 =>
+        if is_gray {
+          let offset = (y - b.min.y) * m.get_stride()
+          let pix = m.raw_data()
+          let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx()])
+
+        } else {
+          for x = b.min.x; x < b.max.x; x = x + 1 {
+            let c = @color.Gray::from(m.at(x, y))
+            cr[0][i] = c.y
+            i += 1
+          }
+        }
+      CB_TC8 => {
+        // We have previously verified that the alpha value is fully opaque.
+        let cr0 = cr[0]
+        let stride = m.get_stride()
+        let pix = m.raw_data()
+        if stride != 0 {
+          let j0 = (y - b.min.y) * stride
+          let j1 = j0 + b.dx() * 4
+          for j = j0; j < j1; j = j + 4 {
+            cr0[i + 0] = pix[j + 0]
+            cr0[i + 1] = pix[j + 1]
+            cr0[i + 2] = pix[j + 2]
+            i += 3
+          }
+        } else {
+          for x = b.min.x; x < b.max.x; x = x + 1 {
+            let (r, g, b, _) = m.at(x, y).rgba()
+            cr0[i + 0] = (r >> 8).to_byte()
+            cr0[i + 1] = (g >> 8).to_byte()
+            cr0[i + 2] = (b >> 8).to_byte()
+            i += 3
+          }
+        }
+      }
       // 		CB_P8 => {
       // 			if paletted != None {
       // let  				offset = (y - b.min.y) * paletted.stride
       // 				slice_copy(cr[0][1:], paletted.pix[offset:offset+b.dx()])
-      // 			} else {
-      // let  				pi = m.(image.PalettedImage)
-      // 				for x = b.min.x; x < b.max.x; x=x+1 {
-      // 					cr[0][i] = pi.color_index_at(x, y)
-      // 					i += 1
-      // 				}
       // 			}
       // }
       // 		CB_P4 => { cbP2, cbP1:
