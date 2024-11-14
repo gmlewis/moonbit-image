@@ -109,6 +109,10 @@ pub fn get_stride(self : Rectangle) -> Int {
   0
 }
 
+pub fn color_index_at(self : Rectangle, x : Int, y : Int) -> Byte {
+  0
+}
+
 pub fn pix_offset(self : Rectangle, x : Int, y : Int) -> Int {
   0
 }

@@ -76,6 +76,9 @@ pub(open) trait Image {
   get_bytes_per_pixel(Self) -> Int
   get_stride(Self) -> Int
   pix_offset(Self, Int, Int) -> Int
+  /// color_index_at returns the palette index of the pixel at (x, y).
+  /// It returns 0 for non-paletted images.
+  color_index_at(Self, Int, Int) -> Byte
 }
 
 pub fn Image::new_empty() -> Image {
@@ -94,20 +97,6 @@ pub(open) trait RGBA64Image {
   /// 32-bit return values to a color.RGBA64, but it can avoid allocations
   /// from converting concrete color types to the color.Color trait type.
   rgba64_at(Self, Int, Int) -> @color.RGBA64
-  /// Image trait:
-  color_model(Self) -> @color.Model
-  bounds(Self) -> Rectangle
-  at(Self, Int, Int) -> @color.Color
-}
-
-/// PalettedImage is an image whose colors may come from a limited palette.
-/// If m is a PalettedImage and m.color_model() returns a [color.Palette] p,
-/// then m.At(x, y) should be equivalent to p[m.color_index_at(x, y)]. If m's
-/// color model is not a color.Palette, then color_index_at's behavior is
-/// undefined.
-pub(open) trait PalettedImage {
-  /// color_index_at returns the palette index of the pixel at (x, y).
-  color_index_at(Self, Int, Int) -> Byte
   /// Image trait:
   color_model(Self) -> @color.Model
   bounds(Self) -> Rectangle
@@ -159,6 +148,10 @@ pub fn get_bytes_per_pixel(self : RGBA) -> Int {
 
 pub fn get_stride(self : RGBA) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : RGBA, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : RGBA) -> @color.Model {
@@ -319,6 +312,10 @@ pub fn get_stride(self : RGBA64) -> Int {
   self.stride
 }
 
+pub fn color_index_at(self : RGBA64, x : Int, y : Int) -> Byte {
+  0
+}
+
 pub fn color_model(self : RGBA64) -> @color.Model {
   @color.rgba64_model
 }
@@ -455,6 +452,10 @@ pub fn get_bytes_per_pixel(self : NRGBA) -> Int {
 
 pub fn get_stride(self : NRGBA) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : NRGBA, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : NRGBA) -> @color.Model {
@@ -610,6 +611,10 @@ pub fn get_bytes_per_pixel(self : NRGBA64) -> Int {
 
 pub fn get_stride(self : NRGBA64) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : NRGBA64, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : NRGBA64) -> @color.Model {
@@ -783,6 +788,10 @@ pub fn get_stride(self : Alpha) -> Int {
   self.stride
 }
 
+pub fn color_index_at(self : Alpha, x : Int, y : Int) -> Byte {
+  0
+}
+
 pub fn color_model(self : Alpha) -> @color.Model {
   @color.alpha_model
 }
@@ -915,6 +924,10 @@ pub fn get_bytes_per_pixel(self : Alpha16) -> Int {
 
 pub fn get_stride(self : Alpha16) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : Alpha16, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : Alpha16) -> @color.Model {
@@ -1059,6 +1072,10 @@ pub fn get_stride(self : Gray) -> Int {
   self.stride
 }
 
+pub fn color_index_at(self : Gray, x : Int, y : Int) -> Byte {
+  0
+}
+
 pub fn color_model(self : Gray) -> @color.Model {
   @color.gray_model
 }
@@ -1179,6 +1196,10 @@ pub fn get_bytes_per_pixel(self : Gray16) -> Int {
 
 pub fn get_stride(self : Gray16) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : Gray16, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : Gray16) -> @color.Model {
@@ -1304,6 +1325,10 @@ pub fn get_bytes_per_pixel(self : CMYK) -> Int {
 
 pub fn get_stride(self : CMYK) -> Int {
   self.stride
+}
+
+pub fn color_index_at(self : CMYK, x : Int, y : Int) -> Byte {
+  0
 }
 
 pub fn color_model(self : CMYK) -> @color.Model {

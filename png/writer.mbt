@@ -137,6 +137,7 @@ fn write_ihdr(self : Encoder) -> Unit {
       self.tmp[8] = 16
       self.tmp[9] = CT_TRUE_COLOR_ALPHA.to_byte()
     }
+    _ => abort("write_ihdr: unhandled case cb=\{self.cb}")
   }
   self.tmp[10] = 0 // default compression method
   self.tmp[11] = 0 // default filter method
@@ -293,6 +294,7 @@ fn write_image(
     CB_TC16 => bits_per_pixel = 48
     CB_TCA16 => bits_per_pixel = 64
     CB_G16 => bits_per_pixel = 16
+    _ => return Some(IOError("write_image: unhandled case cb=\{cb}"))
   }
 
   // cr[*] and pr are the bytes for the current and previous row.
@@ -479,6 +481,7 @@ fn write_image(
           cr[0][i + 7] = c.a.to_byte()
           i += 8
         }
+      _ => return Some(IOError("unhandled case cb=\{cb}"))
     }
 
     // Apply the filter.
@@ -559,7 +562,7 @@ pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   self.m = m
 
   //
-  let mut pal = m.color_model().get_palette()
+  let pal = m.color_model().get_palette()
   match m.color_model().name() {
     "Paletted" => {
       let pal = pal.unwrap()
@@ -585,7 +588,11 @@ pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   }
 
   //
-  let (_, err) = @io.write_bytes(w, HEADER)
+  let (_, err) = w.write(Slice::new(HEADER.to_array()))
+  self.err = err
+  if err != None {
+    return self.err
+  }
   self.write_ihdr()
   match pal {
     Some(pal) => self.write_plte_and_trns(pal)
