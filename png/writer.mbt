@@ -5,8 +5,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// EncoderBuffer configures encoding PNG images.
-struct EncoderBuffer {
+// Encoder configures encoding PNG images.
+struct Encoder {
   mut w : @io.Writer
   mut m : @image.Image
   mut cb : Int
@@ -22,7 +22,7 @@ struct EncoderBuffer {
   mut bw : @io.Buffer
 }
 
-fn EncoderBuffer::new(w : @io.Writer, m : @image.Image) -> EncoderBuffer {
+fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
   {
     w,
     m,
@@ -60,7 +60,7 @@ fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
   b[0] = ((value >> 24) & 0xff).to_byte()
 }
 
-fn write_chunk(self : EncoderBuffer, b : Slice[Byte], name : Bytes) -> Unit {
+fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   if self.err != None {
     return
   }
@@ -94,7 +94,7 @@ fn write_chunk(self : EncoderBuffer, b : Slice[Byte], name : Bytes) -> Unit {
   self.err = err
 }
 
-fn write_ihdr(self : EncoderBuffer) -> Unit {
+fn write_ihdr(self : Encoder) -> Unit {
   let b = self.m.bounds()
   be_put_uint32(self.tmp[0:4], b.dx().reinterpret_as_uint())
   be_put_uint32(self.tmp[4:8], b.dy().reinterpret_as_uint())
@@ -147,7 +147,7 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
   self.write_chunk(self.tmp[:13], b"IHDR")
 }
 
-fn write_plte_and_trns(self : EncoderBuffer, p : @color.Palette) -> Unit {
+fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
   if p.length() < 1 || p.length() > 256 {
     self.err = Some(format_error("bad palette length: \{p.length()}"))
     return
@@ -169,13 +169,13 @@ fn write_plte_and_trns(self : EncoderBuffer, p : @color.Palette) -> Unit {
   }
 }
 
-// An EncoderBuffer is an io.Writer that satisfies writes by writing PNG IDAT chunks,
+// An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
 // including an 8-byte header and 4-byte CRC checksum per Write call. Such calls
 // should be relatively infrequent, since write_idats uses a [bufio.Writer].
 //
 // This method should only be called from write_idats (via write_image).
-// No other code should treat an EncoderBuffer as an io.Writer.
-pub fn write(self : EncoderBuffer, b : Slice[Byte]) -> (Int, IOError?) {
+// No other code should treat an Encoder as an io.Writer.
+pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   self.write_chunk(b, b"IDAT")
   if self.err != None {
     return (0, self.err)
@@ -277,7 +277,7 @@ fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
 }
 
 fn write_image(
-  self : EncoderBuffer,
+  self : Encoder,
   w : @io.Writer,
   m : @image.Image,
   cb : Int
@@ -547,7 +547,7 @@ fn write_image(
 }
 
 // Write the actual image data to one or more IDAT chunks.
-fn write_idats(self : EncoderBuffer) -> Unit {
+fn write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
   }
@@ -564,19 +564,19 @@ fn write_idats(self : EncoderBuffer) -> Unit {
   // self.err = self.bw.flush()
 }
 
-fn write_iend(self : EncoderBuffer) -> Unit {
+fn write_iend(self : Encoder) -> Unit {
   self.write_chunk(Slice::new([]), b"IEND")
 }
 
 // Encode writes the Image m to w in PNG format. Any Image may be
 // encoded, but images that are not [image.NRGBA] might be encoded lossily.
 pub fn encode(w : @io.Writer, m : @image.Image) -> IOError? {
-  let e = EncoderBuffer::new(w, m)
+  let e = Encoder::new(w, m)
   e.enc(w, m)
 }
 
 // enc writes the Image m to w in PNG format.
-pub fn enc(self : EncoderBuffer, w : @io.Writer, m : @image.Image) -> IOError? {
+pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are
   // also rejected.
@@ -593,7 +593,8 @@ pub fn enc(self : EncoderBuffer, w : @io.Writer, m : @image.Image) -> IOError? {
   //
   let mut pal = m.color_model().get_palette()
   match m.color_model().name() {
-    "Paletted" =>
+    "Paletted" => {
+      let pal = pal.unwrap()
       if pal.length() <= 2 {
         self.cb = CB_P1
       } else if pal.length() <= 4 {
@@ -603,6 +604,7 @@ pub fn enc(self : EncoderBuffer, w : @io.Writer, m : @image.Image) -> IOError? {
       } else {
         self.cb = CB_P8
       }
+    }
     "Gray" => self.cb = CB_G8
     "Gray16" => self.cb = CB_G16
     "RGBA" | "NRGBA" | "Alpha" =>
@@ -617,8 +619,9 @@ pub fn enc(self : EncoderBuffer, w : @io.Writer, m : @image.Image) -> IOError? {
   //
   let (_, err) = @io.write_bytes(w, HEADER)
   self.write_ihdr()
-  if pal != None {
-    self.write_plte_and_trns(pal)
+  match pal {
+    Some(pal) => self.write_plte_and_trns(pal)
+    _ => ()
   }
   self.write_idats()
   self.write_iend()

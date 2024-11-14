@@ -258,22 +258,28 @@ pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
 pub(open) trait Model {
   convert(Self, Color) -> Color
   name(Self) -> String
+  get_palette(Self) -> Palette?
 }
 
 /// model_func returns a [Model] that invokes f to implement the conversion.
-pub fn model_func(f : (Color) -> Color, name : String) -> Model {
+pub fn model_func(
+  f : (Color) -> Color,
+  name : String,
+  palette : Palette?
+) -> Model {
   // Note: using ModelFunc as the implementation
   // means that callers can still use comparisons
   // like m == rgba_model. This is not possible if
   // we use the func value directly, because funcs
   // are no longer comparable.
-  let mf : ModelFunc = { f, name }
+  let mf : ModelFunc = { f, name, palette }
   mf
 }
 
 struct ModelFunc {
   f : (Color) -> Color
   name : String
+  palette : Palette?
 }
 
 pub fn convert(self : ModelFunc, c : Color) -> Color {
@@ -284,22 +290,26 @@ pub fn name(self : ModelFunc) -> String {
   self.name
 }
 
+pub fn get_palette(self : ModelFunc) -> Palette? {
+  self.palette
+}
+
 /// Models for the standard color types.
-pub let rgba_model : Model = model_func(rgba_model_fn, "RGBA")
+pub let rgba_model : Model = model_func(rgba_model_fn, "RGBA", None)
 
-pub let rgba64_model : Model = model_func(rgba64_model_fn, "RGBA64")
+pub let rgba64_model : Model = model_func(rgba64_model_fn, "RGBA64", None)
 
-pub let nrgba_model : Model = model_func(nrgba_model_fn, "NRGBA")
+pub let nrgba_model : Model = model_func(nrgba_model_fn, "NRGBA", None)
 
-pub let nrgba64_model : Model = model_func(nrgba64_model_fn, "NRGBA64")
+pub let nrgba64_model : Model = model_func(nrgba64_model_fn, "NRGBA64", None)
 
-pub let alpha_model : Model = model_func(alpha_model_fn, "Alpha")
+pub let alpha_model : Model = model_func(alpha_model_fn, "Alpha", None)
 
-pub let alpha16_model : Model = model_func(alpha16_model_fn, "Alpha16")
+pub let alpha16_model : Model = model_func(alpha16_model_fn, "Alpha16", None)
 
-pub let gray_model : Model = model_func(gray_model_fn, "Gray")
+pub let gray_model : Model = model_func(gray_model_fn, "Gray", None)
 
-pub let gray16_model : Model = model_func(gray16_model_fn, "Gray16")
+pub let gray16_model : Model = model_func(gray16_model_fn, "Gray16", None)
 
 fn rgba_model_fn(c : Color) -> Color {
   RGBA::from(c)
@@ -454,8 +464,10 @@ pub fn Gray16::from(c : Color) -> Gray16 {
 
 typealias Slice[T] = @io.Slice[T]
 
-/// Palette is a palette of colors.
+/// Palette is a palette of colors and satisfies the Model trait.
 pub type Palette Slice[Color]
+
+let _trait : Model = Palette::new(0)
 
 /// Palette::new makes a new palette with `n` colors (initially all black).
 pub fn Palette::new(n : Int) -> Palette {
@@ -473,6 +485,10 @@ pub fn Palette::from(arr : Array[Color]) -> Palette {
 
 pub fn name(self : Palette) -> String {
   "Paletted"
+}
+
+pub fn get_palette(self : Palette) -> Palette? {
+  Some(self)
 }
 
 pub fn Palette::new_empty() -> Palette {
