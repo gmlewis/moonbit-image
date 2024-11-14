@@ -5,54 +5,39 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// package png
+// Encoder configures encoding PNG images.
+struct Encoder {
+  // 	CompressionLevel CompressionLevel
 
-// import (
-// 	"bufio"
-// 	"compress/zlib"
-// 	"encoding/binary"
-// 	"hash/crc32"
-// 	"image"
-// 	"image/color"
-// 	"io"
-// 	"strconv"
-// )
+  // buffer_pool optionally specifies a buffer pool to get temporary
+  // EncoderBuffers when encoding an image.
+  buffer_pool : EncoderBufferPool
+}
 
-// // Encoder configures encoding PNG images.
-// type Encoder struct {
-// 	CompressionLevel CompressionLevel
+// EncoderBufferPool is an interface for getting and returning temporary
+// instances of the [EncoderBuffer] struct. This can be used to reuse buffers
+// when encoding multiple images.
+trait EncoderBufferPool {
+  get(Self) -> EncoderBuffer
+  put(Self, EncoderBuffer) -> Unit
+}
 
-// 	// BufferPool optionally specifies a buffer pool to get temporary
-// 	// EncoderBuffers when encoding an image.
-// 	BufferPool EncoderBufferPool
-// }
-
-// // EncoderBufferPool is an interface for getting and returning temporary
-// // instances of the [EncoderBuffer] struct. This can be used to reuse buffers
-// // when encoding multiple images.
-// type EncoderBufferPool interface {
-// 	Get() *EncoderBuffer
-// 	Put(*EncoderBuffer)
-// }
-
-// // EncoderBuffer holds the buffers used for encoding PNG images.
-// type EncoderBuffer encoder
-
-// type encoder struct {
-// 	enc     *Encoder
-// 	w       io.Writer
-// 	m       image.Image
-// 	cb      int
-// 	err     error
-// 	header  [8]byte
-// 	footer  [4]byte
-// 	tmp     [4 * 256]byte
-// 	cr      [nFilter][]uint8
-// 	pr      []uint8
-// 	zw      *zlib.Writer
-// 	zwLevel int
-// 	bw      *bufio.Writer
-// }
+// EncoderBuffer holds the buffers used for encoding PNG images.
+struct EncoderBuffer {
+  enc : Encoder
+  w : @io.Writer
+  m : @image.Image
+  cb : Int
+  mut err : IOError?
+  header : Slice[Byte] // [8]byte
+  footer : Slice[Byte] // [4]byte
+  tmp : Slice[Byte] // [4 * 256]byte
+  cr : Slice[Byte] // [nFilter][]uint8
+  pr : Slice[Byte] // []uint8
+  zw : @zlib.Writer
+  zwLevel : Int
+  // bw : WriterSize // @bufio.Writer
+}
 
 // // CompressionLevel indicates the compression level.
 // type CompressionLevel int
@@ -67,16 +52,16 @@
 // 	// compression level, although that is not implemented yet.
 // )
 
-// type opaquer interface {
-// 	Opaque() bool
+// trait Opaquer {
+//   opaque(Self) -> Bool
 // }
 
 // // Returns whether or not the image is fully opaque.
-// func opaque(m image.Image) bool {
+// fn opaque(self : @image.Image) -> Bool {
 // 	if o, ok := m.(opaquer); ok {
 // 		return o.Opaque()
 // 	}
-// 	b := m.Bounds()
+// 	b := m.bounds()
 // 	for y := b.Min.Y; y < b.Max.Y; y++ {
 // 		for x := b.Min.X; x < b.Max.X; x++ {
 // 			_, _, _, a := m.At(x, y).RGBA()
@@ -85,89 +70,110 @@
 // 			}
 // 		}
 // 	}
-// 	return true
+// 	true
 // }
 
-// // The absolute value of a byte interpreted as a signed int8.
-// func abs8(d uint8) int {
-// 	if d < 128 {
-// 		return int(d)
-// 	}
-// 	return 256 - int(d)
-// }
+// The absolute value of a byte interpreted as a signed int8.
+fn abs8(d : Byte) -> Int {
+  if d < 128 {
+    return d.to_int()
+  }
+  256 - d.to_int()
+}
 
-// func (e *encoder) writeChunk(b []byte, name string) {
-// 	if e.err != nil {
-// 		return
-// 	}
-// 	n := uint32(len(b))
-// 	if int(n) != len(b) {
-// 		e.err = UnsupportedError(name + " chunk is too large: " + strconv.Itoa(len(b)))
-// 		return
-// 	}
-// 	binary.BigEndian.PutUint32(e.header[:4], n)
-// 	e.header[4] = name[0]
-// 	e.header[5] = name[1]
-// 	e.header[6] = name[2]
-// 	e.header[7] = name[3]
-// 	crc := crc32.NewIEEE()
-// 	crc.Write(e.header[4:8])
-// 	crc.Write(b)
-// 	binary.BigEndian.PutUint32(e.footer[:4], crc.Sum32())
+fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
+  b[3] = (value & 0xff).to_byte()
+  b[2] = ((value >> 8) & 0xff).to_byte()
+  b[1] = ((value >> 16) & 0xff).to_byte()
+  b[0] = ((value >> 24) & 0xff).to_byte()
+}
 
-// 	_, e.err = e.w.Write(e.header[:8])
-// 	if e.err != nil {
-// 		return
-// 	}
-// 	_, e.err = e.w.Write(b)
-// 	if e.err != nil {
-// 		return
-// 	}
-// 	_, e.err = e.w.Write(e.footer[:4])
-// }
+fn write_chunk(self : EncoderBuffer, b : Slice[Byte], name : Bytes) -> Unit {
+  if self.err != None {
+    return
+  }
+  let n = b.length().reinterpret_as_uint()
+  if n.reinterpret_as_int() != b.length() {
+    self.err = Some(
+      unsupported_error("\{name} chunk is too large: \{b.length()}"),
+    )
+    return
+  }
+  be_put_uint32(self.header[:4], n)
+  self.header[4] = name[0]
+  self.header[5] = name[1]
+  self.header[6] = name[2]
+  self.header[7] = name[3]
+  let crc = @crc32.new()
+  guard let (_, None) = crc.write(self.header[4:8])
+  guard let (_, None) = crc.write(b)
+  be_put_uint32(self.footer[:4], crc.sum32())
+  let (_, err) = self.w.write(self.header[:8])
+  self.err = err
+  if self.err != None {
+    return
+  }
+  let (_, err) = self.w.write(b)
+  self.err = err
+  if self.err != None {
+    return
+  }
+  let (_, err) = self.w.write(self.footer[:4])
+  self.err = err
+}
 
-// func (e *encoder) writeIHDR() {
-// 	b := e.m.Bounds()
-// 	binary.BigEndian.PutUint32(e.tmp[0:4], uint32(b.Dx()))
-// 	binary.BigEndian.PutUint32(e.tmp[4:8], uint32(b.Dy()))
-// 	// Set bit depth and color type.
-// 	switch e.cb {
-// 	case cbG8:
-// 		e.tmp[8] = 8
-// 		e.tmp[9] = ctGrayscale
-// 	case cbTC8:
-// 		e.tmp[8] = 8
-// 		e.tmp[9] = ctTrueColor
-// 	case cbP8:
-// 		e.tmp[8] = 8
-// 		e.tmp[9] = ctPaletted
-// 	case cbP4:
-// 		e.tmp[8] = 4
-// 		e.tmp[9] = ctPaletted
-// 	case cbP2:
-// 		e.tmp[8] = 2
-// 		e.tmp[9] = ctPaletted
-// 	case cbP1:
-// 		e.tmp[8] = 1
-// 		e.tmp[9] = ctPaletted
-// 	case cbTCA8:
-// 		e.tmp[8] = 8
-// 		e.tmp[9] = ctTrueColorAlpha
-// 	case cbG16:
-// 		e.tmp[8] = 16
-// 		e.tmp[9] = ctGrayscale
-// 	case cbTC16:
-// 		e.tmp[8] = 16
-// 		e.tmp[9] = ctTrueColor
-// 	case cbTCA16:
-// 		e.tmp[8] = 16
-// 		e.tmp[9] = ctTrueColorAlpha
-// 	}
-// 	e.tmp[10] = 0 // default compression method
-// 	e.tmp[11] = 0 // default filter method
-// 	e.tmp[12] = 0 // non-interlaced
-// 	e.writeChunk(e.tmp[:13], "IHDR")
-// }
+fn write_ihdr(self : EncoderBuffer) -> Unit {
+  let b = self.m.bounds()
+  be_put_uint32(self.tmp[0:4], b.dx().reinterpret_as_uint())
+  be_put_uint32(self.tmp[4:8], b.dy().reinterpret_as_uint())
+  // Set bit depth and color type.
+  match self.cb {
+    CB_G8 => {
+      self.tmp[8] = 8
+      self.tmp[9] = CT_GRAYSCALE.to_byte()
+    }
+    CB_TC8 => {
+      self.tmp[8] = 8
+      self.tmp[9] = CT_TRUE_COLOR.to_byte()
+    }
+    CB_P8 => {
+      self.tmp[8] = 8
+      self.tmp[9] = CT_PALETTED.to_byte()
+    }
+    CB_P4 => {
+      self.tmp[8] = 4
+      self.tmp[9] = CT_PALETTED.to_byte()
+    }
+    CB_P2 => {
+      self.tmp[8] = 2
+      self.tmp[9] = CT_PALETTED.to_byte()
+    }
+    CB_P1 => {
+      self.tmp[8] = 1
+      self.tmp[9] = CT_PALETTED.to_byte()
+    }
+    CB_TCA8 => {
+      self.tmp[8] = 8
+      self.tmp[9] = CT_TRUE_COLOR_ALPHA.to_byte()
+    }
+    CB_G16 => {
+      self.tmp[8] = 16
+      self.tmp[9] = CT_GRAYSCALE.to_byte()
+    }
+    CB_TC16 => {
+      self.tmp[8] = 16
+      self.tmp[9] = CT_TRUE_COLOR.to_byte()
+    }
+    CB_TCA16 => {
+      self.tmp[8] = 16
+      self.tmp[9] = CT_TRUE_COLOR_ALPHA.to_byte()
+    }
+  }
+  self.tmp[10] = 0 // default compression method
+  self.tmp[11] = 0 // default filter method
+  self.tmp[12] = 0 // non-interlaced
+  self.write_chunk(self.tmp[:13], b"IHDR")
+}
 
 // func (e *encoder) writePLTEAndTRNS(p color.Palette) {
 // 	if len(p) < 1 || len(p) > 256 {
@@ -185,9 +191,9 @@
 // 		}
 // 		e.tmp[3*256+i] = c1.A
 // 	}
-// 	e.writeChunk(e.tmp[:3*len(p)], "PLTE")
+// 	e.write_chunk(e.tmp[:3*len(p)], "PLTE")
 // 	if last != -1 {
-// 		e.writeChunk(e.tmp[3*256:3*256+1+last], "tRNS")
+// 		e.write_chunk(e.tmp[3*256:3*256+1+last], "tRNS")
 // 	}
 // }
 
@@ -198,11 +204,11 @@
 // // This method should only be called from writeIDATs (via writeImage).
 // // No other code should treat an encoder as an io.Writer.
 // func (e *encoder) Write(b []byte) (int, error) {
-// 	e.writeChunk(b, "IDAT")
-// 	if e.err != nil {
+// 	e.write_chunk(b, "IDAT")
+// 	if e.err != None {
 // 		return 0, e.err
 // 	}
-// 	return len(b), nil
+// 	return (b.length()), nil
 // }
 
 // // Chooses the filter to use for encoding the current row, and applies it.
@@ -301,7 +307,7 @@
 // func (e *encoder) writeImage(w io.Writer, m image.Image, cb int, level int) error {
 // 	if e.zw == nil || e.zwLevel != level {
 // 		zw, err := zlib.NewWriterLevel(w, level)
-// 		if err != nil {
+// 		if err != None {
 // 			return err
 // 		}
 // 		e.zw = zw
@@ -313,35 +319,45 @@
 
 // 	bitsPerPixel := 0
 
-// 	switch cb {
-// 	case cbG8:
+// 	match cb {
+// 	CB_G8 => {
 // 		bitsPerPixel = 8
-// 	case cbTC8:
+// }
+// 	CB_TC8 => {
 // 		bitsPerPixel = 24
-// 	case cbP8:
+// }
+// 	CB_P8 => {
 // 		bitsPerPixel = 8
-// 	case cbP4:
+// }
+// 	CB_P4 => {
 // 		bitsPerPixel = 4
-// 	case cbP2:
+// }
+// 	CB_P2 => {
 // 		bitsPerPixel = 2
-// 	case cbP1:
+// }
+// 	CB_P1 => {
 // 		bitsPerPixel = 1
-// 	case cbTCA8:
+// }
+// 	CB_TCA8 => {
 // 		bitsPerPixel = 32
-// 	case cbTC16:
+// }
+// 	CB_TC16 => {
 // 		bitsPerPixel = 48
-// 	case cbTCA16:
+// }
+// 	CB_TCA16 => {
 // 		bitsPerPixel = 64
-// 	case cbG16:
+// }
+// 	CB_G16 => {
 // 		bitsPerPixel = 16
 // 	}
+// }
 
 // 	// cr[*] and pr are the bytes for the current and previous row.
 // 	// cr[0] is unfiltered (or equivalently, filtered with the ftNone filter).
 // 	// cr[ft], for non-zero filter types ft, are buffers for transforming cr[0] under the
 // 	// other PNG filter types. These buffers are allocated once and re-used for each row.
 // 	// The +1 is for the per-row filter type, which is at cr[*][0].
-// 	b := m.Bounds()
+// 	b := m.bounds()
 // 	sz := 1 + (bitsPerPixel*b.Dx()+7)/8
 // 	for i := range e.cr {
 // 		if cap(e.cr[i]) < sz {
@@ -368,9 +384,9 @@
 // 	for y := b.Min.Y; y < b.Max.Y; y++ {
 // 		// Convert from colors to bytes.
 // 		i := 1
-// 		switch cb {
-// 		case cbG8:
-// 			if gray != nil {
+// 		match cb {
+// 		CB_G8 => {
+// 			if gray != None {
 // 				offset := (y - b.Min.Y) * gray.Stride
 // 				copy(cr[0][1:], gray.Pix[offset:offset+b.Dx()])
 // 			} else {
@@ -380,13 +396,14 @@
 // 					i++
 // 				}
 // 			}
-// 		case cbTC8:
+// }
+// 		CB_TC8 => {
 // 			// We have previously verified that the alpha value is fully opaque.
 // 			cr0 := cr[0]
 // 			stride, pix := 0, []byte(nil)
-// 			if rgba != nil {
+// 			if rgba != None {
 // 				stride, pix = rgba.Stride, rgba.Pix
-// 			} else if nrgba != nil {
+// 			} else if nrgba != None {
 // 				stride, pix = nrgba.Stride, nrgba.Pix
 // 			}
 // 			if stride != 0 {
@@ -407,8 +424,9 @@
 // 					i += 3
 // 				}
 // 			}
-// 		case cbP8:
-// 			if paletted != nil {
+// }
+// 		CB_P8 => {
+// 			if paletted != None {
 // 				offset := (y - b.Min.Y) * paletted.Stride
 // 				copy(cr[0][1:], paletted.Pix[offset:offset+b.Dx()])
 // 			} else {
@@ -418,8 +436,8 @@
 // 					i += 1
 // 				}
 // 			}
-
-// 		case cbP4, cbP2, cbP1:
+// }
+// 		CB_P4 => { cbP2, cbP1:
 // 			pi := m.(image.PalettedImage)
 
 // 			var a uint8
@@ -442,12 +460,12 @@
 // 				}
 // 				cr[0][i] = a
 // 			}
-
-// 		case cbTCA8:
-// 			if nrgba != nil {
+// }
+// 		CB_TCA8 => {
+// 			if nrgba != None {
 // 				offset := (y - b.Min.Y) * nrgba.Stride
 // 				copy(cr[0][1:], nrgba.Pix[offset:offset+b.Dx()*4])
-// 			} else if rgba != nil {
+// 			} else if rgba != None {
 // 				dst := cr[0][1:]
 // 				src := rgba.Pix[rgba.PixOffset(b.Min.X, y):rgba.PixOffset(b.Max.X, y)]
 // 				for ; len(src) >= 4; dst, src = dst[4:], src[4:] {
@@ -488,14 +506,16 @@
 // 					i += 4
 // 				}
 // 			}
-// 		case cbG16:
+// }
+// 		CB_G16 => {
 // 			for x := b.Min.X; x < b.Max.X; x++ {
 // 				c := color.Gray16Model.Convert(m.At(x, y)).(color.Gray16)
 // 				cr[0][i+0] = uint8(c.Y >> 8)
 // 				cr[0][i+1] = uint8(c.Y)
 // 				i += 2
 // 			}
-// 		case cbTC16:
+// }
+// 		CB_TC16 => {
 // 			// We have previously verified that the alpha value is fully opaque.
 // 			for x := b.Min.X; x < b.Max.X; x++ {
 // 				r, g, b, _ := m.At(x, y).RGBA()
@@ -507,7 +527,8 @@
 // 				cr[0][i+5] = uint8(b)
 // 				i += 6
 // 			}
-// 		case cbTCA16:
+// }
+// 		CB_TCA16 => {
 // 			// Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
 // 			for x := b.Min.X; x < b.Max.X; x++ {
 // 				c := color.NRGBA64Model.Convert(m.At(x, y)).(color.NRGBA64)
@@ -522,6 +543,7 @@
 // 				i += 8
 // 			}
 // 		}
+// }
 
 // 		// Apply the filter.
 // 		// Skip filter for NoCompression and paletted images (cbP8) as
@@ -536,7 +558,7 @@
 // 		}
 
 // 		// Write the compressed bytes.
-// 		if _, err := e.zw.Write(cr[f]); err != nil {
+// 		if _, err := e.zw.write(cr[f]); err != None {
 // 			return err
 // 		}
 
@@ -548,7 +570,7 @@
 
 // // Write the actual image data to one or more IDAT chunks.
 // func (e *encoder) writeIDATs() {
-// 	if e.err != nil {
+// 	if e.err != None {
 // 		return
 // 	}
 // 	if e.bw == nil {
@@ -557,7 +579,7 @@
 // 		e.bw.Reset(e)
 // 	}
 // 	e.err = e.writeImage(e.bw, e.m, e.cb, levelToZlib(e.enc.CompressionLevel))
-// 	if e.err != nil {
+// 	if e.err != None {
 // 		return
 // 	}
 // 	e.err = e.bw.Flush()
@@ -566,21 +588,24 @@
 // // This function is required because we want the zero value of
 // // Encoder.CompressionLevel to map to zlib.DefaultCompression.
 // func levelToZlib(l CompressionLevel) int {
-// 	switch l {
-// 	case DefaultCompression:
+// 	match l {
+// 	DEFAULT_COMPRESSION => {
 // 		return zlib.DefaultCompression
-// 	case NoCompression:
+// }
+// 	NO_COMPRESSION => {
 // 		return zlib.NoCompression
-// 	case BestSpeed:
+// }
+// 	BEST_SPEED => {
 // 		return zlib.BestSpeed
-// 	case BestCompression:
+// }
+// 	BEST_COMPRESSION => {
 // 		return zlib.BestCompression
 // 	default:
 // 		return zlib.DefaultCompression
 // 	}
 // }
 
-// func (e *encoder) writeIEND() { e.writeChunk(nil, "IEND") }
+// func (e *encoder) writeIEND() { e.write_chunk(nil, "IEND") }
 
 // // Encode writes the Image m to w in PNG format. Any Image may be
 // // encoded, but images that are not [image.NRGBA] might be encoded lossily.
@@ -594,13 +619,13 @@
 // 	// Obviously, negative widths and heights are invalid. Furthermore, the PNG
 // 	// spec section 11.2.2 says that zero is invalid. Excessively large images are
 // 	// also rejected.
-// 	mw, mh := int64(m.Bounds().Dx()), int64(m.Bounds().Dy())
+// 	mw, mh := int64(m.bounds().Dx()), int64(m.bounds().Dy())
 // 	if mw <= 0 || mh <= 0 || mw >= 1<<32 || mh >= 1<<32 {
 // 		return FormatError("invalid image size: " + strconv.FormatInt(mw, 10) + "x" + strconv.FormatInt(mh, 10))
 // 	}
 
 // 	var e *encoder
-// 	if enc.BufferPool != nil {
+// 	if enc.BufferPool != None {
 // 		buffer := enc.BufferPool.Get()
 // 		e = (*encoder)(buffer)
 
@@ -608,7 +633,7 @@
 // 	if e == nil {
 // 		e = &encoder{}
 // 	}
-// 	if enc.BufferPool != nil {
+// 	if enc.BufferPool != None {
 // 		defer enc.BufferPool.Put((*EncoderBuffer)(e))
 // 	}
 
@@ -619,9 +644,9 @@
 // 	var pal color.Palette
 // 	// cbP8 encoding needs PalettedImage's ColorIndexAt method.
 // 	if _, ok := m.(image.PalettedImage); ok {
-// 		pal, _ = m.ColorModel().(color.Palette)
+// 		pal, _ = m.color_model().(color.Palette)
 // 	}
-// 	if pal != nil {
+// 	if pal != None {
 // 		if len(pal) <= 2 {
 // 			e.cb = cbP1
 // 		} else if len(pal) <= 4 {
@@ -632,12 +657,14 @@
 // 			e.cb = cbP8
 // 		}
 // 	} else {
-// 		switch m.ColorModel() {
-// 		case color.GrayModel:
+// 		match m.color_model() {
+// 		COLOR => {GrayModel:
 // 			e.cb = cbG8
-// 		case color.Gray16Model:
+// }
+// 		COLOR => {Gray16Model:
 // 			e.cb = cbG16
-// 		case color.RGBAModel, color.NRGBAModel, color.AlphaModel:
+// }
+// 		COLOR => {RGBAModel, color.NRGBAModel, color.AlphaModel:
 // 			if opaque(m) {
 // 				e.cb = cbTC8
 // 			} else {
@@ -653,8 +680,8 @@
 // 	}
 
 // 	_, e.err = io.WriteString(w, pngHeader)
-// 	e.writeIHDR()
-// 	if pal != nil {
+// 	e.write_ihdr()
+// 	if pal != None {
 // 		e.writePLTEAndTRNS(pal)
 // 	}
 // 	e.writeIDATs()
