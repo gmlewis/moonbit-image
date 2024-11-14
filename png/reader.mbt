@@ -103,7 +103,7 @@ const FT_AVERAGE = b'\x03'
 
 const FT_PAETH = b'\x04'
 
-// const N_FILTER = b'\x05'
+const N_FILTER = 5
 
 // Interlace type.
 const IT_NONE = b'\x00'

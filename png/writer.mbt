@@ -5,26 +5,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Encoder configures encoding PNG images.
-struct Encoder {
-  // 	CompressionLevel CompressionLevel
-
-  // buffer_pool optionally specifies a buffer pool to get temporary
-  // EncoderBuffers when encoding an image.
-  buffer_pool : EncoderBufferPool
-}
-
-// EncoderBufferPool is an interface for getting and returning temporary
-// instances of the [EncoderBuffer] struct. This can be used to reuse buffers
-// when encoding multiple images.
-trait EncoderBufferPool {
-  get(Self) -> EncoderBuffer
-  put(Self, EncoderBuffer) -> Unit
-}
-
-// EncoderBuffer holds the buffers used for encoding PNG images.
+// EncoderBuffer configures encoding PNG images.
 struct EncoderBuffer {
-  enc : Encoder
   w : @io.Writer
   m : @image.Image
   cb : Int
@@ -32,46 +14,34 @@ struct EncoderBuffer {
   header : Slice[Byte] // [8]byte
   footer : Slice[Byte] // [4]byte
   tmp : Slice[Byte] // [4 * 256]byte
-  cr : Slice[Byte] // [nFilter][]uint8
+  cr : Array[Slice[Byte]] // [nFilter][]uint8
   pr : Slice[Byte] // []uint8
   zw : @zlib.Writer
-  zwLevel : Int
-  // bw : WriterSize // @bufio.Writer
+  // zwLevel : Int  // zlib currently hard-coded to use BestSpeed algorithm.
+  bw : WriterSize // @bufio.Writer
 }
 
-// // CompressionLevel indicates the compression level.
-// type CompressionLevel int
-
-// const (
-// 	DefaultCompression CompressionLevel = 0
-// 	NoCompression      CompressionLevel = -1
-// 	BestSpeed          CompressionLevel = -2
-// 	BestCompression    CompressionLevel = -3
-
-// 	// Positive CompressionLevel values are reserved to mean a numeric zlib
-// 	// compression level, although that is not implemented yet.
-// )
-
-// trait Opaquer {
-//   opaque(Self) -> Bool
-// }
-
-// // Returns whether or not the image is fully opaque.
-// fn opaque(self : @image.Image) -> Bool {
-// 	if o, ok := m.(opaquer); ok {
-// 		return o.Opaque()
-// 	}
-// 	b := m.bounds()
-// 	for y := b.Min.Y; y < b.Max.Y; y++ {
-// 		for x := b.Min.X; x < b.Max.X; x++ {
-// 			_, _, _, a := m.At(x, y).RGBA()
-// 			if a != 0xffff {
-// 				return false
-// 			}
-// 		}
-// 	}
-// 	true
-// }
+fn EncoderBuffer::new(w : @io.Writer, m : @image.Image) -> EncoderBuffer {
+  {
+    w,
+    m,
+    cb: 0,
+    err: None,
+    header: Slice::new([0, 0, 0, 0, 0, 0, 0, 0]),
+    footer: Slice::new([0, 0, 0, 0]),
+    tmp: Slice::new(Array::make(4 * 256, b'\x00')),
+    cr: [
+      Slice::new([]),
+      Slice::new([]),
+      Slice::new([]),
+      Slice::new([]),
+      Slice::new([]),
+    ],
+    pr: Slice::new([]),
+    zw: @zlib.Writer::new(), // TODO
+    bw: WriterSize::new(),
+  }
+}
 
 // The absolute value of a byte interpreted as a signed int8.
 fn abs8(d : Byte) -> Int {
@@ -175,41 +145,41 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
   self.write_chunk(self.tmp[:13], b"IHDR")
 }
 
-// func (e *encoder) writePLTEAndTRNS(p color.Palette) {
-// 	if len(p) < 1 || len(p) > 256 {
-// 		e.err = FormatError("bad palette length: " + strconv.Itoa(len(p)))
-// 		return
-// 	}
-// 	last := -1
-// 	for i, c := range p {
-// 		c1 := color.NRGBAModel.Convert(c).(color.NRGBA)
-// 		e.tmp[3*i+0] = c1.R
-// 		e.tmp[3*i+1] = c1.G
-// 		e.tmp[3*i+2] = c1.B
-// 		if c1.A != 0xff {
-// 			last = i
-// 		}
-// 		e.tmp[3*256+i] = c1.A
-// 	}
-// 	e.write_chunk(e.tmp[:3*len(p)], "PLTE")
-// 	if last != -1 {
-// 		e.write_chunk(e.tmp[3*256:3*256+1+last], "tRNS")
-// 	}
-// }
+fn write_plte_and_trns(self : EncoderBuffer, p : @color.Palette) -> Unit {
+  if p.length() < 1 || p.length() > 256 {
+    self.err = Some(format_error("bad palette length: \{p.length()}"))
+    return
+  }
+  let mut last = -1
+  for i, c in p._ {
+    let c1 = @color.NRGBA::from(c)
+    self.tmp[3 * i + 0] = c1.r
+    self.tmp[3 * i + 1] = c1.g
+    self.tmp[3 * i + 2] = c1.b
+    if c1.a != 0xff {
+      last = i
+    }
+    self.tmp[3 * 256 + i] = c1.a
+  }
+  self.write_chunk(self.tmp[:3 * p.length()], b"PLTE")
+  if last != -1 {
+    self.write_chunk(self.tmp[3 * 256:3 * 256 + 1 + last], b"tRNS")
+  }
+}
 
-// // An encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
-// // including an 8-byte header and 4-byte CRC checksum per Write call. Such calls
-// // should be relatively infrequent, since writeIDATs uses a [bufio.Writer].
-// //
-// // This method should only be called from writeIDATs (via writeImage).
-// // No other code should treat an encoder as an io.Writer.
-// func (e *encoder) Write(b []byte) (int, error) {
-// 	e.write_chunk(b, "IDAT")
-// 	if e.err != None {
-// 		return 0, e.err
-// 	}
-// 	return (b.length()), nil
-// }
+// An EncoderBuffer is an io.Writer that satisfies writes by writing PNG IDAT chunks,
+// including an 8-byte header and 4-byte CRC checksum per Write call. Such calls
+// should be relatively infrequent, since write_idats uses a [bufio.Writer].
+//
+// This method should only be called from write_idats (via write_image).
+// No other code should treat an EncoderBuffer as an io.Writer.
+pub fn write(self : EncoderBuffer, b : Slice[Byte]) -> (Int, IOError?) {
+  self.write_chunk(b, b"IDAT")
+  if self.err != None {
+    return (0, self.err)
+  }
+  (b.length(), None)
+}
 
 // // Chooses the filter to use for encoding the current row, and applies it.
 // // The return value is the index of the filter and also of the row in cr that has had it applied.
@@ -304,7 +274,7 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
 // 	return filter
 // }
 
-// func (e *encoder) writeImage(w io.Writer, m image.Image, cb int, level int) error {
+// func (e *encoder) write_image(w io.Writer, m image.Image, cb int, level int) error {
 // 	if e.zw == nil || e.zwLevel != level {
 // 		zw, err := zlib.NewWriterLevel(w, level)
 // 		if err != None {
@@ -569,16 +539,16 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
 // }
 
 // // Write the actual image data to one or more IDAT chunks.
-// func (e *encoder) writeIDATs() {
+// func (e *encoder) write_idats() {
 // 	if e.err != None {
 // 		return
 // 	}
 // 	if e.bw == nil {
-// 		e.bw = bufio.NewWriterSize(e, 1<<15)
+// 		e.bw = WriterSize::new(e, 1<<15)
 // 	} else {
 // 		e.bw.Reset(e)
 // 	}
-// 	e.err = e.writeImage(e.bw, e.m, e.cb, levelToZlib(e.enc.CompressionLevel))
+// 	e.err = e.write_image(e.bw, e.m, e.cb, levelToZlib(e.enc.CompressionLevel))
 // 	if e.err != None {
 // 		return
 // 	}
@@ -605,14 +575,16 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
 // 	}
 // }
 
-// func (e *encoder) writeIEND() { e.write_chunk(nil, "IEND") }
+fn write_iend(self : EncoderBuffer) -> Unit {
+  self.write_chunk(Slice::new([]), b"IEND")
+}
 
-// // Encode writes the Image m to w in PNG format. Any Image may be
-// // encoded, but images that are not [image.NRGBA] might be encoded lossily.
-// func Encode(w io.Writer, m image.Image) error {
-// 	var e Encoder
-// 	return e.Encode(w, m)
-// }
+// Encode writes the Image m to w in PNG format. Any Image may be
+// encoded, but images that are not [image.NRGBA] might be encoded lossily.
+pub fn encode(w : @io.Writer, m : @image.Image) -> IOError? {
+  let e = EncoderBuffer::new(w, m)
+  e.encode(w, m)
+}
 
 // // Encode writes the Image m to w in PNG format.
 // func (enc *Encoder) Encode(w io.Writer, m image.Image) error {
@@ -621,7 +593,7 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
 // 	// also rejected.
 // 	mw, mh := int64(m.bounds().Dx()), int64(m.bounds().Dy())
 // 	if mw <= 0 || mh <= 0 || mw >= 1<<32 || mh >= 1<<32 {
-// 		return FormatError("invalid image size: " + strconv.FormatInt(mw, 10) + "x" + strconv.FormatInt(mh, 10))
+// 		return format_error("invalid image size: " + strconv.FormatInt(mw, 10) + "x" + strconv.FormatInt(mh, 10))
 // 	}
 
 // 	var e *encoder
@@ -682,9 +654,9 @@ fn write_ihdr(self : EncoderBuffer) -> Unit {
 // 	_, e.err = io.WriteString(w, pngHeader)
 // 	e.write_ihdr()
 // 	if pal != None {
-// 		e.writePLTEAndTRNS(pal)
+// 		e.write_plte_and_trns(pal)
 // 	}
-// 	e.writeIDATs()
-// 	e.writeIEND()
+// 	e.write_idats()
+// 	e.write_iend()
 // 	return e.err
 // }
