@@ -15,9 +15,7 @@ struct Encoder {
   footer : Slice[Byte] // [4]byte
   tmp : Slice[Byte] // [4 * 256]byte
   cr : Array[Slice[Byte]] // [nFilter][]uint8
-  pr : Slice[Byte] // []uint8
-  zw : @zlib.Writer
-  // zwLevel : Int  // zlib currently hard-coded to use BestSpeed algorithm.
+  mut pr : Slice[Byte] // []uint8
   // mut bw : WriterSize // @bufio.Writer
   mut bw : @io.Buffer
 }
@@ -39,7 +37,6 @@ fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
       Slice::new([]),
     ],
     pr: Slice::new([]),
-    zw: @zlib.Writer::new(), // TODO
     // bw: WriterSize::new(),
     bw: @io.Buffer::new(),
   }
@@ -283,267 +280,244 @@ fn write_image(
   cb : Int
   // level : Int
 ) -> IOError? {
-  // 	if e.zw == nil || e.zwLevel != level {
-  // 		zw, err := zlib.NewWriterLevel(w, level)
-  // 		if err != None {
-  // 			return err
-  // 		}
-  // 		e.zw = zw
-  // 		e.zwLevel = level
-  // 	} else {
-  // 		e.zw.Reset(w)
-  // 	}
-  // 	defer e.zw.Close()
+  let zw = @zlib.Writer::new(w)
+  let mut bits_per_pixel = 0
+  match cb {
+    CB_G8 => bits_per_pixel = 8
+    CB_TC8 => bits_per_pixel = 24
+    CB_P8 => bits_per_pixel = 8
+    CB_P4 => bits_per_pixel = 4
+    CB_P2 => bits_per_pixel = 2
+    CB_P1 => bits_per_pixel = 1
+    CB_TCA8 => bits_per_pixel = 32
+    CB_TC16 => bits_per_pixel = 48
+    CB_TCA16 => bits_per_pixel = 64
+    CB_G16 => bits_per_pixel = 16
+  }
 
-  // 	bitsPerPixel := 0
+  // cr[*] and pr are the bytes for the current and previous row.
+  // cr[0] is unfiltered (or equivalently, filtered with the ftNone filter).
+  // cr[ft], for non-zero filter types ft, are buffers for transforming cr[0] under the
+  // other PNG filter types. These buffers are allocated once and re-used for each row.
+  // The +1 is for the per-row filter type, which is at cr[*][0].
+  let b = m.bounds()
+  let sz = 1 + (bits_per_pixel * b.dx() + 7) / 8
+  for i in 0..<self.cr.length() {
+    if self.cr[i].cap() < sz {
+      self.cr[i] = Slice::new(Array::make(sz, b'\x00'))
+    } else {
+      self.cr[i] = self.cr[i][:sz]
+    }
+    self.cr[i][0] = i.to_byte()
+  }
+  let cr = self.cr
+  if self.pr.cap() < sz {
+    self.pr = Slice::new(Array::make(sz, b'\x00'))
+  } else {
+    self.pr = self.pr[:sz]
+    clear_slice(self.pr)
+  }
+  let mut pr = self.pr
 
-  // 	match cb {
-  // 	CB_G8 => {
-  // 		bitsPerPixel = 8
-  // }
-  // 	CB_TC8 => {
-  // 		bitsPerPixel = 24
-  // }
-  // 	CB_P8 => {
-  // 		bitsPerPixel = 8
-  // }
-  // 	CB_P4 => {
-  // 		bitsPerPixel = 4
-  // }
-  // 	CB_P2 => {
-  // 		bitsPerPixel = 2
-  // }
-  // 	CB_P1 => {
-  // 		bitsPerPixel = 1
-  // }
-  // 	CB_TCA8 => {
-  // 		bitsPerPixel = 32
-  // }
-  // 	CB_TC16 => {
-  // 		bitsPerPixel = 48
-  // }
-  // 	CB_TCA16 => {
-  // 		bitsPerPixel = 64
-  // }
-  // 	CB_G16 => {
-  // 		bitsPerPixel = 16
-  // 	}
-  // }
+  // let  	gray, _ = m.(*imagself.Gray)
+  // let  	rgba, _ = m.(*image.RGBA)
+  // let  	paletted, _ = m.(*image.Paletted)
+  // let  	nrgba, _ = m.(*image.NRGBA)
 
-  // 	// cr[*] and pr are the bytes for the current and previous row.
-  // 	// cr[0] is unfiltered (or equivalently, filtered with the ftNone filter).
-  // 	// cr[ft], for non-zero filter types ft, are buffers for transforming cr[0] under the
-  // 	// other PNG filter types. These buffers are allocated once and re-used for each row.
-  // 	// The +1 is for the per-row filter type, which is at cr[*][0].
-  // 	b := m.bounds()
-  // 	sz := 1 + (bitsPerPixel*b.Dx()+7)/8
-  // 	for i := range e.cr {
-  // 		if cap(e.cr[i]) < sz {
-  // 			e.cr[i] = make([]uint8, sz)
-  // 		} else {
-  // 			e.cr[i] = e.cr[i][:sz]
-  // 		}
-  // 		e.cr[i][0] = uint8(i)
-  // 	}
-  // 	cr := e.cr
-  // 	if cap(e.pr) < sz {
-  // 		e.pr = make([]uint8, sz)
-  // 	} else {
-  // 		e.pr = e.pr[:sz]
-  // 		clear(e.pr)
-  // 	}
-  // 	pr := e.pr
+  for y = b.min.y; y < b.max.y; y = y + 1 {
+    // Convert from colors to bytes.
+    let mut i = 1
+    match cb {
+      // 		CB_G8 => {
+      // 			if gray != None {
+      // let  				offset = (y - b.Min.Y) * gray.Stride
+      // 				copy(cr[0][1:], gray.Pix[offset:offset+b.Dx()])
+      // 			} else {
+      // 				for x = b.min.x; x < b.max.x; x=x+1 {
+      // let  					c = color.GrayModel.Convert(m.at(x, y)).(color.Gray)
+      // 					cr[0][i] = c.y
+      // 					i+= 1
+      // 				}
+      // 			}
+      // }
+      // 		CB_TC8 => {
+      // 			// We have previously verified that the alpha value is fully opaque.
+      // let  			cr0 = cr[0]
+      // let  			stride, pix = 0, []byte(nil)
+      // 			if rgba != None {
+      // 				stride, pix = rgba.Stride, rgba.Pix
+      // 			} else if nrgba != None {
+      // 				stride, pix = nrgba.Stride, nrgba.Pix
+      // 			}
+      // 			if stride != 0 {
+      // let  				j0 = (y - b.Min.Y) * stride
+      // let  				j1 = j0 + b.Dx()*4
+      // let  				for j = j0; j < j1; j += 4 {
+      // 					cr0[i+0] = pix[j+0]
+      // 					cr0[i+1] = pix[j+1]
+      // 					cr0[i+2] = pix[j+2]
+      // 					i += 3
+      // 				}
+      // 			} else {
+      // 				for x = b.min.x; x < b.max.x; x=x+1 {
+      // let  					r, g, b, _ = m.at(x, y).RGBA()
+      // 					cr0[i+0] = uint8(r >> 8)
+      // 					cr0[i+1] = uint8(g >> 8)
+      // 					cr0[i+2] = uint8(b >> 8)
+      // 					i += 3
+      // 				}
+      // 			}
+      // }
+      // 		CB_P8 => {
+      // 			if paletted != None {
+      // let  				offset = (y - b.min.y) * paletted.stride
+      // 				slice_copy(cr[0][1:], paletted.pix[offset:offset+b.dx()])
+      // 			} else {
+      // let  				pi = m.(image.PalettedImage)
+      // 				for x = b.min.x; x < b.max.x; x=x+1 {
+      // 					cr[0][i] = pi.color_index_at(x, y)
+      // 					i += 1
+      // 				}
+      // 			}
+      // }
+      // 		CB_P4 => { cbP2, cbP1:
+      // let  			pi = m.(image.PalettedImage)
 
-  // 	gray, _ := m.(*image.Gray)
-  // 	rgba, _ := m.(*image.RGBA)
-  // 	paletted, _ := m.(*image.Paletted)
-  // 	nrgba, _ := m.(*image.NRGBA)
+      // 			var a uint8
+      // 			var c int
+      // let  			pixelsPerByte = 8 / bits_per_pixel
+      // 			for x = b.min.x; x < b.max.x; x=x+1 {
+      // 				a = a<<uint(bits_per_pixel) | pi.ColorIndexAt(x, y)
+      // 				c++
+      // 				if c == pixelsPerByte {
+      // 					cr[0][i] = a
+      // 					i += 1
+      // 					a = 0
+      // 					c = 0
+      // 				}
+      // 			}
+      // 			if c != 0 {
+      // 				for c != pixelsPerByte {
+      // 					a = a << uint(bits_per_pixel)
+      // 					c++
+      // 				}
+      // 				cr[0][i] = a
+      // 			}
+      // }
+      // 		CB_TCA8 => {
+      // 			if nrgba != None {
+      // let  				offset = (y - b.Min.Y) * nrgba.Stride
+      // 				copy(cr[0][1:], nrgba.Pix[offset:offset+b.Dx()*4])
+      // 			} else if rgba != None {
+      // let  				dst = cr[0][1:]
+      // let  				src = rgba.Pix[rgba.PixOffset(b.Min.X, y):rgba.PixOffset(b.Max.X, y)]
+      // 				while len(src) >= 4 {
+      // let  					d = (*[4]byte)(dst)
+      // let  					s = (*[4]byte)(src)
+      // 					if s[3] == 0x00 {
+      // 						d[0] = 0
+      // 						d[1] = 0
+      // 						d[2] = 0
+      // 						d[3] = 0
+      // 					} else if s[3] == 0xff {
+      // 						slice_copy(d[:], s[:])
+      // 					} else {
+      // 						// This code does the same as color.NRGBAModel.Convert(
+      // 						// rgba.At(x, y)).(color.NRGBA) but with no extra memory
+      // 						// allocations or interface/function call overhead.
+      // 						//
+      // 						// The multiplier m combines 0x101 (which converts
+      // 						// 8-bit color to 16-bit color) and 0xffff (which, when
+      // 						// combined with the division-by-a, converts from
+      // 						// alpha-premultiplied to non-alpha-premultiplied).
+      // 						const m = 0x101 * 0xffff
+      // let  						a = uint32(s[3]) * 0x101
+      // 						d[0] = uint8((uint32(s[0]) * m / a) >> 8)
+      // 						d[1] = uint8((uint32(s[1]) * m / a) >> 8)
+      // 						d[2] = uint8((uint32(s[2]) * m / a) >> 8)
+      // 						d[3] = s[3]
+      // 					}
+      //          dst = dst[4:]
+      //          src = src[4:]
+      // 				}
+      // 			} else {
+      // 				// Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
+      // 				for x = b.min.x; x < b.max.x; x=x+1 {
+      // let  					c = color.NRGBAModel.Convert(m.at(x, y)).(color.NRGBA)
+      // 					cr[0][i+0] = c.R
+      // 					cr[0][i+1] = c.G
+      // 					cr[0][i+2] = c.B
+      // 					cr[0][i+3] = c.A
+      // 					i += 4
+      // 				}
+      // 			}
+      // }
+      CB_G16 =>
+        for x = b.min.x; x < b.max.x; x = x + 1 {
+          let c = @color.Gray16::from(m.at(x, y))
+          cr[0][i + 0] = (c.y >> 8).to_byte()
+          cr[0][i + 1] = c.y.to_byte()
+          i += 2
+        }
+      CB_TC16 =>
+        // We have previously verified that the alpha value is fully opaque.
+        for x = b.min.x; x < b.max.x; x = x + 1 {
+          let (r, g, b, _) = m.at(x, y).rgba()
+          cr[0][i + 0] = (r >> 8).to_byte()
+          cr[0][i + 1] = r.to_byte()
+          cr[0][i + 2] = (g >> 8).to_byte()
+          cr[0][i + 3] = g.to_byte()
+          cr[0][i + 4] = (b >> 8).to_byte()
+          cr[0][i + 5] = b.to_byte()
+          i += 6
+        }
+      CB_TCA16 =>
+        // Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
+        for x = b.min.x; x < b.max.x; x = x + 1 {
+          let c = @color.NRGBA64::from(m.at(x, y))
+          cr[0][i + 0] = (c.r >> 8).to_byte()
+          cr[0][i + 1] = c.r.to_byte()
+          cr[0][i + 2] = (c.g >> 8).to_byte()
+          cr[0][i + 3] = c.g.to_byte()
+          cr[0][i + 4] = (c.b >> 8).to_byte()
+          cr[0][i + 5] = c.b.to_byte()
+          cr[0][i + 6] = (c.a >> 8).to_byte()
+          cr[0][i + 7] = c.a.to_byte()
+          i += 8
+        }
+    }
 
-  // 	for y := b.Min.Y; y < b.Max.Y; y++ {
-  // 		// Convert from colors to bytes.
-  // 		i := 1
-  // 		match cb {
-  // 		CB_G8 => {
-  // 			if gray != None {
-  // 				offset := (y - b.Min.Y) * gray.Stride
-  // 				copy(cr[0][1:], gray.Pix[offset:offset+b.Dx()])
-  // 			} else {
-  // 				for x := b.Min.X; x < b.Max.X; x++ {
-  // 					c := color.GrayModel.Convert(m.At(x, y)).(color.Gray)
-  // 					cr[0][i] = c.Y
-  // 					i++
-  // 				}
-  // 			}
-  // }
-  // 		CB_TC8 => {
-  // 			// We have previously verified that the alpha value is fully opaque.
-  // 			cr0 := cr[0]
-  // 			stride, pix := 0, []byte(nil)
-  // 			if rgba != None {
-  // 				stride, pix = rgba.Stride, rgba.Pix
-  // 			} else if nrgba != None {
-  // 				stride, pix = nrgba.Stride, nrgba.Pix
-  // 			}
-  // 			if stride != 0 {
-  // 				j0 := (y - b.Min.Y) * stride
-  // 				j1 := j0 + b.Dx()*4
-  // 				for j := j0; j < j1; j += 4 {
-  // 					cr0[i+0] = pix[j+0]
-  // 					cr0[i+1] = pix[j+1]
-  // 					cr0[i+2] = pix[j+2]
-  // 					i += 3
-  // 				}
-  // 			} else {
-  // 				for x := b.Min.X; x < b.Max.X; x++ {
-  // 					r, g, b, _ := m.At(x, y).RGBA()
-  // 					cr0[i+0] = uint8(r >> 8)
-  // 					cr0[i+1] = uint8(g >> 8)
-  // 					cr0[i+2] = uint8(b >> 8)
-  // 					i += 3
-  // 				}
-  // 			}
-  // }
-  // 		CB_P8 => {
-  // 			if paletted != None {
-  // 				offset := (y - b.Min.Y) * paletted.Stride
-  // 				copy(cr[0][1:], paletted.Pix[offset:offset+b.Dx()])
-  // 			} else {
-  // 				pi := m.(image.PalettedImage)
-  // 				for x := b.Min.X; x < b.Max.X; x++ {
-  // 					cr[0][i] = pi.ColorIndexAt(x, y)
-  // 					i += 1
-  // 				}
-  // 			}
-  // }
-  // 		CB_P4 => { cbP2, cbP1:
-  // 			pi := m.(image.PalettedImage)
+    // Apply the filter.
+    // Skip filter for NoCompression and paletted images (cbP8) as
+    // "filters are rarely useful on palette images" and will result
+    // in larger files (see http://www.libpng.org/pub/png/book/chapter09.html).
+    let mut f = FT_NONE
+    if cb != CB_P8 && cb != CB_P4 && cb != CB_P2 && cb != CB_P1 {
+      // Since we skip paletted images we don't have to worry about
+      // bits_per_pixel not being a multiple of 8
+      let bpp = bits_per_pixel / 8
+      f = filter(cr, pr, bpp)
+    }
 
-  // 			var a uint8
-  // 			var c int
-  // 			pixelsPerByte := 8 / bitsPerPixel
-  // 			for x := b.Min.X; x < b.Max.X; x++ {
-  // 				a = a<<uint(bitsPerPixel) | pi.ColorIndexAt(x, y)
-  // 				c++
-  // 				if c == pixelsPerByte {
-  // 					cr[0][i] = a
-  // 					i += 1
-  // 					a = 0
-  // 					c = 0
-  // 				}
-  // 			}
-  // 			if c != 0 {
-  // 				for c != pixelsPerByte {
-  // 					a = a << uint(bitsPerPixel)
-  // 					c++
-  // 				}
-  // 				cr[0][i] = a
-  // 			}
-  // }
-  // 		CB_TCA8 => {
-  // 			if nrgba != None {
-  // 				offset := (y - b.Min.Y) * nrgba.Stride
-  // 				copy(cr[0][1:], nrgba.Pix[offset:offset+b.Dx()*4])
-  // 			} else if rgba != None {
-  // 				dst := cr[0][1:]
-  // 				src := rgba.Pix[rgba.PixOffset(b.Min.X, y):rgba.PixOffset(b.Max.X, y)]
-  // 				for ; len(src) >= 4; dst, src = dst[4:], src[4:] {
-  // 					d := (*[4]byte)(dst)
-  // 					s := (*[4]byte)(src)
-  // 					if s[3] == 0x00 {
-  // 						d[0] = 0
-  // 						d[1] = 0
-  // 						d[2] = 0
-  // 						d[3] = 0
-  // 					} else if s[3] == 0xff {
-  // 						copy(d[:], s[:])
-  // 					} else {
-  // 						// This code does the same as color.NRGBAModel.Convert(
-  // 						// rgba.At(x, y)).(color.NRGBA) but with no extra memory
-  // 						// allocations or interface/function call overhead.
-  // 						//
-  // 						// The multiplier m combines 0x101 (which converts
-  // 						// 8-bit color to 16-bit color) and 0xffff (which, when
-  // 						// combined with the division-by-a, converts from
-  // 						// alpha-premultiplied to non-alpha-premultiplied).
-  // 						const m = 0x101 * 0xffff
-  // 						a := uint32(s[3]) * 0x101
-  // 						d[0] = uint8((uint32(s[0]) * m / a) >> 8)
-  // 						d[1] = uint8((uint32(s[1]) * m / a) >> 8)
-  // 						d[2] = uint8((uint32(s[2]) * m / a) >> 8)
-  // 						d[3] = s[3]
-  // 					}
-  // 				}
-  // 			} else {
-  // 				// Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
-  // 				for x := b.Min.X; x < b.Max.X; x++ {
-  // 					c := color.NRGBAModel.Convert(m.At(x, y)).(color.NRGBA)
-  // 					cr[0][i+0] = c.R
-  // 					cr[0][i+1] = c.G
-  // 					cr[0][i+2] = c.B
-  // 					cr[0][i+3] = c.A
-  // 					i += 4
-  // 				}
-  // 			}
-  // }
-  // 		CB_G16 => {
-  // 			for x := b.Min.X; x < b.Max.X; x++ {
-  // 				c := color.Gray16Model.Convert(m.At(x, y)).(color.Gray16)
-  // 				cr[0][i+0] = uint8(c.Y >> 8)
-  // 				cr[0][i+1] = uint8(c.Y)
-  // 				i += 2
-  // 			}
-  // }
-  // 		CB_TC16 => {
-  // 			// We have previously verified that the alpha value is fully opaque.
-  // 			for x := b.Min.X; x < b.Max.X; x++ {
-  // 				r, g, b, _ := m.At(x, y).RGBA()
-  // 				cr[0][i+0] = uint8(r >> 8)
-  // 				cr[0][i+1] = uint8(r)
-  // 				cr[0][i+2] = uint8(g >> 8)
-  // 				cr[0][i+3] = uint8(g)
-  // 				cr[0][i+4] = uint8(b >> 8)
-  // 				cr[0][i+5] = uint8(b)
-  // 				i += 6
-  // 			}
-  // }
-  // 		CB_TCA16 => {
-  // 			// Convert from image.Image (which is alpha-premultiplied) to PNG's non-alpha-premultiplied.
-  // 			for x := b.Min.X; x < b.Max.X; x++ {
-  // 				c := color.NRGBA64Model.Convert(m.At(x, y)).(color.NRGBA64)
-  // 				cr[0][i+0] = uint8(c.R >> 8)
-  // 				cr[0][i+1] = uint8(c.R)
-  // 				cr[0][i+2] = uint8(c.G >> 8)
-  // 				cr[0][i+3] = uint8(c.G)
-  // 				cr[0][i+4] = uint8(c.B >> 8)
-  // 				cr[0][i+5] = uint8(c.B)
-  // 				cr[0][i+6] = uint8(c.A >> 8)
-  // 				cr[0][i+7] = uint8(c.A)
-  // 				i += 8
-  // 			}
-  // 		}
-  // }
+    // Write the compressed bytes.
+    let (_, err) = zw.write(cr[f.to_int()])
+    if err != None {
+      let _ = zw.close()
+      return err
+    }
 
-  // 		// Apply the filter.
-  // 		// Skip filter for NoCompression and paletted images (cbP8) as
-  // 		// "filters are rarely useful on palette images" and will result
-  // 		// in larger files (see http://www.libpng.org/pub/png/book/chapter09.html).
-  // 		f := FT_NONE
-  // 		if level != zlib.NoCompression && cb != cbP8 && cb != cbP4 && cb != cbP2 && cb != cbP1 {
-  // 			// Since we skip paletted images we don't have to worry about
-  // 			// bitsPerPixel not being a multiple of 8
-  // 			bpp := bitsPerPixel / 8
-  // 			f = filter(&cr, pr, bpp)
-  // 		}
+    // The current row for y is the previous row for y+1.
+    let tmp = pr
+    pr = cr[0]
+    cr[0] = tmp
+  }
+  zw.close()
+}
 
-  // 		// Write the compressed bytes.
-  // 		if _, err := e.zw.write(cr[f]); err != None {
-  // 			return err
-  // 		}
-
-  // 		// The current row for y is the previous row for y+1.
-  // 		pr, cr[0] = cr[0], pr
-  // 	}
-  None
+fn clear_slice(b : Slice[Byte]) -> Unit {
+  for i in 0..<b.length() {
+    b[i] = b'\x00'
+  }
 }
 
 // Write the actual image data to one or more IDAT chunks.
