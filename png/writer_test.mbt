@@ -5,35 +5,51 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// func diff(m0, m1 image.Image) error {
-// 	b0, b1 := m0.Bounds(), m1.Bounds()
-// 	if !b0.Size().Eq(b1.Size()) {
-// 		return fmt.Errorf("dimensions differ: %v vs %v", b0, b1)
-// 	}
-// 	dx := b1.Min.X - b0.Min.X
-// 	dy := b1.Min.Y - b0.Min.Y
-// 	for y := b0.Min.Y; y < b0.Max.Y; y++ {
-// 		for x := b0.Min.X; x < b0.Max.X; x++ {
-// 			c0 := m0.At(x, y)
-// 			c1 := m1.At(x+dx, y+dy)
-// 			r0, g0, b0, a0 := c0.RGBA()
-// 			r1, g1, b1, a1 := c1.RGBA()
-// 			if r0 != r1 || g0 != g1 || b0 != b1 || a0 != a1 {
-// 				return fmt.Errorf("colors differ at (%d, %d): %T%v vs %T%v", x, y, c0, c0, c1, c1)
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+typealias IOError = @io.IOError
 
-// func encodeDecode(m image.Image) (image.Image, error) {
-// 	var b bytes.Buffer
-// 	err := Encode(&b, m)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return Decode(&b)
-// }
+fn diff(m0 : @image.Image, m1 : @image.Image) -> TestError? {
+  let (b0, b1) = (m0.bounds(), m1.bounds())
+  if not(b0.size() == b1.size()) {
+    return Some(TestError("dimensions differ: \{b0} vs \{b1}"))
+  }
+  let dx = b1.min.x - b0.min.x
+  let dy = b1.min.y - b0.min.y
+  for y = b0.min.y; y < b0.max.y; y = y + 1 {
+    for x = b0.min.x; x < b0.max.x; x = x + 1 {
+      let c0 = m0.at(x, y)
+      let c1 = m1.at(x + dx, y + dy)
+      let (r0, g0, b0, a0) = c0.rgba()
+      let (r1, g1, b1, a1) = c1.rgba()
+      if r0 != r1 || g0 != g1 || b0 != b1 || a0 != a1 {
+        return Some(TestError("colors differ at (\{x}, \{y}): \{c0} vs \{c1}"))
+      }
+    }
+  }
+  None
+}
+
+fn encode_decode(m : @image.Image) -> (@image.Image, IOError?) {
+  let b = @io.Buffer::new()
+  guard let None = @png.encode(b, m)
+  @png.decode(b)
+}
+
+fn convert_to_nrgba(m : @image.Image) -> @image.NRGBA {
+  let b = m.bounds()
+  let ret = try {
+    @image.NRGBA::new!(b)
+  } catch {
+    _ => abort("bad bounds")
+  }
+  // draw.draw(ret, b, m, b.min, draw.src)
+  for y = b.min.y; y < b.max.y; y = y + 1 {
+    for x = b.min.x; x < b.max.x; x = x + 1 {
+      let c0 = m.at(x, y)
+      ret[@image.pt(x, y)] = c0
+    }
+  }
+  ret
+}
 
 struct PalettedTestCase {
   plen : Int
@@ -43,320 +59,155 @@ struct PalettedTestCase {
 
 // func TestWriterPaletted(t *testing.T) {
 test "writer paletted" {
-  // 	const width, height = 32, 16
+  let (width, height) = (32, 16)
+  let test_cases = [
+    { plen: 256, bitdepth: 8, datalen: (1 + width) * height },
+    { plen: 128, bitdepth: 8, datalen: (1 + width) * height },
+    { plen: 16, bitdepth: 4, datalen: (1 + width / 2) * height },
+    { plen: 4, bitdepth: 2, datalen: (1 + width / 4) * height },
+    { plen: 2, bitdepth: 1, datalen: (1 + width / 8) * height },
+  ]
+  for tc in test_cases {
+    let test_name = "plen-\{tc.plen}"
+    // Create a paletted image with the correct palette length
+    let palette = @color.Palette::new(tc.plen)
+    for i in 0..<tc.plen {
+      let v = i.to_byte()
+      palette[i] = @color.NRGBA::new(v, v, v, 255)
+    }
 
-  // 	testCases := []struct {
-  // 		plen     int
-  // 		bitdepth uint8
-  // 		datalen  int
-  // 	}{
+    //
+    let m0 = @image.Paletted::new!(@image.rect(0, 0, width, height), palette)
+    let mut i = 0
 
-  // 		{
-  // 			plen:     256,
-  // 			bitdepth: 8,
-  // 			datalen:  (1 + width) * height,
-  // 		},
+    //
+    for y = 0; y < height; y = y + 1 {
+      for x = 0; x < width; x = x + 1 {
+        m0.set_color_index(x, y, (i % tc.plen).to_byte())
+        i += 1
+      }
+    }
 
-  // 		{
-  // 			plen:     128,
-  // 			bitdepth: 8,
-  // 			datalen:  (1 + width) * height,
-  // 		},
+    // Encode the image
+    let b = @io.Buffer::new()
+    guard let None = @png.encode(b, m0)
 
-  // 		{
-  // 			plen:     16,
-  // 			bitdepth: 4,
-  // 			datalen:  (1 + width/2) * height,
-  // 		},
-
-  // 		{
-  // 			plen:     4,
-  // 			bitdepth: 2,
-  // 			datalen:  (1 + width/4) * height,
-  // 		},
-
-  // 		{
-  // 			plen:     2,
-  // 			bitdepth: 1,
-  // 			datalen:  (1 + width/8) * height,
-  // 		},
-  // 	}
-
-  // 	for _, tc := range testCases {
-  // 		t.Run(fmt.Sprintf("plen-%d", tc.plen), func(t *testing.T) {
-  // 			// Create a paletted image with the correct palette length
-  // 			palette := make(color.Palette, tc.plen)
-  // 			for i := range palette {
-  // 				palette[i] = color.NRGBA{
-  // 					R: uint8(i),
-  // 					G: uint8(i),
-  // 					B: uint8(i),
-  // 					A: 255,
-  // 				}
-  // 			}
-  // 			m0 := image.NewPaletted(image.Rect(0, 0, width, height), palette)
-
-  // 			i := 0
-  // 			for y := 0; y < height; y++ {
-  // 				for x := 0; x < width; x++ {
-  // 					m0.SetColorIndex(x, y, uint8(i%tc.plen))
-  // 					i++
-  // 				}
-  // 			}
-
-  // 			// Encode the image
-  // 			var b bytes.Buffer
-  // 			if err := Encode(&b, m0); err != nil {
-  // 				t.Error(err)
-  // 				return
-  // 			}
-  // 			const chunkFieldsLength = 12 // 4 bytes for length, name and crc
-  // 			data := b.Bytes()
-  // 			i = len(pngHeader)
-
-  // 			for i < len(data)-chunkFieldsLength {
-  // 				length := binary.BigEndian.Uint32(data[i : i+4])
-  // 				name := string(data[i+4 : i+8])
-
-  // 				switch name {
-  // 				case "IHDR":
-  // 					bitdepth := data[i+8+8]
-  // 					if bitdepth != tc.bitdepth {
-  // 						t.Errorf("got bitdepth %d, want %d", bitdepth, tc.bitdepth)
-  // 					}
-  // 				case "IDAT":
-  // 					// Uncompress the image data
-  // 					r, err := zlib.NewReader(bytes.NewReader(data[i+8 : i+8+int(length)]))
-  // 					if err != nil {
-  // 						t.Error(err)
-  // 						return
-  // 					}
-  // 					n, err := io.Copy(io.Discard, r)
-  // 					if err != nil {
-  // 						t.Errorf("got error while reading image data: %v", err)
-  // 					}
-  // 					if n != int64(tc.datalen) {
-  // 						t.Errorf("got uncompressed data length %d, want %d", n, tc.datalen)
-  // 					}
-  // 				}
-
-  // 				i += chunkFieldsLength + int(length)
-  // 			}
-  // 		})
-
-  // 	}
+    //
+    let chunk_fields_length = 12 // 4 bytes for length, name and crc
+    let data = Slice::new(b.to_bytes().to_array())
+    i = HEADER.length()
+    while i < data.length() - chunk_fields_length {
+      let length = be_uint32(data[i:i + 4]).reinterpret_as_int()
+      let chunk = be_uint32(data[i + 4:i + 8])
+      if chunk == be_uint32(Slice::new(b"IHDR".to_array())) {
+        let bitdepth = data[i + 8 + 8]
+        if bitdepth != tc.bitdepth {
+          raise TestError(
+            "\{test_name}: got bitdepth \{bitdepth}, want \{tc.bitdepth}",
+          )
+        }
+      } else if chunk == be_uint32(Slice::new(b"IDAT".to_array())) {
+        // Uncompress the image data
+        guard let (r, None) = @zlib.Reader::new(
+          @io.Buffer::from(data[i + 8:i + 8 + length]),
+        )
+        let (n, err) = @io.copy(@io.discard, r)
+        if err != None {
+          raise TestError(
+            "\{test_name}: got error while reading image data: \{err}",
+          )
+        }
+        if n != tc.datalen.to_int64() {
+          raise TestError(
+            "\{test_name}: got uncompressed data length \{n}, want \{tc.datalen}",
+          )
+        }
+      }
+      i += chunk_fields_length + length
+    }
+  }
 }
 
-// func TestWriterLevels(t *testing.T) {
-// 	m := image.NewNRGBA(image.Rect(0, 0, 100, 100))
+fn be_uint32(b : Slice[Byte]) -> UInt {
+  (b[0].to_uint() << 24) |
+  (b[1].to_uint() << 16) |
+  (b[2].to_uint() << 8) |
+  b[3].to_uint()
+}
 
-// 	var b1, b2 bytes.Buffer
-// 	if err := (&Encoder{}).Encode(&b1, m); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	noenc := &Encoder{CompressionLevel: NoCompression}
-// 	if err := noenc.Encode(&b2, m); err != nil {
-// 		t.Fatal(err)
-// 	}
+// func Testsub_image(t *testing.T) {
+test "sub_image" {
+  let mut m0 : @image.Image = @image.RGBA::new!(@image.rect(0, 0, 256, 256))
+  for y = 0; y < 256; y = y + 1 {
+    for x = 0; x < 256; x = x + 1 {
+      m0.set(x, y, @color.RGBA::new(x.to_byte(), y.to_byte(), 0, 255))
+    }
+  }
+  m0 = m0.sub_image(@image.rect(50, 30, 250, 130)) // .(*image.RGBA)
+  let (m1, err) = encode_decode(m0)
+  match err {
+    Some(e) => raise TestError("encode_decode: \{e}")
+    _ => ()
+  }
+  let err = diff(m0, m1)
+  match err {
+    Some(e) => raise TestError("diff: \{e}")
+    _ => ()
+  }
+}
 
-// 	if b2.Len() <= b1.Len() {
-// 		t.Error("DefaultCompression encoding was larger than NoCompression encoding")
-// 	}
-// 	if _, err := Decode(&b1); err != nil {
-// 		t.Error("cannot decode DefaultCompression")
-// 	}
-// 	if _, err := Decode(&b2); err != nil {
-// 		t.Error("cannot decode NoCompression")
-// 	}
-// }
-
-// func TestSubImage(t *testing.T) {
-// 	m0 := image.NewRGBA(image.Rect(0, 0, 256, 256))
-// 	for y := 0; y < 256; y++ {
-// 		for x := 0; x < 256; x++ {
-// 			m0.Set(x, y, color.RGBA{uint8(x), uint8(y), 0, 255})
-// 		}
-// 	}
-// 	m0 = m0.SubImage(image.Rect(50, 30, 250, 130)).(*image.RGBA)
-// 	m1, err := encodeDecode(m0)
-// 	if err != nil {
-// 		t.Error(err)
-// 		return
-// 	}
-// 	err = diff(m0, m1)
-// 	if err != nil {
-// 		t.Error(err)
-// 		return
-// 	}
-// }
+struct ImageTest {
+  name : String
+  img : @image.Image
+}
 
 // func TestWriteRGBA(t *testing.T) {
-// 	const width, height = 640, 480
-// 	transparentImg := image.NewRGBA(image.Rect(0, 0, width, height))
-// 	opaqueImg := image.NewRGBA(image.Rect(0, 0, width, height))
-// 	mixedImg := image.NewRGBA(image.Rect(0, 0, width, height))
-// 	translucentImg := image.NewRGBA(image.Rect(0, 0, width, height))
-// 	for y := 0; y < height; y++ {
-// 		for x := 0; x < width; x++ {
-// 			opaqueColor := color.RGBA{uint8(x), uint8(y), uint8(y + x), 255}
-// 			translucentColor := color.RGBA{uint8(x) % 128, uint8(y) % 128, uint8(y+x) % 128, 128}
-// 			opaqueImg.Set(x, y, opaqueColor)
-// 			translucentImg.Set(x, y, translucentColor)
-// 			if y%2 == 0 {
-// 				mixedImg.Set(x, y, opaqueColor)
-// 			}
-// 		}
-// 	}
+test "write RGBA" {
+  let (width, height) = (640, 480)
+  let transparent_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
+  let opaque_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
+  let mixed_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
+  let translucent_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
+  for y = 0; y < height; y = y + 1 {
+    for x = 0; x < width; x = x + 1 {
+      let opaque_color = @color.RGBA::new(
+        x.to_byte(),
+        y.to_byte(),
+        (y + x).to_byte(),
+        255,
+      )
+      let translucent_color = @color.RGBA::new(
+        (x % 128).to_byte(),
+        (y % 128).to_byte(),
+        ((y + x) % 128).to_byte(),
+        128,
+      )
+      opaque_img.set(x, y, opaque_color)
+      translucent_img.set(x, y, translucent_color)
+      if y % 2 == 0 {
+        mixed_img.set(x, y, opaque_color)
+      }
+    }
+  }
 
-// 	testCases := []struct {
-// 		name string
-// 		img  image.Image
-// 	}{
-// 		{"Transparent RGBA", transparentImg},
-// 		{"Opaque RGBA", opaqueImg},
-// 		{"50/50 Transparent/Opaque RGBA", mixedImg},
-// 		{"RGBA with variable alpha", translucentImg},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			m0 := tc.img
-// 			m1, err := encodeDecode(m0)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-// 			err = diff(convertToNRGBA(m0), m1)
-// 			if err != nil {
-// 				t.Error(err)
-// 			}
-// 		})
-// 	}
-// }
-
-// func BenchmarkEncodeGray(b *testing.B) {
-// 	img := image.NewGray(image.Rect(0, 0, 640, 480))
-// 	b.SetBytes(640 * 480 * 1)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
-
-// type pool struct {
-// 	b *EncoderBuffer
-// }
-
-// func (p *pool) Get() *EncoderBuffer {
-// 	return p.b
-// }
-
-// func (p *pool) Put(b *EncoderBuffer) {
-// 	p.b = b
-// }
-
-// func BenchmarkEncodeGrayWithBufferPool(b *testing.B) {
-// 	img := image.NewGray(image.Rect(0, 0, 640, 480))
-// 	e := Encoder{
-// 		BufferPool: &pool{},
-// 	}
-// 	b.SetBytes(640 * 480 * 1)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		e.Encode(io.Discard, img)
-// 	}
-// }
-
-// func BenchmarkEncodeNRGBOpaque(b *testing.B) {
-// 	img := image.NewNRGBA(image.Rect(0, 0, 640, 480))
-// 	// Set all pixels to 0xFF alpha to force opaque mode.
-// 	bo := img.Bounds()
-// 	for y := bo.Min.Y; y < bo.Max.Y; y++ {
-// 		for x := bo.Min.X; x < bo.Max.X; x++ {
-// 			img.Set(x, y, color.NRGBA{0, 0, 0, 255})
-// 		}
-// 	}
-// 	if !img.Opaque() {
-// 		b.Fatal("expected image to be opaque")
-// 	}
-// 	b.SetBytes(640 * 480 * 4)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
-
-// func BenchmarkEncodeNRGBA(b *testing.B) {
-// 	img := image.NewNRGBA(image.Rect(0, 0, 640, 480))
-// 	if img.Opaque() {
-// 		b.Fatal("expected image not to be opaque")
-// 	}
-// 	b.SetBytes(640 * 480 * 4)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
-
-// func BenchmarkEncodePaletted(b *testing.B) {
-// 	img := image.NewPaletted(image.Rect(0, 0, 640, 480), color.Palette{
-// 		color.RGBA{0, 0, 0, 255},
-// 		color.RGBA{255, 255, 255, 255},
-// 	})
-// 	b.SetBytes(640 * 480 * 1)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
-
-// func BenchmarkEncodeRGBOpaque(b *testing.B) {
-// 	img := image.NewRGBA(image.Rect(0, 0, 640, 480))
-// 	// Set all pixels to 0xFF alpha to force opaque mode.
-// 	bo := img.Bounds()
-// 	for y := bo.Min.Y; y < bo.Max.Y; y++ {
-// 		for x := bo.Min.X; x < bo.Max.X; x++ {
-// 			img.Set(x, y, color.RGBA{0, 0, 0, 255})
-// 		}
-// 	}
-// 	if !img.Opaque() {
-// 		b.Fatal("expected image to be opaque")
-// 	}
-// 	b.SetBytes(640 * 480 * 4)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
-
-// func BenchmarkEncodeRGBA(b *testing.B) {
-// 	const width, height = 640, 480
-// 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-// 	for y := 0; y < height; y++ {
-// 		for x := 0; x < width; x++ {
-// 			percent := (x + y) % 100
-// 			switch {
-// 			case percent < 10: // 10% of pixels are translucent (have alpha >0 and <255)
-// 				img.Set(x, y, color.NRGBA{uint8(x), uint8(y), uint8(x * y), uint8(percent)})
-// 			case percent < 40: // 30% of pixels are transparent (have alpha == 0)
-// 				img.Set(x, y, color.NRGBA{uint8(x), uint8(y), uint8(x * y), 0})
-// 			default: // 60% of pixels are opaque (have alpha == 255)
-// 				img.Set(x, y, color.NRGBA{uint8(x), uint8(y), uint8(x * y), 255})
-// 			}
-// 		}
-// 	}
-// 	if img.Opaque() {
-// 		b.Fatal("expected image not to be opaque")
-// 	}
-// 	b.SetBytes(width * height * 4)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		Encode(io.Discard, img)
-// 	}
-// }
+  //
+  let test_cases = [
+    { name: "Transparent RGBA", img: transparent_img },
+    { name: "Opaque RGBA", img: opaque_img },
+    { name: "50/50 Transparent/Opaque RGBA", img: mixed_img },
+    { name: "RGBA with variable alpha", img: translucent_img },
+  ]
+  for _, tc in test_cases {
+    let m0 = tc.img
+    let (m1, err) = encode_decode(m0)
+    match err {
+      Some(e) => raise TestError("\{tc.name}: encode_decode: \{e}")
+      _ => ()
+    }
+    let err = diff(convert_to_nrgba(m0), m1)
+    match err {
+      Some(e) => raise TestError("\{tc.name}: diff: \{e}")
+      _ => ()
+    }
+  }
+}

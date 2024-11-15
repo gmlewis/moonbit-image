@@ -257,7 +257,7 @@ fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   // The average filter.
   sum = 0
   for i = 0; i < bpp; i = i + 1 {
-    cdat3[i] = cdat0[i] - pdat[i] / 2
+    cdat3[i] = (cdat0[i].to_int() - pdat[i].to_int() / 2).to_byte()
     sum += abs8(cdat3[i])
   }
   for i = bpp; i < n; i = i + 1 {

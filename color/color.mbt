@@ -478,6 +478,14 @@ pub fn Palette::new(n : Int) -> Palette {
   Slice::new(arr)
 }
 
+pub fn op_set(self : Palette, idx : Int, c : Color) -> Unit {
+  self._[idx % self._.length()] = c
+}
+
+pub fn op_get(self : Palette, idx : Int) -> Color {
+  self._[idx % self._.length()]
+}
+
 /// Palette::from makes a new palette from the provided colors.
 pub fn Palette::from(arr : Array[Color]) -> Palette {
   Slice::new(arr)
