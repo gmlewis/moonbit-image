@@ -16,9 +16,7 @@ fn abs(x : Int) -> Int {
   // by flipping all the bits and add 1. This is faster than
   // code with a branch.
   // See Hacker's Delight, section 2-4.
-  let v = (x ^ m) - m
-  gmldbg("GML: abs(\{x})=\{v}")
-  v
+  (x ^ m) - m
 }
 
 // paeth implements the Paeth filter function, as per the PNG specification.
@@ -37,20 +35,11 @@ fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   pa = abs(pa)
   pb = abs(pb)
   if pa <= pb && pa <= pc {
-    gmldbg(
-      "GML: paeth(a=\{a.to_int()}, b=\{b.to_int()}, c=\{c.to_int()})=\{a.to_int()} A",
-    )
     return a
   }
   if pb <= pc {
-    gmldbg(
-      "GML: paeth(a=\{a.to_int()}, b=\{b.to_int()}, c=\{c.to_int()})=\{b.to_int()} B",
-    )
     return b
   }
-  gmldbg(
-    "GML: paeth(a=\{a.to_int()}, b=\{b.to_int()}, c=\{c.to_int()})=\{c.to_int()} C",
-  )
   c
 }
 
