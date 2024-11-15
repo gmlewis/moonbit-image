@@ -80,6 +80,8 @@ pub struct Rectangle {
   max : Point
 }
 
+let _trait : Image = Rectangle::new()
+
 /// Rectangle::new returns an empty (all zeros) rectangle.
 pub fn Rectangle::new() -> Rectangle {
   { min: pt(0, 0), max: pt(0, 0) }

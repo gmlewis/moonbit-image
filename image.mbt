@@ -10,21 +10,6 @@
 /// The fundamental trait is called [Image]. An [Image] contains colors, which
 /// are described in the image/color package.
 ///
-/// Values of the [Image] trait are created either by calling functions such
-/// as [RGBA::new] and [Paletted::new], or by calling [Decode] on an [io.Reader] containing
-/// image data in a format such as GIF, JPEG or PNG. Decoding any particular
-/// image format requires the prior registration of a decoder function.
-/// Registration is typically automatic as a side effect of initializing that
-/// format's package so that, to decode a PNG image, it suffices to have
-///
-///	import _ "image/png"
-///
-/// in a program's main package. The _ means to import a package purely for its
-/// initialization side effects.
-///
-/// See "The Go image package" for more details:
-/// https://golang.org/doc/articles/image_package.html
-///
 /// # Security Considerations
 ///
 /// The image package can be used to parse arbitrarily large images, which can
@@ -61,8 +46,8 @@ pub(open) trait Image {
   /// The bounds do not necessarily contain the point (0, 0).
   bounds(Self) -> Rectangle
   /// At returns the color of the pixel at (x, y).
-  /// At(bounds().Min.X, bounds().Min.Y) returns the upper-left pixel of the grid.
-  /// At(bounds().Max.X-1, bounds().Max.Y-1) returns the lower-right one.
+  /// at(bounds().min.x, bounds().min.y) returns the upper-left pixel of the grid.
+  /// at(bounds().max.x-1, bounds().max.y-1) returns the lower-right one.
   at(Self, Int, Int) -> @color.Color
 
   // other available methods:
@@ -105,8 +90,8 @@ pub(open) trait RGBA64Image {
 
 type! SizeError String derive(Show, Eq)
 
-// pixel_buffer_length returns the length of the []Byte typed pix slice field
-// for the NewXxx functions. Conceptually, this is just (bpp * width * height),
+// pixel_buffer_length returns the length of the Slice[Byte] typed pix slice field
+// for the Xxx::new functions. Conceptually, this is just (bpp * width * height),
 // but this function panics if at least one of those is negative or if the
 // computation would overflow the int type.
 fn pixel_buffer_length(
@@ -126,7 +111,7 @@ fn pixel_buffer_length(
 /// RGBA is an in-memory image whose At method returns [color.RGBA] values.
 pub struct RGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -288,7 +273,7 @@ pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
 // RGBA64 is an in-memory image whose At method returns [color.RGBA64] values.
 pub struct RGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*8].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -430,7 +415,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
 // NRGBA is an in-memory image whose At method returns [color.NRGBA] values.
 pub struct NRGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -589,7 +574,7 @@ pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
 // NRGBA64 is an in-memory image whose At method returns [color.NRGBA64] values.
 pub struct NRGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*8].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -764,7 +749,7 @@ pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
 // Alpha is an in-memory image whose At method returns [color.Alpha] values.
 pub struct Alpha {
   // pix holds the image's pixels, as alpha values. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -902,7 +887,7 @@ pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
 // Alpha16 is an in-memory image whose At method returns [color.Alpha16] values.
 pub struct Alpha16 {
   // pix holds the image's pixels, as alpha values in big-endian format. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -1048,7 +1033,7 @@ pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
 // Gray is an in-memory image whose At method returns [color.Gray] values.
 pub struct Gray {
   // pix holds the image's pixels, as gray values. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -1174,7 +1159,7 @@ pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
 // Gray16 is an in-memory image whose At method returns [color.Gray16] values.
 pub struct Gray16 {
   // pix holds the image's pixels, as gray values in big-endian format. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*2].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -1303,7 +1288,7 @@ pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
 // CMYK is an in-memory image whose At method returns [color.CMYK] values.
 pub struct CMYK {
   // pix holds the image's pixels, in C, M, Y, K order. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*4].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int
@@ -1441,7 +1426,7 @@ pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
 // Paletted is an in-memory image of Byte indices into a given palette.
 pub struct Paletted {
   // pix holds the image's pixels, as palette indices. The pixel at
-  // (x, y) starts at pix[(y-Rect.Min.Y)*stride + (x-Rect.Min.X)*1].
+  // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
   stride : Int

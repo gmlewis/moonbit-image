@@ -20,10 +20,6 @@ struct ReaderSize {
   mut r : Int
   mut w : Int
   mut err : IOError?
-  // last byte read for UnreadByte; -1 means invalid
-  mut last_byte : Int
-  // size of last rune read for UnreadRune; -1 means invalid
-  // lastRuneSize : Int
 }
 
 const MIN_READ_BUFFER_SIZE = 16
@@ -39,7 +35,7 @@ fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
   // if ok && len(b.buf) >= size {
   // 	return b
   // }
-  let r = { buf: Slice::new([]), rd, r: 0, w: 0, err: None, last_byte: -1 }
+  let r = { buf: Slice::new([]), rd, r: 0, w: 0, err: None }
   // lastRuneSize: -1,
   r.reset_buf(
     Slice::new(Array::make(@math.maximum(size, MIN_READ_BUFFER_SIZE), b'\x00')),
@@ -51,8 +47,6 @@ fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
 fn reset_buf(self : ReaderSize, buf : Slice[Byte], r : @io.Reader) -> Unit {
   self.buf = buf
   self.rd = r
-  self.last_byte = -1
-  // 		self.lastRuneSize: -1,
 }
 
 pub let err_negative_read : IOError = IOError(
@@ -123,10 +117,6 @@ fn read(self : ReaderSize, p : Slice[Byte]) -> (Int, IOError?) {
       if n < 0 {
         return (0, Some(err_negative_read))
       }
-      if n > 0 {
-        self.last_byte = p[n - 1].to_int()
-        // self.lastRuneSize = -1
-      }
       return (n, self.read_err())
     }
     // One read.
@@ -150,8 +140,6 @@ fn read(self : ReaderSize, p : Slice[Byte]) -> (Int, IOError?) {
   // the underlying reader returned a bad count. See issue 49795.
   n = slice_copy(p, self.buf[self.r:self.w])
   self.r += n
-  self.last_byte = self.buf[self.r - 1].to_int()
-  // self.lastRuneSize = -1
   (n, None)
 }
 
@@ -167,7 +155,6 @@ fn read_byte(self : ReaderSize) -> (Byte, IOError?) {
   }
   let c = self.buf[self.r]
   self.r += 1
-  self.last_byte = c.to_int()
   (c, None)
 }
 

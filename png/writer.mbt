@@ -5,7 +5,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Encoder configures encoding PNG images.
+// Encoder encodes PNG images.
 struct Encoder {
   mut w : @io.Writer
   mut m : @image.Image
@@ -16,8 +16,6 @@ struct Encoder {
   tmp : Slice[Byte] // [4 * 256]byte
   cr : Array[Slice[Byte]] // [nFilter][]uint8
   mut pr : Slice[Byte] // []uint8
-  // mut bw : WriterSize // @bufio.Writer
-  mut bw : @io.Buffer
 }
 
 fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
@@ -37,8 +35,6 @@ fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
       Slice::new([]),
     ],
     pr: Slice::new([]),
-    // bw: WriterSize::new(),
-    bw: @io.Buffer::new(),
   }
 }
 
@@ -168,8 +164,8 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
 }
 
 // An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
-// including an 8-byte header and 4-byte CRC checksum per Write call. Such calls
-// should be relatively infrequent, since write_idats uses a [bufio.Writer].
+// including an 8-byte header and 4-byte CRC checksum per write call. Such calls
+// should be relatively infrequent, since write_idats uses a [io.Buffer].
 //
 // This method should only be called from write_idats (via write_image).
 // No other code should treat an Encoder as an io.Writer.
@@ -186,8 +182,8 @@ pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
 fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
   // This is the same heuristic that libpng uses, although the filters are attempted in order of
-  // estimated most likely to be minimal (ftUp, ftPaeth, ftNone, ftSub, ftAverage), rather than
-  // in their enumeration order (ftNone, ftSub, ftUp, ftAverage, ftPaeth).
+  // estimated most likely to be minimal (FT_UP, FT_PAETH, FT_NONE, FT_SUB, FT_AVERAGE), rather than
+  // in their enumeration order (FT_NONE, FT_SUB, FT_UP, FT_AVERAGE, FT_PAETH).
   let cdat0 = cr[0][1:]
   let cdat1 = cr[1][1:]
   let cdat2 = cr[2][1:]
@@ -279,7 +275,6 @@ fn write_image(
   w : @io.Writer,
   m : @image.Image,
   cb : Int
-  // level : Int
 ) -> IOError? {
   let zw = @zlib.Writer::new(w)
   let mut bits_per_pixel = 0
@@ -298,7 +293,7 @@ fn write_image(
   }
 
   // cr[*] and pr are the bytes for the current and previous row.
-  // cr[0] is unfiltered (or equivalently, filtered with the ftNone filter).
+  // cr[0] is unfiltered (or equivalently, filtered with the FT_NONE filter).
   // cr[ft], for non-zero filter types ft, are buffers for transforming cr[0] under the
   // other PNG filter types. These buffers are allocated once and re-used for each row.
   // The +1 is for the per-row filter type, which is at cr[*][0].
@@ -320,15 +315,10 @@ fn write_image(
     clear_slice(self.pr)
   }
   let mut pr = self.pr
-
-  // let  	gray, _ = m.(*image.Gray)
   let model_name = m.color_model().name()
   let is_gray = model_name == "Gray"
-  // let  	rgba, _ = m.(*image.RGBA)
   let is_rgba = model_name == "RGBA"
-  // let  	paletted, _ = m.(*image.Paletted)
   let is_paletted = model_name == "Paletted"
-  // let  	nrgba, _ = m.(*image.NRGBA)
   let is_nrgba = model_name == "NRGBA"
   let stride = m.get_stride()
   let pix = m.raw_data()
@@ -420,7 +410,7 @@ fn write_image(
 
             } else {
               // This code does the same as color.NRGBAModel.Convert(
-              // rgba.At(x, y)).(color.NRGBA) but with no extra memory
+              // rgba.At(x, y)) but with no extra memory
               // allocations or interface/function call overhead.
               //
               // The multiplier m combines 0x101 (which converts
@@ -485,7 +475,7 @@ fn write_image(
     }
 
     // Apply the filter.
-    // Skip filter for NoCompression and paletted images (cbP8) as
+    // Skip filter for paletted images (cbP8) as
     // "filters are rarely useful on palette images" and will result
     // in larger files (see http://www.libpng.org/pub/png/book/chapter09.html).
     let mut f = FT_NONE
@@ -522,18 +512,12 @@ fn write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
   }
-  // if self.bw == None {
-  // self.bw = WriterSize::new(self, 1 << 15)
-  self.bw = @io.Buffer::new()
-  // } else {
-  // 	self.bw.Reset(e)
-  // }
-  self.err = self.write_image(self.bw, self.m, self.cb)
+  let bw = @io.Buffer::new()
+  self.err = self.write_image(bw, self.m, self.cb)
   if self.err != None {
     return
   }
-  // self.err = self.bw.flush()
-  let (_, err) = self.write(self.bw.to_slice())
+  let (_, err) = self.write(bw.to_slice())
   self.err = err
 }
 
@@ -562,8 +546,6 @@ pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   //
   self.w = w
   self.m = m
-
-  //
   let pal = m.color_model().get_palette()
   match m.color_model().name() {
     "Paletted" => {
