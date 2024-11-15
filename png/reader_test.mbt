@@ -12,7 +12,7 @@ typealias Slice[T] = @io.Slice[T]
 type! TestError String derive(Show)
 
 // header copied here to enable black-box testing.
-const HEADER = b"\x89PNG\r\n\x1a\n"
+let header = b"\x89PNG\r\n\x1a\n"
 
 test "incomplete idat on row boundary" {
   // The following is an invalid 1x2 grayscale PNG image. The header is OK,
@@ -22,7 +22,7 @@ test "incomplete idat on row boundary" {
   let idat = b"\x00\x00\x00\x0eIDAT\x78\x9c\x62\x62\x00\x04\x00\x00\xff\xff\x00\x06\x00\x03\xfa\xd0\x59\xae"
   let iend = b"\x00\x00\x00\x00IEND\xae\x42\x60\x82"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(HEADER)
+  guard let (_, None) = data.write_bytes(header)
   guard let (_, None) = data.write_bytes(ihdr)
   guard let (_, None) = data.write_bytes(idat)
   guard let (_, None) = data.write_bytes(iend)
@@ -42,7 +42,7 @@ test "training idat chunks" {
   let idat_zero = b"\x00\x00\x00\x00IDAT\x35\xaf\x06\x1e"
   let iend = b"\x00\x00\x00\x00IEND\xae\x42\x60\x82"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(HEADER)
+  guard let (_, None) = data.write_bytes(header)
   guard let (_, None) = data.write_bytes(ihdr)
   guard let (_, None) = data.write_bytes(idat_white)
   guard let (_, None) = data.write_bytes(idat_zero)
@@ -58,7 +58,7 @@ test "training idat chunks" {
   // The following chunk contains a single pixel with color.Gray{0}.
   let idat_black = b"\x00\x00\x00\x0eIDAT\x78\x9c\x62\x62\x00\x04\x00\x00\xff\xff\x00\x06\x00\x03\xfa\xd0\x59\xae"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(HEADER)
+  guard let (_, None) = data.write_bytes(header)
   guard let (_, None) = data.write_bytes(ihdr)
   guard let (_, None) = data.write_bytes(idat_white)
   guard let (_, None) = data.write_bytes(idat_black)
@@ -93,7 +93,7 @@ test "multiple rns chunks" {
   //
   for i = 0; i < 4; i = i + 1 {
     let data = @io.Buffer::new()
-    guard let (_, None) = data.write_bytes(HEADER)
+    guard let (_, None) = data.write_bytes(header)
     guard let (_, None) = data.write_bytes(ihdr)
     guard let (_, None) = data.write_bytes(plte)
     for j = 0; j < i; j = j + 1 {

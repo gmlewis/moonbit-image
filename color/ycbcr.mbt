@@ -167,7 +167,7 @@ pub fn y_cb_cr_to_rgb(y : Byte, cb : Byte, cr : Byte) -> (Byte, Byte, Byte) {
 /// Conversion between RGB and Y'CbCr is lossy and there are multiple, slightly
 /// different formulae for converting between the two. This package follows
 /// the JFIF specification at https://www.w3.org/Graphics/JPEG/jfif3.pdf.
-pub struct YCbCr {
+pub(all) struct YCbCr {
   y : Byte
   cb : Byte
   cr : Byte
@@ -256,7 +256,7 @@ fn y_cb_cr_model_fn(c : Color) -> Color {
 
 /// NYCbCrA represents a non-alpha-premultiplied Y'CbCr-with-alpha color, having
 /// 8 bits each for one luma, two chroma and one alpha component.
-pub struct NYCbCrA {
+pub(all) struct NYCbCrA {
   y : Byte
   cb : Byte
   cr : Byte
@@ -392,7 +392,7 @@ pub fn cmyk_to_rgb(
 /// magenta, yellow and black.
 ///
 /// It is not associated with any particular color profile.
-pub struct CMYK {
+pub(all) struct CMYK {
   c : Byte
   m : Byte
   y : Byte

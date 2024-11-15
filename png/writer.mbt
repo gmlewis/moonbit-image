@@ -572,7 +572,7 @@ pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   }
 
   //
-  let (_, err) = w.write(Slice::new(HEADER.to_array()))
+  let (_, err) = w.write(Slice::new(header.to_array()))
   self.err = err
   if err != None {
     return self.err

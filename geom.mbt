@@ -6,7 +6,7 @@
 // license that can be found in the LICENSE file.
 
 // A Point is an X, Y coordinate pair. The axes increase right and down.
-pub struct Point {
+pub(all) struct Point {
   mut x : Int
   mut y : Int
 }
@@ -75,7 +75,7 @@ pub fn pt(x : Int, y : Int) -> Point {
 /// A Rectangle is also an [Image] whose bounds are the rectangle itself. At
 /// returns color.Opaque for points in the rectangle and color.Transparent
 /// otherwise.
-pub struct Rectangle {
+pub(all) struct Rectangle {
   min : Point
   max : Point
 }

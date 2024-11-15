@@ -46,7 +46,7 @@ pub fn op_equal(self : Color, o : Color) -> Bool {
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
 /// has valid values 0 <= C <= A.
-pub struct RGBA {
+pub(all) struct RGBA {
   r : Byte
   g : Byte
   b : Byte
@@ -78,7 +78,7 @@ pub fn rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
 /// has valid values 0 <= C <= A.
-pub struct RGBA64 {
+pub(all) struct RGBA64 {
   r : UInt // 16 bits
   g : UInt // 16 bits
   b : UInt // 16 bits
@@ -102,7 +102,7 @@ pub fn rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// NRGBA represents a non-alpha-premultiplied 32-bit color.
-pub struct NRGBA {
+pub(all) struct NRGBA {
   r : Byte
   g : Byte
   b : Byte
@@ -138,7 +138,7 @@ pub fn rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
 
 /// NRGBA64 represents a non-alpha-premultiplied 64-bit color,
 /// having 16 bits for each of red, green, blue and alpha.
-pub struct NRGBA64 {
+pub(all) struct NRGBA64 {
   r : UInt // 16 bits
   g : UInt // 16 bits
   b : UInt // 16 bits
@@ -165,7 +165,7 @@ pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// Alpha represents an 8-bit alpha color.
-pub struct Alpha {
+pub(all) struct Alpha {
   a : Byte
 } derive(Show, Eq)
 
@@ -188,7 +188,7 @@ pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// Alpha16 represents a 16-bit alpha color.
-pub struct Alpha16 {
+pub(all) struct Alpha16 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
@@ -209,7 +209,7 @@ pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// Gray represents an 8-bit grayscale color.
-pub struct Gray {
+pub(all) struct Gray {
   y : Byte
 } derive(Show, Eq)
 
@@ -232,7 +232,7 @@ pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
 }
 
 /// Gray16 represents a 16-bit grayscale color.
-pub struct Gray16 {
+pub(all) struct Gray16 {
   y : UInt // 16 bits
 } derive(Show, Eq)
 
@@ -465,7 +465,7 @@ pub fn Gray16::from(c : Color) -> Gray16 {
 typealias Slice[T] = @io.Slice[T]
 
 /// Palette is a palette of colors and satisfies the Model trait.
-pub type Palette Slice[Color]
+pub(all) type Palette Slice[Color]
 
 let _trait : Model = Palette::new(0)
 
@@ -507,7 +507,7 @@ pub fn length(self : Palette) -> Int {
   self._.length()
 }
 
-pub fn op_as_view(self : Palette, ~start : Int, ~end : Int) -> Palette {
+pub fn op_as_view(self : Palette, start~ : Int, end~ : Int) -> Palette {
   self._[start:end]
 }
 

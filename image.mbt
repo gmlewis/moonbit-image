@@ -27,7 +27,7 @@
 typealias Slice[T] = @io.Slice[T]
 
 /// Config holds an image's color model and dimensions.
-pub struct Config {
+pub(all) struct Config {
   color_model : @color.Model
   width : Int
   height : Int
@@ -109,7 +109,7 @@ fn pixel_buffer_length(
 }
 
 /// RGBA is an in-memory image whose At method returns [color.RGBA] values.
-pub struct RGBA {
+pub(all) struct RGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
@@ -271,7 +271,7 @@ pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
 }
 
 // RGBA64 is an in-memory image whose At method returns [color.RGBA64] values.
-pub struct RGBA64 {
+pub(all) struct RGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
@@ -413,7 +413,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
 }
 
 // NRGBA is an in-memory image whose At method returns [color.NRGBA] values.
-pub struct NRGBA {
+pub(all) struct NRGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
@@ -572,7 +572,7 @@ pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
 }
 
 // NRGBA64 is an in-memory image whose At method returns [color.NRGBA64] values.
-pub struct NRGBA64 {
+pub(all) struct NRGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
@@ -747,7 +747,7 @@ pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
 }
 
 // Alpha is an in-memory image whose At method returns [color.Alpha] values.
-pub struct Alpha {
+pub(all) struct Alpha {
   // pix holds the image's pixels, as alpha values. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
@@ -885,7 +885,7 @@ pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
 }
 
 // Alpha16 is an in-memory image whose At method returns [color.Alpha16] values.
-pub struct Alpha16 {
+pub(all) struct Alpha16 {
   // pix holds the image's pixels, as alpha values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
@@ -1031,7 +1031,7 @@ pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
 }
 
 // Gray is an in-memory image whose At method returns [color.Gray] values.
-pub struct Gray {
+pub(all) struct Gray {
   // pix holds the image's pixels, as gray values. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
@@ -1157,7 +1157,7 @@ pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
 }
 
 // Gray16 is an in-memory image whose At method returns [color.Gray16] values.
-pub struct Gray16 {
+pub(all) struct Gray16 {
   // pix holds the image's pixels, as gray values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
@@ -1286,7 +1286,7 @@ pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
 }
 
 // CMYK is an in-memory image whose At method returns [color.CMYK] values.
-pub struct CMYK {
+pub(all) struct CMYK {
   // pix holds the image's pixels, in C, M, Y, K order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
@@ -1424,7 +1424,7 @@ pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
 }
 
 // Paletted is an in-memory image of Byte indices into a given palette.
-pub struct Paletted {
+pub(all) struct Paletted {
   // pix holds the image's pixels, as palette indices. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]

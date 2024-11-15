@@ -95,7 +95,7 @@ test "writer paletted" {
     //
     let chunk_fields_length = 12 // 4 bytes for length, name and crc
     let data = Slice::new(b.to_bytes().to_array())
-    i = HEADER.length()
+    i = header.length()
     while i < data.length() - chunk_fields_length {
       let length = be_uint32(data[i:i + 4]).reinterpret_as_int()
       let chunk = be_uint32(data[i + 4:i + 8])
