@@ -135,8 +135,32 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
   b[3].to_uint()
 }
 
+// moon test --target js --package "gmlewis/image/png" --file "writer_test.mbt" --index 1
+// func Testsub_image(t *testing.T) {
+test "small sub_image" {
+  println("=== RUN   TestSmallSubImage")
+  let mut m0 : @image.Image = @image.RGBA::new!(@image.rect(0, 0, 25, 25))
+  for y = 0; y < 25; y = y + 1 {
+    for x = 0; x < 25; x = x + 1 {
+      m0.set(x, y, @color.RGBA::new(x.to_byte(), y.to_byte(), 0, 255))
+    }
+  }
+  m0 = m0.sub_image(@image.rect(5, 3, 25, 13)) // .(*image.RGBA)
+  let (m1, err) = encode_decode(m0)
+  match err {
+    Some(e) => raise TestError("encode_decode: \{e}")
+    _ => ()
+  }
+  let err = diff(m0, m1)
+  match err {
+    Some(e) => raise TestError("diff: \{e}")
+    _ => ()
+  }
+}
+
 // func Testsub_image(t *testing.T) {
 test "sub_image" {
+  println("=== RUN   TestSubImage")
   let mut m0 : @image.Image = @image.RGBA::new!(@image.rect(0, 0, 256, 256))
   for y = 0; y < 256; y = y + 1 {
     for x = 0; x < 256; x = x + 1 {

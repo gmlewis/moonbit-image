@@ -259,6 +259,7 @@ pub fn sub_image(self : RGBA, r : Rectangle) -> Image {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 pub fn opaque(self : RGBA) -> Bool {
+  println("GML: ENTER opaque(m image.Image) bool {")
   if self.rect.empty() {
     return true
   }

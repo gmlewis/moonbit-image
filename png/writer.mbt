@@ -45,8 +45,10 @@ fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
 // The absolute value of a byte interpreted as a signed int8.
 fn abs8(d : Byte) -> Int {
   if d < 128 {
+    gmldbg("GML: abs8(\{d.to_int()})=\{d.to_int()}")
     return d.to_int()
   }
+  gmldbg("GML: abs8(\{d.to_int()})=\{256-d.to_int()}")
   256 - d.to_int()
 }
 
@@ -58,6 +60,9 @@ fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
 }
 
 fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
+  gmldbg(
+    "GML: ENTER (e *encoder) writeChunk(b (\{b.length()} bytes), name='\{Char::from_int(name[0].to_int())}\{Char::from_int(name[1].to_int())}\{Char::from_int(name[2].to_int())}\{Char::from_int(name[3].to_int())}') {",
+  )
   if self.err != None {
     return
   }
@@ -92,6 +97,7 @@ fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
 }
 
 fn write_ihdr(self : Encoder) -> Unit {
+  gmldbg("GML: ENTER (e *encoder) writeIHDR() {")
   let b = self.m.bounds()
   be_put_uint32(self.tmp[0:4], b.dx().reinterpret_as_uint())
   be_put_uint32(self.tmp[4:8], b.dy().reinterpret_as_uint())
@@ -174,6 +180,9 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
 // This method should only be called from write_idats (via write_image).
 // No other code should treat an Encoder as an io.Writer.
 pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
+  gmldbg(
+    "GML: ENTER (e *encoder) Write(b (\{b.length()} bytes)) (int, error) {",
+  )
   self.write_chunk(b, b"IDAT")
   if self.err != None {
     return (0, self.err)
@@ -184,6 +193,7 @@ pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
 // Chooses the filter to use for encoding the current row, and applies it.
 // The return value is the index of the filter and also of the row in cr that has had it applied.
 fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
+  gmldbg("GML: ENTER filter(cr *[nFilter][]byte, pr []byte, bpp int) int {")
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
   // This is the same heuristic that libpng uses, although the filters are attempted in order of
   // estimated most likely to be minimal (ftUp, ftPaeth, ftNone, ftSub, ftAverage), rather than
@@ -281,6 +291,9 @@ fn write_image(
   cb : Int
   // level : Int
 ) -> IOError? {
+  gmldbg(
+    "GML: ENTER (e *encoder) writeImage(w io.Writer, m image.Image, cb int, level int) error {",
+  )
   let zw = @zlib.Writer::new(w)
   let mut bits_per_pixel = 0
   match cb {
@@ -519,6 +532,7 @@ fn clear_slice(b : Slice[Byte]) -> Unit {
 
 // Write the actual image data to one or more IDAT chunks.
 fn write_idats(self : Encoder) -> Unit {
+  gmldbg("GML: ENTER (e *encoder) writeIDATs() {")
   if self.err != None {
     return
   }
@@ -529,10 +543,12 @@ fn write_idats(self : Encoder) -> Unit {
   // 	self.bw.Reset(e)
   // }
   self.err = self.write_image(self.bw, self.m, self.cb)
-  // if self.err != None {
-  //   return
-  // }
+  if self.err != None {
+    return
+  }
   // self.err = self.bw.flush()
+  let (_, err) = self.write(self.bw.to_slice())
+  self.err = err
 }
 
 fn write_iend(self : Encoder) -> Unit {
@@ -542,12 +558,14 @@ fn write_iend(self : Encoder) -> Unit {
 // Encode writes the Image m to w in PNG format. Any Image may be
 // encoded, but images that are not [image.NRGBA] might be encoded lossily.
 pub fn encode(w : @io.Writer, m : @image.Image) -> IOError? {
+  gmldbg("GML: ENTER Encode(w io.Writer, m image.Image) error {")
   let e = Encoder::new(w, m)
   e.enc(w, m)
 }
 
 // enc writes the Image m to w in PNG format.
 pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
+  gmldbg("GML: ENTER (enc *Encoder) Encode(w io.Writer, m image.Image) error {")
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are
   // also rejected.
