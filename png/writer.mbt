@@ -60,7 +60,9 @@ fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   let n = b.length().reinterpret_as_uint()
   if n.reinterpret_as_int() != b.length() {
     self.err = Some(
-      unsupported_error("\{name} chunk is too large: \{b.length()}"),
+      unsupported_error(
+        "\{name.to_unchecked_string()} chunk is too large: \{b.length()}",
+      ),
     )
     return
   }
