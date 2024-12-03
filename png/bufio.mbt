@@ -1,4 +1,4 @@
-/// This file is based on the Go implementation found here:
+///| This file is based on the Go implementation found here:
 /// https://cs.opensource.google/go/go/+/refs/tags/go1.23.3:src/bufio.go
 /// which has the copyright notice:
 /// Copyright 2009 The Go Authors. All rights reserved.
@@ -8,10 +8,10 @@
 /// Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer
 /// object, creating another object (Reader or Writer) that also implements
 /// the interface but provides buffering and some help for textual I/O.
-
 const DEFAULT_BUF_SIZE = 4096
 
 // ReaderSize implements buffering for an io.Reader object.
+///|
 struct ReaderSize {
   mut buf : Slice[Byte]
   // reader provided by the client
@@ -22,13 +22,16 @@ struct ReaderSize {
   mut err : IOError?
 }
 
+///|
 const MIN_READ_BUFFER_SIZE = 16
 
+///|
 const MAX_CONSECUTIVE_EMPTY_READS = 100
 
 // `ReaderSize::new` returns a new [Reader] whose buffer has at least the specified
 // size. If the argument io.Reader is already a [Reader] with large enough
 // size, it returns the underlying [Reader].
+///|
 fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
   // Is it already a Reader?
   // b, ok := rd.(*Reader)
@@ -44,16 +47,19 @@ fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
   r
 }
 
+///|
 fn reset_buf(self : ReaderSize, buf : Slice[Byte], r : @io.Reader) -> Unit {
   self.buf = buf
   self.rd = r
 }
 
+///|
 pub let err_negative_read : IOError = IOError(
   "bufio: reader returned negative count from read",
 )
 
 // fill reads a new chunk into the buffer.
+///|
 fn fill(self : ReaderSize) -> IOError? {
   // Slide existing data to beginning.
   if self.r > 0 {
@@ -83,6 +89,7 @@ fn fill(self : ReaderSize) -> IOError? {
   Some(@io.err_no_progress)
 }
 
+///|
 fn read_err(self : ReaderSize) -> IOError? {
   let err = self.err
   self.err = None
@@ -96,6 +103,7 @@ fn read_err(self : ReaderSize) -> IOError? {
 // To read exactly len(p) bytes, use io.ReadFull(b, p).
 // If the underlying [Reader] can return a non-zero count with io.EOF,
 // then this Read method can do so as well; see the [io.Reader] docs.
+///|
 fn read(self : ReaderSize, p : Slice[Byte]) -> (Int, IOError?) {
   let mut n = p.length()
   if n == 0 {
@@ -145,6 +153,7 @@ fn read(self : ReaderSize, p : Slice[Byte]) -> (Int, IOError?) {
 
 // read_byte reads and returns a single byte.
 // If no byte is available, returns an error.
+///|
 fn read_byte(self : ReaderSize) -> (Byte, IOError?) {
   // self.lastRuneSize = -1
   while self.r == self.w {
@@ -159,6 +168,7 @@ fn read_byte(self : ReaderSize) -> (Byte, IOError?) {
 }
 
 // Buffered returns the number of bytes that can be read from the current buffer.
+///|
 fn buffered(self : ReaderSize) -> Int {
   self.w - self.r
 }

@@ -7,11 +7,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+///|
 typealias Slice[T] = @io.Slice[T]
 
+///|
 type! TestError String derive(Show)
 
 // header copied here to enable black-box testing.
+///|
 let header = b"\x89PNG\r\n\x1a\n"
 
 test "incomplete idat on row boundary" {
@@ -220,6 +223,7 @@ test "gray 8 transparent" {
   }
 }
 
+///|
 struct TestCase {
   src : Array[Int]
   unsupported_config : Bool
@@ -227,6 +231,7 @@ struct TestCase {
   height : Int
 }
 
+///|
 let test_cases : Array[TestCase] = [
   // These bytes come from https://golang.org/issues/22304
   //

@@ -1,4 +1,4 @@
-/// This file is based on the Go implementation found here:
+///| This file is based on the Go implementation found here:
 /// https://cs.opensource.google/go/go/+/refs/tags/go1.23.3:src/image/image.go
 /// which has the copyright notice:
 /// Copyright 2009 The Go Authors. All rights reserved.
@@ -23,21 +23,21 @@
 /// [DecodeConfig] which returns a header which does not match the image returned
 /// by [Decode] may be considered a security issue, and should be reported per the
 /// [Go Security Policy](https://go.dev/security/policy).
-
 typealias Slice[T] = @io.Slice[T]
 
-/// Config holds an image's color model and dimensions.
+///| Config holds an image's color model and dimensions.
 pub(all) struct Config {
   color_model : @color.Model
   width : Int
   height : Int
 }
 
+///|
 pub fn Config::new_empty() -> Config {
   { color_model: @color.rgba_model, width: 0, height: 0 }
 }
 
-/// Image is a finite rectangular grid of [color.Color] values taken from a color
+///| Image is a finite rectangular grid of [color.Color] values taken from a color
 /// model.
 pub(open) trait Image {
   /// color_model returns the Image's color model.
@@ -66,15 +66,17 @@ pub(open) trait Image {
   color_index_at(Self, Int, Int) -> Byte
 }
 
+///|
 pub fn Image::new_empty() -> Image {
   RGBA::new_empty()
 }
 
+///|
 pub fn empty(self : Image) -> Bool {
   self.bounds().empty()
 }
 
-/// RGBA64Image is an [Image] whose pixels can be converted directly to a
+///| RGBA64Image is an [Image] whose pixels can be converted directly to a
 /// color.RGBA64.
 pub(open) trait RGBA64Image {
   /// rgba64_at returns the RGBA64 color of the pixel at (x, y). It is
@@ -88,12 +90,14 @@ pub(open) trait RGBA64Image {
   at(Self, Int, Int) -> @color.Color
 }
 
+///|
 type! SizeError String derive(Show, Eq)
 
 // pixel_buffer_length returns the length of the Slice[Byte] typed pix slice field
 // for the Xxx::new functions. Conceptually, this is just (bpp * width * height),
 // but this function panics if at least one of those is negative or if the
 // computation would overflow the int type.
+///|
 fn pixel_buffer_length(
   bytes_per_pixel : Int,
   r : Rectangle,
@@ -108,7 +112,7 @@ fn pixel_buffer_length(
   return total_length
 }
 
-/// RGBA is an in-memory image whose At method returns [color.RGBA] values.
+///| RGBA is an in-memory image whose At method returns [color.RGBA] values.
 pub(all) struct RGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
@@ -119,42 +123,52 @@ pub(all) struct RGBA {
   rect : Rectangle
 }
 
+///|
 pub fn RGBA::new_empty() -> RGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : RGBA) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : RGBA) -> Int {
   4
 }
 
+///|
 pub fn get_stride(self : RGBA) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : RGBA, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : RGBA) -> @color.Model {
   @color.rgba_model
 }
 
+///|
 pub fn bounds(self : RGBA) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : RGBA, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : RGBA, x : Int, y : Int) -> @color.Color {
   self.rgba_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.RGBA64::new(0, 0, 0, 0)
@@ -171,6 +185,7 @@ pub fn rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
   @color.RGBA64::new(r, g, b, a)
 }
 
+///|
 pub fn rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.RGBA::new(0, 0, 0, 0)
@@ -186,14 +201,17 @@ pub fn rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : RGBA, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
+///|
 pub fn op_set(self : RGBA, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : RGBA, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -206,6 +224,7 @@ pub fn set(self : RGBA, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 3] = (a >> 8).to_byte()
 }
 
+///|
 pub fn set_rgba64(self : RGBA, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -217,6 +236,7 @@ pub fn set_rgba64(self : RGBA, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 3] = (c.a >> 8).to_byte()
 }
 
+///|
 pub fn set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -228,7 +248,7 @@ pub fn set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
   self.pix[i + 3] = c.a
 }
 
-/// sub_image returns an image representing the portion of the image p visible
+///| sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
 pub fn sub_image(self : RGBA, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
@@ -243,6 +263,7 @@ pub fn sub_image(self : RGBA, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : RGBA) -> Bool {
   if self.rect.empty() {
     return true
@@ -262,6 +283,7 @@ pub fn opaque(self : RGBA) -> Bool {
 }
 
 // RGBA::new returns a new [RGBA] image with the given bounds.
+///|
 pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "RGBA"), b'\x00')),
@@ -271,6 +293,7 @@ pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
 }
 
 // RGBA64 is an in-memory image whose At method returns [color.RGBA64] values.
+///|
 pub(all) struct RGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
@@ -281,42 +304,52 @@ pub(all) struct RGBA64 {
   rect : Rectangle
 }
 
+///|
 pub fn RGBA64::new_empty() -> RGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : RGBA64) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : RGBA64) -> Int {
   8
 }
 
+///|
 pub fn get_stride(self : RGBA64) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : RGBA64, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : RGBA64) -> @color.Model {
   @color.rgba64_model
 }
 
+///|
 pub fn bounds(self : RGBA64) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : RGBA64, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : RGBA64, x : Int, y : Int) -> @color.Color {
   self.rgba64_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.RGBA64::new(0, 0, 0, 0)
@@ -331,14 +364,17 @@ pub fn rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : RGBA64, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 8
 }
 
+///|
 pub fn op_set(self : RGBA64, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : RGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -355,6 +391,7 @@ pub fn set(self : RGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 7] = a.to_byte()
 }
 
+///|
 pub fn set_rgba64(self : RGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -372,6 +409,7 @@ pub fn set_rgba64(self : RGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : RGBA64, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -385,6 +423,7 @@ pub fn sub_image(self : RGBA64, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : RGBA64) -> Bool {
   if self.rect.empty() {
     return true
@@ -404,6 +443,7 @@ pub fn opaque(self : RGBA64) -> Bool {
 }
 
 // RGBA64::new returns a new [RGBA64] image with the given bounds.
+///|
 pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "RGBA64"), b'\x00')),
@@ -413,6 +453,7 @@ pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
 }
 
 // NRGBA is an in-memory image whose At method returns [color.NRGBA] values.
+///|
 pub(all) struct NRGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
@@ -423,47 +464,58 @@ pub(all) struct NRGBA {
   rect : Rectangle
 }
 
+///|
 pub fn NRGBA::new_empty() -> NRGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : NRGBA) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : NRGBA) -> Int {
   4
 }
 
+///|
 pub fn get_stride(self : NRGBA) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : NRGBA, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : NRGBA) -> @color.Model {
   @color.nrgba_model
 }
 
+///|
 pub fn bounds(self : NRGBA) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : NRGBA, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : NRGBA, x : Int, y : Int) -> @color.Color {
   self.nrgba_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : NRGBA, x : Int, y : Int) -> @color.RGBA64 {
   let (r, g, b, a) = self.nrgba_at(x, y).rgba()
   @color.RGBA64::new(r, g, b, a)
 }
 
+///|
 pub fn nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.NRGBA::new(0, 0, 0, 0)
@@ -479,14 +531,17 @@ pub fn nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : NRGBA, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
+///|
 pub fn op_set(self : NRGBA, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : NRGBA, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -499,6 +554,7 @@ pub fn set(self : NRGBA, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 3] = a
 }
 
+///|
 pub fn set_rgba64(self : NRGBA, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -518,6 +574,7 @@ pub fn set_rgba64(self : NRGBA, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 3] = (c.a >> 8).to_byte()
 }
 
+///|
 pub fn set_nrgba(self : NRGBA, x : Int, y : Int, c : @color.NRGBA) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -531,6 +588,7 @@ pub fn set_nrgba(self : NRGBA, x : Int, y : Int, c : @color.NRGBA) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : NRGBA, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -544,6 +602,7 @@ pub fn sub_image(self : NRGBA, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : NRGBA) -> Bool {
   if self.rect.empty() {
     return true
@@ -563,6 +622,7 @@ pub fn opaque(self : NRGBA) -> Bool {
 }
 
 // NRGBA::new returns a new [NRGBA] image with the given bounds.
+///|
 pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "NRGBA"), b'\x00')),
@@ -572,6 +632,7 @@ pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
 }
 
 // NRGBA64 is an in-memory image whose At method returns [color.NRGBA64] values.
+///|
 pub(all) struct NRGBA64 {
   // pix holds the image's pixels, in R, G, B, A order and big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
@@ -582,47 +643,58 @@ pub(all) struct NRGBA64 {
   rect : Rectangle
 }
 
+///|
 pub fn NRGBA64::new_empty() -> NRGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : NRGBA64) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : NRGBA64) -> Int {
   8
 }
 
+///|
 pub fn get_stride(self : NRGBA64) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : NRGBA64, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : NRGBA64) -> @color.Model {
   @color.nrgba64_model
 }
 
+///|
 pub fn bounds(self : NRGBA64) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : NRGBA64, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : NRGBA64, x : Int, y : Int) -> @color.Color {
   self.nrgba64_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.RGBA64 {
   let (r, g, b, a) = self.nrgba64_at(x, y).rgba()
   @color.RGBA64::new(r, g, b, a)
 }
 
+///|
 pub fn nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.NRGBA64::new(0, 0, 0, 0)
@@ -637,14 +709,17 @@ pub fn nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : NRGBA64, x : Int, y : Int) -> Int {
   return (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 8
 }
 
+///|
 pub fn op_set(self : NRGBA64, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : NRGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -661,6 +736,7 @@ pub fn set(self : NRGBA64, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 7] = a.to_byte()
 }
 
+///|
 pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -684,6 +760,7 @@ pub fn set_rgba64(self : NRGBA64, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 7] = c.a.to_byte()
 }
 
+///|
 pub fn set_nrgba64(
   self : NRGBA64,
   x : Int,
@@ -706,6 +783,7 @@ pub fn set_nrgba64(
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : NRGBA64, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -719,6 +797,7 @@ pub fn sub_image(self : NRGBA64, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : NRGBA64) -> Bool {
   if self.rect.empty() {
     return true
@@ -738,6 +817,7 @@ pub fn opaque(self : NRGBA64) -> Bool {
 }
 
 // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
+///|
 pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "NRGBA64"), b'\x00')),
@@ -747,6 +827,7 @@ pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
 }
 
 // Alpha is an in-memory image whose At method returns [color.Alpha] values.
+///|
 pub(all) struct Alpha {
   // pix holds the image's pixels, as alpha values. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
@@ -757,48 +838,59 @@ pub(all) struct Alpha {
   rect : Rectangle
 }
 
+///|
 pub fn Alpha::new_empty() -> Alpha {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : Alpha) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : Alpha) -> Int {
   1
 }
 
+///|
 pub fn get_stride(self : Alpha) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : Alpha, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : Alpha) -> @color.Model {
   @color.alpha_model
 }
 
+///|
 pub fn bounds(self : Alpha) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : Alpha, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : Alpha, x : Int, y : Int) -> @color.Color {
   self.alpha_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
   let mut a = self.alpha_at(x, y).a.to_uint()
   a = a | (a << 8)
   { r: a, g: a, b: a, a }
 }
 
+///|
 pub fn alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Alpha::new(0)
@@ -809,14 +901,17 @@ pub fn alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : Alpha, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
+///|
 pub fn op_set(self : Alpha, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : Alpha, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -826,6 +921,7 @@ pub fn set(self : Alpha, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i] = a
 }
 
+///|
 pub fn set_rgba64(self : Alpha, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -834,6 +930,7 @@ pub fn set_rgba64(self : Alpha, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i] = (c.a >> 8).to_byte()
 }
 
+///|
 pub fn set_alpha(self : Alpha, x : Int, y : Int, c : @color.Alpha) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -844,6 +941,7 @@ pub fn set_alpha(self : Alpha, x : Int, y : Int, c : @color.Alpha) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : Alpha, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -857,6 +955,7 @@ pub fn sub_image(self : Alpha, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : Alpha) -> Bool {
   if self.rect.empty() {
     return true
@@ -876,6 +975,7 @@ pub fn opaque(self : Alpha) -> Bool {
 }
 
 // Alpha::new returns a new [Alpha] image with the given bounds.
+///|
 pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Alpha"), b'\x00')),
@@ -885,6 +985,7 @@ pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
 }
 
 // Alpha16 is an in-memory image whose At method returns [color.Alpha16] values.
+///|
 pub(all) struct Alpha16 {
   // pix holds the image's pixels, as alpha values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
@@ -895,47 +996,58 @@ pub(all) struct Alpha16 {
   rect : Rectangle
 }
 
+///|
 pub fn Alpha16::new_empty() -> Alpha16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : Alpha16) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : Alpha16) -> Int {
   2
 }
 
+///|
 pub fn get_stride(self : Alpha16) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : Alpha16, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : Alpha16) -> @color.Model {
   @color.alpha16_model
 }
 
+///|
 pub fn bounds(self : Alpha16) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : Alpha16, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : Alpha16, x : Int, y : Int) -> @color.Color {
   self.alpha16_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : Alpha16, x : Int, y : Int) -> @color.RGBA64 {
   let a = self.alpha16_at(x, y).a
   { r: a, g: a, b: a, a }
 }
 
+///|
 pub fn alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Alpha16::new(0)
@@ -947,14 +1059,17 @@ pub fn alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : Alpha16, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 2
 }
 
+///|
 pub fn op_set(self : Alpha16, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : Alpha16, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -965,6 +1080,7 @@ pub fn set(self : Alpha16, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 1] = a.to_byte()
 }
 
+///|
 pub fn set_rgba64(self : Alpha16, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -974,6 +1090,7 @@ pub fn set_rgba64(self : Alpha16, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 1] = c.a.to_byte()
 }
 
+///|
 pub fn set_alpha16(
   self : Alpha16,
   x : Int,
@@ -990,6 +1107,7 @@ pub fn set_alpha16(
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : Alpha16, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -1003,6 +1121,7 @@ pub fn sub_image(self : Alpha16, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : Alpha16) -> Bool {
   if self.rect.empty() {
     return true
@@ -1022,6 +1141,7 @@ pub fn opaque(self : Alpha16) -> Bool {
 }
 
 // Alpha16::new returns a new [Alpha16] image with the given bounds.
+///|
 pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Alpha16"), b'\x00')),
@@ -1031,6 +1151,7 @@ pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
 }
 
 // Gray is an in-memory image whose At method returns [color.Gray] values.
+///|
 pub(all) struct Gray {
   // pix holds the image's pixels, as gray values. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
@@ -1041,48 +1162,59 @@ pub(all) struct Gray {
   rect : Rectangle
 }
 
+///|
 pub fn Gray::new_empty() -> Gray {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : Gray) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : Gray) -> Int {
   1
 }
 
+///|
 pub fn get_stride(self : Gray) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : Gray, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : Gray) -> @color.Model {
   @color.gray_model
 }
 
+///|
 pub fn bounds(self : Gray) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : Gray, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : Gray, x : Int, y : Int) -> @color.Color {
   self.gray_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : Gray, x : Int, y : Int) -> @color.RGBA64 {
   let mut gray = self.gray_at(x, y).y.to_uint()
   gray = gray | (gray << 8)
   { r: gray, g: gray, b: gray, a: 0xffff }
 }
 
+///|
 pub fn gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Gray::new(0)
@@ -1093,14 +1225,17 @@ pub fn gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : Gray, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
+///|
 pub fn op_set(self : Gray, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : Gray, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1110,6 +1245,7 @@ pub fn set(self : Gray, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i] = y
 }
 
+///|
 pub fn set_rgba64(self : Gray, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1120,6 +1256,7 @@ pub fn set_rgba64(self : Gray, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i] = gray.to_byte()
 }
 
+///|
 pub fn set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1130,6 +1267,7 @@ pub fn set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : Gray, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -1143,11 +1281,13 @@ pub fn sub_image(self : Gray, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : Gray) -> Bool {
   true
 }
 
 // Gray::new returns a new [Gray] image with the given bounds.
+///|
 pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Gray"), b'\x00')),
@@ -1157,6 +1297,7 @@ pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
 }
 
 // Gray16 is an in-memory image whose At method returns [color.Gray16] values.
+///|
 pub(all) struct Gray16 {
   // pix holds the image's pixels, as gray values in big-endian format. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
@@ -1167,47 +1308,58 @@ pub(all) struct Gray16 {
   rect : Rectangle
 }
 
+///|
 pub fn Gray16::new_empty() -> Gray16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : Gray16) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : Gray16) -> Int {
   2
 }
 
+///|
 pub fn get_stride(self : Gray16) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : Gray16, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : Gray16) -> @color.Model {
   @color.gray16_model
 }
 
+///|
 pub fn bounds(self : Gray16) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : Gray16, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : Gray16, x : Int, y : Int) -> @color.Color {
   self.gray16_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : Gray16, x : Int, y : Int) -> @color.RGBA64 {
   let gray = self.gray16_at(x, y).y
   { r: gray, g: gray, b: gray, a: 0xffff }
 }
 
+///|
 pub fn gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Gray16::new(0)
@@ -1219,14 +1371,17 @@ pub fn gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : Gray16, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 2
 }
 
+///|
 pub fn op_set(self : Gray16, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : Gray16, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1237,6 +1392,7 @@ pub fn set(self : Gray16, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 1] = y.to_byte()
 }
 
+///|
 pub fn set_rgba64(self : Gray16, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1248,6 +1404,7 @@ pub fn set_rgba64(self : Gray16, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 1] = gray.to_byte()
 }
 
+///|
 pub fn set_gray16(self : Gray16, x : Int, y : Int, c : @color.Gray16) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1259,6 +1416,7 @@ pub fn set_gray16(self : Gray16, x : Int, y : Int, c : @color.Gray16) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : Gray16, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -1272,11 +1430,13 @@ pub fn sub_image(self : Gray16, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : Gray16) -> Bool {
   true
 }
 
 // Gray16::new returns a new [Gray16] image with the given bounds.
+///|
 pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Gray16"), b'\x00')),
@@ -1286,6 +1446,7 @@ pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
 }
 
 // CMYK is an in-memory image whose At method returns [color.CMYK] values.
+///|
 pub(all) struct CMYK {
   // pix holds the image's pixels, in C, M, Y, K order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
@@ -1296,47 +1457,58 @@ pub(all) struct CMYK {
   rect : Rectangle
 }
 
+///|
 pub fn CMYK::new_empty() -> CMYK {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
 }
 
+///|
 pub fn raw_data(self : CMYK) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : CMYK) -> Int {
   4
 }
 
+///|
 pub fn get_stride(self : CMYK) -> Int {
   self.stride
 }
 
+///|
 pub fn color_index_at(self : CMYK, x : Int, y : Int) -> Byte {
   0
 }
 
+///|
 pub fn color_model(self : CMYK) -> @color.Model {
   @color.cmyk_model
 }
 
+///|
 pub fn bounds(self : CMYK) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : CMYK, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : CMYK, x : Int, y : Int) -> @color.Color {
   self.cmyk_at(x, y)
 }
 
+///|
 pub fn rgba64_at(self : CMYK, x : Int, y : Int) -> @color.RGBA64 {
   let (r, g, b, a) = self.cmyk_at(x, y).rgba()
   { r, g, b, a }
 }
 
+///|
 pub fn cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.CMYK::new(0, 0, 0, 0)
@@ -1352,10 +1524,12 @@ pub fn cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : CMYK, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
+///|
 pub fn set(self : CMYK, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1368,6 +1542,7 @@ pub fn set(self : CMYK, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i + 3] = k
 }
 
+///|
 pub fn set_rgba64(self : CMYK, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1384,6 +1559,7 @@ pub fn set_rgba64(self : CMYK, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   self.pix[i + 3] = kk
 }
 
+///|
 pub fn set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1397,6 +1573,7 @@ pub fn set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : CMYK, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -1410,11 +1587,13 @@ pub fn sub_image(self : CMYK, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : CMYK) -> Bool {
   true
 }
 
 // CMYK::new returns a new CMYK image with the given bounds.
+///|
 pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "CMYK"), b'\x00')),
@@ -1424,6 +1603,7 @@ pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
 }
 
 // Paletted is an in-memory image of Byte indices into a given palette.
+///|
 pub(all) struct Paletted {
   // pix holds the image's pixels, as palette indices. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
@@ -1436,30 +1616,37 @@ pub(all) struct Paletted {
   mut palette : @color.Palette
 }
 
+///|
 pub fn raw_data(self : Paletted) -> Slice[Byte] {
   self.pix
 }
 
+///|
 pub fn get_bytes_per_pixel(self : Paletted) -> Int {
   1
 }
 
+///|
 pub fn get_stride(self : Paletted) -> Int {
   self.stride
 }
 
+///|
 pub fn color_model(self : Paletted) -> @color.Model {
   self.palette
 }
 
+///|
 pub fn bounds(self : Paletted) -> Rectangle {
   self.rect
 }
 
+///|
 pub fn op_get(self : Paletted, p : Point) -> @color.Color {
   self.at(p.x, p.y)
 }
 
+///|
 pub fn at(self : Paletted, x : Int, y : Int) -> @color.Color {
   if self.palette._.length() == 0 {
     return @color.black // nil
@@ -1471,6 +1658,7 @@ pub fn at(self : Paletted, x : Int, y : Int) -> @color.Color {
   return self.palette._[self.pix[i].to_int()]
 }
 
+///|
 pub fn rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
   if self.palette._.length() == 0 {
     return @color.RGBA64::new(0, 0, 0, 0)
@@ -1488,14 +1676,17 @@ pub fn rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
 
 // pix_offset returns the index of the first element of pix that corresponds to
 // the pixel at (x, y).
+///|
 pub fn pix_offset(self : Paletted, x : Int, y : Int) -> Int {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
+///|
 pub fn op_set(self : Paletted, p : Point, c : @color.Color) -> Unit {
   self.set(p.x, p.y, c)
 }
 
+///|
 pub fn set(self : Paletted, x : Int, y : Int, c : @color.Color) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1504,6 +1695,7 @@ pub fn set(self : Paletted, x : Int, y : Int, c : @color.Color) -> Unit {
   self.pix[i] = self.palette.index(c).to_byte()
 }
 
+///|
 pub fn set_rgba64(self : Paletted, x : Int, y : Int, c : @color.RGBA64) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1512,6 +1704,7 @@ pub fn set_rgba64(self : Paletted, x : Int, y : Int, c : @color.RGBA64) -> Unit 
   self.pix[i] = self.palette.index(c).to_byte()
 }
 
+///|
 pub fn color_index_at(self : Paletted, x : Int, y : Int) -> Byte {
   if not(pt(x, y).is_in(self.rect)) {
     return 0
@@ -1520,6 +1713,7 @@ pub fn color_index_at(self : Paletted, x : Int, y : Int) -> Byte {
   self.pix[i]
 }
 
+///|
 pub fn set_color_index(self : Paletted, x : Int, y : Int, index : Byte) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1530,6 +1724,7 @@ pub fn set_color_index(self : Paletted, x : Int, y : Int, index : Byte) -> Unit 
 
 // sub_image returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
+///|
 pub fn sub_image(self : Paletted, r : Rectangle) -> Image {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
@@ -1553,6 +1748,7 @@ pub fn sub_image(self : Paletted, r : Rectangle) -> Image {
 }
 
 // opaque scans the entire image and reports whether it is fully opaque.
+///|
 pub fn opaque(self : Paletted) -> Bool {
   let present = Array::make(256, false)
   let mut i0 = 0
@@ -1578,6 +1774,7 @@ pub fn opaque(self : Paletted) -> Bool {
 
 // Paletted::new returns a new [Paletted] image with the given width, height and
 // palette.
+///|
 pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted!SizeError {
   {
     pix: Slice::new(
@@ -1589,6 +1786,7 @@ pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted!SizeError {
   }
 }
 
+///|
 pub fn Paletted::new_empty() -> Paletted {
   {
     pix: Slice::new([]),

@@ -1,4 +1,4 @@
-/// Package png implements a PNG image decoder and encoder.
+///| Package png implements a PNG image decoder and encoder.
 ///
 /// The PNG specification is at https://www.w3.org/TR/PNG/.
 ///
@@ -12,74 +12,104 @@
 // Color type, as per the PNG spec.
 const CT_GRAYSCALE = 0
 
+///|
 const CT_TRUE_COLOR = 2
 
+///|
 const CT_PALETTED = 3
 
+///|
 const CT_GRAYSCALE_ALPHA = 4
 
+///|
 const CT_TRUE_COLOR_ALPHA = 6
 
 // A cb is a combination of color type and bit depth.
+///|
 const CB_INVALID = 0
 
+///|
 const CB_G1 = 1
 
+///|
 const CB_G2 = 2
 
+///|
 const CB_G4 = 3
 
+///|
 const CB_G8 = 4
 
+///|
 const CB_GA8 = 5
 
+///|
 const CB_TC8 = 6
 
+///|
 const CB_P1 = 7
 
+///|
 const CB_P2 = 8
 
+///|
 const CB_P4 = 9
 
+///|
 const CB_P8 = 10
 
+///|
 const CB_TCA8 = 11
 
+///|
 const CB_G16 = 12
 
+///|
 const CB_GA16 = 13
 
+///|
 const CB_TC16 = 14
 
+///|
 const CB_TCA16 = 15
 
+///|
 fn cb_paletted(cb : Int) -> Bool {
   CB_P1 <= cb && cb <= CB_P8
 }
 
+///|
 fn cb_true_color(cb : Int) -> Bool {
   cb == CB_TC8 || cb == CB_TC16
 }
 
 // Filter type, as per the PNG spec.
+///|
 const FT_NONE = b'\x00'
 
+///|
 const FT_SUB = b'\x01'
 
+///|
 const FT_UP = b'\x02'
 
+///|
 const FT_AVERAGE = b'\x03'
 
+///|
 const FT_PAETH = b'\x04'
 
 // const N_FILTER = 5
 
 // Interlace type.
+///|
 const IT_NONE = b'\x00'
 
+///|
 const IT_ADAM7 = b'\x01'
 
 // InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
+///|
 struct InterlaceScan {
   x_factor : Int
   y_factor : Int
@@ -89,6 +119,7 @@ struct InterlaceScan {
 
 // interlacing defines Adam7 interlacing, with 7 passes of reduced images.
 // See https://www.w3.org/TR/PNG/#8Interlace
+///|
 let interlacing : Array[InterlaceScan] = [
   { x_factor: 8, y_factor: 8, x_offset: 0, y_offset: 0 },
   { x_factor: 8, y_factor: 8, x_offset: 4, y_offset: 0 },
@@ -105,20 +136,28 @@ let interlacing : Array[InterlaceScan] = [
 // multiple IDAT chunks, and IDAT chunks must be sequential (i.e. they may not
 // have any other chunks between them).
 // https://www.w3.org/TR/PNG/#5ChunkOrdering
+///|
 const DS_START = 0
 
+///|
 const DS_SEEN_IHDR = 1
 
+///|
 const DS_SEEN_PLTE = 2
 
+///|
 const DS_SEENT_RNS = 3
 
+///|
 const DS_SEEN_IDAT = 4
 
+///|
 const DS_SEEN_IEND = 5
 
+///|
 let header = b"\x89PNG\r\n\x1a\n"
 
+///|
 struct Decoder {
   r : @io.Reader
   mut img : @image.Image
@@ -139,12 +178,14 @@ struct Decoder {
   transparent : Slice[Byte] // [6]byte
 }
 
+///|
 fn read_byte(self : Decoder) -> (Byte, IOError?) {
   let b = Slice::new([b'\x00'])
   let (_, err) = self.r.read(b)
   (b[0], err)
 }
 
+///|
 fn Decoder::new(r : @io.Reader) -> Decoder {
   {
     r,
@@ -164,20 +205,25 @@ fn Decoder::new(r : @io.Reader) -> Decoder {
   }
 }
 
+///|
 typealias IOError = @io.IOError
 
 // A format_error reports that the input is not a valid PNG.
+///|
 fn format_error(e : String) -> IOError {
   IOError("png: invalid format: \{e}")
 }
 
+///|
 pub let chunk_order_error : IOError = format_error("chunk out of order")
 
 // An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
+///|
 fn unsupported_error(e : String) -> IOError {
   IOError("png: unsupported feature: \{e}")
 }
 
+///|
 fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if length != 13 {
     return Some(format_error("bad IHDR length"))
@@ -267,6 +313,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
+///|
 fn be_uint32(b : Slice[Byte]) -> UInt {
   (b[0].to_uint() << 24) |
   (b[1].to_uint() << 16) |
@@ -274,6 +321,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
   b[3].to_uint()
 }
 
+///|
 fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   let np = (length / 3).reinterpret_as_int() // The number of palette entries.
   if length % 3 != 0 || np <= 0 || np > 256 || np > (1 << self.depth) {
@@ -314,6 +362,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
+///|
 fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
   match self.cb {
     CB_G1 | CB_G2 | CB_G4 | CB_G8 | CB_G16 => {
@@ -386,6 +435,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
   return self.verify_checksum()
 }
 
+///|
 fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
   let n = @math.minimum(dst.length(), src.length())
   for i = 0; i < n; i = i + 1 {
@@ -403,6 +453,7 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
 // immediately before the first Read call is that d.r is positioned between the
 // first IDAT and xxx, and the decoder state immediately after the last Read
 // call is that d.r is positioned between yy and crc1.
+///|
 pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
   if p.length() == 0 {
     return (0, None)
@@ -439,6 +490,7 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 }
 
 // decode decodes the IDAT data into an image.
+///|
 fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
   let mut img = @image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
@@ -505,11 +557,13 @@ fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
   return (img, None)
 }
 
+///|
 fn size_error(e : @image.SizeError) -> IOError? {
   Some(format_error(e.to_string()))
 }
 
 // read_image_pass reads a single image pass, sized according to the pass number.
+///|
 fn read_image_pass(
   self : Decoder,
   r : @io.Reader,
@@ -1020,6 +1074,7 @@ fn read_image_pass(
 }
 
 // merge_pass_into merges a single pass into a full sized image.
+///|
 fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
   let dst_pix = dst.raw_data()
   let stride = dst.get_stride()
@@ -1042,6 +1097,7 @@ fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
   }
 }
 
+///|
 fn parse_idat(self : Decoder, length : UInt) -> IOError? {
   self.idat_length = length
   let (img, err) = self.decode_idat()
@@ -1052,6 +1108,7 @@ fn parse_idat(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
+///|
 fn parse_iend(self : Decoder, length : UInt) -> IOError? {
   if length != 0 {
     return Some(format_error("bad IEND length"))
@@ -1059,6 +1116,7 @@ fn parse_iend(self : Decoder, length : UInt) -> IOError? {
   self.verify_checksum()
 }
 
+///|
 fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   // Read the length and chunk type.
   let (_, err) = @io.read_full(self.r, self.tmp[:8])
@@ -1144,6 +1202,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   self.verify_checksum()
 }
 
+///|
 fn verify_checksum(self : Decoder) -> IOError? {
   let (_, err) = @io.read_full(self.r, self.tmp[:4])
   if err != None {
@@ -1155,6 +1214,7 @@ fn verify_checksum(self : Decoder) -> IOError? {
   None
 }
 
+///|
 fn check_header(self : Decoder) -> IOError? {
   let (_, err) = @io.read_full(self.r, self.tmp[:header.length()])
   if err != None {
@@ -1168,6 +1228,7 @@ fn check_header(self : Decoder) -> IOError? {
 
 // decode reads a PNG image from r and returns it as an [image.Image].
 // The type of Image returned depends on the PNG contents.
+///|
 pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()
@@ -1191,6 +1252,7 @@ pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
 
 // decode_config returns the color model and dimensions of a PNG image without
 // decoding the entire image.
+///|
 pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()

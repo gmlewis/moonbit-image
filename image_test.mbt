@@ -5,25 +5,32 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+///|
 typealias Slice[T] = @io.Slice[T]
 
+///|
 typealias Rectangle = @image.Rectangle
 
+///|
 typealias Image = @image.Image
 
+///|
 typealias SizeError = @image.SizeError
 
+///|
 fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
   let (r0, g0, b0, a0) = cm.convert(c0).rgba()
   let (r1, g1, b1, a1) = cm.convert(c1).rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
 }
 
+///|
 struct TestT {
   name : String
   image : () -> Image!SizeError
 }
 
+///|
 let test_images : Array[TestT] = [
   { name: "rgba", image: fn() { @image.RGBA::new!(@image.rect(0, 0, 10, 10)) } },
   {
@@ -123,12 +130,14 @@ test "image" {
   }
 }
 
+///|
 struct TestR {
   name : String
   f : (Rectangle) -> Image!SizeError
 }
 
 // call calls f(r) and reports whether it ran without raising an error.
+///|
 fn call(f : (Rectangle) -> Image!SizeError, r : Rectangle) -> Bool {
   // defer func() {
   // 	if recover() != nil {

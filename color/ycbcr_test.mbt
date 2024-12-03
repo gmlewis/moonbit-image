@@ -5,6 +5,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+///|
 fn delta(x : Byte, y : Byte) -> Byte {
   if x >= y {
     return x - y
@@ -12,8 +13,10 @@ fn delta(x : Byte, y : Byte) -> Byte {
   return y - x
 }
 
+///|
 type! EqError String derive(Show)
 
+///|
 fn eq(c0 : @color.Color, c1 : @color.Color) -> EqError? {
   let (r0, g0, b0, a0) = c0.rgba()
   let (r1, g1, b1, a1) = c1.rgba()

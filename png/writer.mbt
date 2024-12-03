@@ -6,6 +6,7 @@
 // license that can be found in the LICENSE file.
 
 // Encoder encodes PNG images.
+///|
 struct Encoder {
   mut w : @io.Writer
   mut m : @image.Image
@@ -18,6 +19,7 @@ struct Encoder {
   mut pr : Slice[Byte] // []uint8
 }
 
+///|
 fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
   {
     w,
@@ -39,6 +41,7 @@ fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
 }
 
 // The absolute value of a byte interpreted as a signed int8.
+///|
 fn abs8(d : Byte) -> Int {
   if d < 128 {
     return d.to_int()
@@ -46,6 +49,7 @@ fn abs8(d : Byte) -> Int {
   256 - d.to_int()
 }
 
+///|
 fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
   b[3] = (value & 0xff).to_byte()
   b[2] = ((value >> 8) & 0xff).to_byte()
@@ -53,6 +57,7 @@ fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
   b[0] = ((value >> 24) & 0xff).to_byte()
 }
 
+///|
 fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   if self.err != None {
     return
@@ -89,6 +94,7 @@ fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   self.err = err
 }
 
+///|
 fn write_ihdr(self : Encoder) -> Unit {
   let b = self.m.bounds()
   be_put_uint32(self.tmp[0:4], b.dx().reinterpret_as_uint())
@@ -143,6 +149,7 @@ fn write_ihdr(self : Encoder) -> Unit {
   self.write_chunk(self.tmp[:13], b"IHDR")
 }
 
+///|
 fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
   if p.length() < 1 || p.length() > 256 {
     self.err = Some(format_error("bad palette length: \{p.length()}"))
@@ -171,6 +178,7 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
 //
 // This method should only be called from write_idats (via write_image).
 // No other code should treat an Encoder as an io.Writer.
+///|
 pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   self.write_chunk(b, b"IDAT")
   if self.err != None {
@@ -181,6 +189,7 @@ pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
 
 // Chooses the filter to use for encoding the current row, and applies it.
 // The return value is the index of the filter and also of the row in cr that has had it applied.
+///|
 fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
   // This is the same heuristic that libpng uses, although the filters are attempted in order of
@@ -272,6 +281,7 @@ fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   filter
 }
 
+///|
 fn write_image(
   self : Encoder,
   w : @io.Writer,
@@ -503,6 +513,7 @@ fn write_image(
   zw.close()
 }
 
+///|
 fn clear_slice(b : Slice[Byte]) -> Unit {
   for i in 0..<b.length() {
     b[i] = b'\x00'
@@ -510,6 +521,7 @@ fn clear_slice(b : Slice[Byte]) -> Unit {
 }
 
 // Write the actual image data to one or more IDAT chunks.
+///|
 fn write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
@@ -523,18 +535,21 @@ fn write_idats(self : Encoder) -> Unit {
   self.err = err
 }
 
+///|
 fn write_iend(self : Encoder) -> Unit {
   self.write_chunk(Slice::new([]), b"IEND")
 }
 
 // Encode writes the Image m to w in PNG format. Any Image may be
 // encoded, but images that are not [image.NRGBA] might be encoded lossily.
+///|
 pub fn encode(w : @io.Writer, m : @image.Image) -> IOError? {
   let e = Encoder::new(w, m)
   e.enc(w, m)
 }
 
 // enc writes the Image m to w in PNG format.
+///|
 pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are

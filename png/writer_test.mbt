@@ -5,8 +5,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+///|
 typealias IOError = @io.IOError
 
+///|
 fn diff(m0 : @image.Image, m1 : @image.Image) -> TestError? {
   let (b0, b1) = (m0.bounds(), m1.bounds())
   if not(b0.size() == b1.size()) {
@@ -28,12 +30,14 @@ fn diff(m0 : @image.Image, m1 : @image.Image) -> TestError? {
   None
 }
 
+///|
 fn encode_decode(m : @image.Image) -> (@image.Image, IOError?) {
   let b = @io.Buffer::new()
   guard let None = @png.encode(b, m)
   @png.decode(b)
 }
 
+///|
 fn convert_to_nrgba(m : @image.Image) -> @image.NRGBA {
   let b = m.bounds()
   let ret = try {
@@ -51,6 +55,7 @@ fn convert_to_nrgba(m : @image.Image) -> @image.NRGBA {
   ret
 }
 
+///|
 struct PalettedTestCase {
   plen : Int
   bitdepth : Byte
@@ -128,6 +133,7 @@ test "writer paletted" {
   }
 }
 
+///|
 fn be_uint32(b : Slice[Byte]) -> UInt {
   (b[0].to_uint() << 24) |
   (b[1].to_uint() << 16) |
@@ -156,6 +162,7 @@ test "sub_image" {
   }
 }
 
+///|
 struct ImageTest {
   name : String
   img : @image.Image

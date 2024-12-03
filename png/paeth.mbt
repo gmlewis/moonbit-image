@@ -5,8 +5,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+///|
 typealias Slice[T] = @io.Slice[T]
 
+///|
 fn abs(x : Int) -> Int {
   // m = -1 if x < 0. m = 0 otherwise.
   let m = x >> 31
@@ -20,6 +22,7 @@ fn abs(x : Int) -> Int {
 }
 
 // paeth implements the Paeth filter function, as per the PNG specification.
+///|
 fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   // This is an optimized version of the sample code in the PNG spec.
   // For example, the sample code starts with:
@@ -45,6 +48,7 @@ fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
 
 // filter_paeth applies the Paeth filter to the cdat slice.
 // cdat is the current row's data, pdat is the previous row's data.
+///|
 fn filter_paeth(
   cdat : Slice[Byte],
   pdat : Slice[Byte],
