@@ -173,8 +173,16 @@ pub(all) struct YCbCr {
   cr : Byte
 } derive(Show, Eq)
 
+///| `YCbCr` satisfies the `Color` trait.
+let _YCbCr : Color = YCbCr::new(0, 0, 0)
+
 ///|
-pub fn model(self : YCbCr) -> String {
+pub fn YCbCr::new(y : Byte, cb : Byte, cr : Byte) -> YCbCr {
+  { y, cb, cr }
+}
+
+///|
+pub fn YCbCr::model(_self : YCbCr) -> String {
   "YCbCr"
 }
 
@@ -267,8 +275,16 @@ pub(all) struct NYCbCrA {
   a : Byte
 } derive(Show, Eq)
 
+///| `NYCbCrA` satisfies the `Color` trait.
+let _NYCbCrA : Color = NYCbCrA::new(0, 0, 0, 0)
+
 ///|
-pub fn model(self : NYCbCrA) -> String {
+pub fn NYCbCrA::new(y : Byte, cb : Byte, cr : Byte, a : Byte) -> NYCbCrA {
+  { y, cb, cr, a }
+}
+
+///|
+pub fn NYCbCrA::model(_self : NYCbCrA) -> String {
   "NYCbCrA"
 }
 
@@ -407,13 +423,16 @@ pub(all) struct CMYK {
   k : Byte
 } derive(Show, Eq)
 
+///| `CMYK` satisfies the `Color` trait.
+let _CMYK : Color = CMYK::new(0, 0, 0, 0)
+
 ///|
 pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
   { c, m, y, k }
 }
 
 ///|
-pub fn model(self : CMYK) -> String {
+pub fn CMYK::model(_self : CMYK) -> String {
   "CMYK"
 }
 

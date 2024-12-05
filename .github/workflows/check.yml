@@ -61,6 +61,7 @@ jobs:
           # moon test --target native
           # moon test --target all
           moon test --target js
+          moon test --target wasm-gc
 
       - name: format diff
         run: |

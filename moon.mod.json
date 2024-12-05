@@ -1,11 +1,11 @@
 {
   "name": "gmlewis/image",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "deps": {
-    "gmlewis/flate": "0.30.0",
-    "gmlewis/hash": "0.13.0",
-    "gmlewis/io": "0.15.0",
-    "gmlewis/zlib": "0.13.0"
+    "gmlewis/flate": "0.31.0",
+    "gmlewis/hash": "0.14.0",
+    "gmlewis/io": "0.16.0",
+    "gmlewis/zlib": "0.14.0"
   },
   "readme": "README.md",
   "repository": "https://github.com/gmlewis/moonbit-image",

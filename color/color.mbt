@@ -56,13 +56,16 @@ pub(all) struct RGBA {
   a : Byte
 } derive(Show, Eq)
 
+///| `RGBA` satisfies the `Color` trait.
+let _RGBA : Color = RGBA::new(0, 0, 0, 0)
+
 ///|
 pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
   { r, g, b, a }
 }
 
 ///|
-pub fn model(self : RGBA) -> String {
+pub fn RGBA::model(_self : RGBA) -> String {
   "RGBA"
 }
 
@@ -92,13 +95,16 @@ pub(all) struct RGBA64 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
+///| `RGBA64` satisfies the `Color` trait.
+let _RGBA64 : Color = RGBA64::new(0, 0, 0, 0)
+
 ///|
 pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
   { r, g, b, a }
 }
 
 ///|
-pub fn model(self : RGBA64) -> String {
+pub fn RGBA64::model(_self : RGBA64) -> String {
   "RGBA64"
 }
 
@@ -120,13 +126,16 @@ pub(all) struct NRGBA {
   a : Byte
 } derive(Show, Eq)
 
+///| `NRGBA` satisfies the `Color` trait.
+let _NRGBA : Color = NRGBA::new(0, 0, 0, 0)
+
 ///|
 pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
   { r, g, b, a }
 }
 
 ///|
-pub fn model(self : NRGBA) -> String {
+pub fn NRGBA::model(_self : NRGBA) -> String {
   "NRGBA"
 }
 
@@ -160,13 +169,16 @@ pub(all) struct NRGBA64 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
+///| `NRGBA64` satisfies the `Color` trait.
+let _NRGBA64 : Color = NRGBA64::new(0, 0, 0, 0)
+
 ///|
 pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
   { r, g, b, a }
 }
 
 ///|
-pub fn model(self : NRGBA64) -> String {
+pub fn NRGBA64::model(_self : NRGBA64) -> String {
   "NRGBA64"
 }
 
@@ -188,13 +200,16 @@ pub(all) struct Alpha {
   a : Byte
 } derive(Show, Eq)
 
+///| `Alpha` satisfies the `Color` trait.
+let _Alpha : Color = Alpha::new(0)
+
 ///|
 pub fn Alpha::new(a : Byte) -> Alpha {
   { a, }
 }
 
 ///|
-pub fn model(self : Alpha) -> String {
+pub fn Alpha::model(_self : Alpha) -> String {
   "Alpha"
 }
 
@@ -215,13 +230,16 @@ pub(all) struct Alpha16 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
+///| `Alpha16` satisfies the `Color` trait.
+let _Alpha16 : Color = Alpha16::new(0)
+
 ///|
 pub fn Alpha16::new(a : UInt) -> Alpha16 {
   { a, }
 }
 
 ///|
-pub fn model(self : Alpha16) -> String {
+pub fn Alpha16::model(_self : Alpha16) -> String {
   "Alpha16"
 }
 
@@ -240,13 +258,16 @@ pub(all) struct Gray {
   y : Byte
 } derive(Show, Eq)
 
+///| `Gray` satisfies the `Color` trait.
+let _Gray : Color = Gray::new(0)
+
 ///|
 pub fn Gray::new(y : Byte) -> Gray {
   { y, }
 }
 
 ///|
-pub fn model(self : Gray) -> String {
+pub fn Gray::model(_self : Gray) -> String {
   "Gray"
 }
 
@@ -267,13 +288,16 @@ pub(all) struct Gray16 {
   y : UInt // 16 bits
 } derive(Show, Eq)
 
+///| `Gray16` satisfies the `Color` trait.
+let _Gray16 : Color = Gray16::new(0)
+
 ///|
 pub fn Gray16::new(y : UInt) -> Gray16 {
   { y, }
 }
 
 ///|
-pub fn model(self : Gray16) -> String {
+pub fn Gray16::model(_self : Gray16) -> String {
   "Gray16"
 }
 
@@ -558,7 +582,7 @@ pub fn Palette::from(arr : Array[Color]) -> Palette {
 }
 
 ///|
-pub fn name(self : Palette) -> String {
+pub fn Palette::name(_self : Palette) -> String {
   "Paletted"
 }
 

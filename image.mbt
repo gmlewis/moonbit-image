@@ -123,6 +123,9 @@ pub(all) struct RGBA {
   rect : Rectangle
 }
 
+///| `RGBA` satisfies the `Image` trait.
+let _RGBA : Image = RGBA::new_empty()
+
 ///|
 pub fn RGBA::new_empty() -> RGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -134,7 +137,7 @@ pub fn raw_data(self : RGBA) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : RGBA) -> Int {
+pub fn RGBA::get_bytes_per_pixel(_self : RGBA) -> Int {
   4
 }
 
@@ -144,12 +147,12 @@ pub fn get_stride(self : RGBA) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : RGBA, x : Int, y : Int) -> Byte {
+pub fn RGBA::color_index_at(_self : RGBA, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : RGBA) -> @color.Model {
+pub fn RGBA::color_model(_self : RGBA) -> @color.Model {
   @color.rgba_model
 }
 
@@ -304,6 +307,9 @@ pub(all) struct RGBA64 {
   rect : Rectangle
 }
 
+///| `RGBA64` satisfies the `Image` trait.
+let _RGBA64 : Image = RGBA64::new_empty()
+
 ///|
 pub fn RGBA64::new_empty() -> RGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -315,7 +321,7 @@ pub fn raw_data(self : RGBA64) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : RGBA64) -> Int {
+pub fn RGBA64::get_bytes_per_pixel(_self : RGBA64) -> Int {
   8
 }
 
@@ -325,12 +331,12 @@ pub fn get_stride(self : RGBA64) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : RGBA64, x : Int, y : Int) -> Byte {
+pub fn RGBA64::color_index_at(_self : RGBA64, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : RGBA64) -> @color.Model {
+pub fn RGBA64::color_model(_self : RGBA64) -> @color.Model {
   @color.rgba64_model
 }
 
@@ -464,6 +470,9 @@ pub(all) struct NRGBA {
   rect : Rectangle
 }
 
+///| `NRGBA` satisfies the `Image` trait.
+let _NRGBA : Image = NRGBA::new_empty()
+
 ///|
 pub fn NRGBA::new_empty() -> NRGBA {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -475,7 +484,7 @@ pub fn raw_data(self : NRGBA) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : NRGBA) -> Int {
+pub fn NRGBA::get_bytes_per_pixel(_self : NRGBA) -> Int {
   4
 }
 
@@ -485,12 +494,12 @@ pub fn get_stride(self : NRGBA) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : NRGBA, x : Int, y : Int) -> Byte {
+pub fn NRGBA::color_index_at(_self : NRGBA, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : NRGBA) -> @color.Model {
+pub fn NRGBA::color_model(_self : NRGBA) -> @color.Model {
   @color.nrgba_model
 }
 
@@ -643,6 +652,9 @@ pub(all) struct NRGBA64 {
   rect : Rectangle
 }
 
+///| `NRGBA64` satisfies the `Image` trait.
+let _NRGBA64 : Image = NRGBA64::new_empty()
+
 ///|
 pub fn NRGBA64::new_empty() -> NRGBA64 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -654,7 +666,7 @@ pub fn raw_data(self : NRGBA64) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : NRGBA64) -> Int {
+pub fn NRGBA64::get_bytes_per_pixel(_self : NRGBA64) -> Int {
   8
 }
 
@@ -664,12 +676,12 @@ pub fn get_stride(self : NRGBA64) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : NRGBA64, x : Int, y : Int) -> Byte {
+pub fn NRGBA64::color_index_at(_self : NRGBA64, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : NRGBA64) -> @color.Model {
+pub fn NRGBA64::color_model(_self : NRGBA64) -> @color.Model {
   @color.nrgba64_model
 }
 
@@ -838,6 +850,9 @@ pub(all) struct Alpha {
   rect : Rectangle
 }
 
+///| `Alpha` satisfies the `Image` trait.
+let _Alpha : Image = Alpha::new_empty()
+
 ///|
 pub fn Alpha::new_empty() -> Alpha {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -849,7 +864,7 @@ pub fn raw_data(self : Alpha) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Alpha) -> Int {
+pub fn Alpha::get_bytes_per_pixel(_self : Alpha) -> Int {
   1
 }
 
@@ -859,12 +874,12 @@ pub fn get_stride(self : Alpha) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : Alpha, x : Int, y : Int) -> Byte {
+pub fn Alpha::color_index_at(_self : Alpha, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : Alpha) -> @color.Model {
+pub fn Alpha::color_model(_self : Alpha) -> @color.Model {
   @color.alpha_model
 }
 
@@ -996,6 +1011,9 @@ pub(all) struct Alpha16 {
   rect : Rectangle
 }
 
+///| `Alpha16` satisfies the `Image` trait.
+let _Alpha16 : Image = Alpha16::new_empty()
+
 ///|
 pub fn Alpha16::new_empty() -> Alpha16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -1007,7 +1025,7 @@ pub fn raw_data(self : Alpha16) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Alpha16) -> Int {
+pub fn Alpha16::get_bytes_per_pixel(_self : Alpha16) -> Int {
   2
 }
 
@@ -1017,12 +1035,12 @@ pub fn get_stride(self : Alpha16) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : Alpha16, x : Int, y : Int) -> Byte {
+pub fn Alpha16::color_index_at(_self : Alpha16, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : Alpha16) -> @color.Model {
+pub fn Alpha16::color_model(_self : Alpha16) -> @color.Model {
   @color.alpha16_model
 }
 
@@ -1162,6 +1180,9 @@ pub(all) struct Gray {
   rect : Rectangle
 }
 
+///| `Gray` satisfies the `Image` trait.
+let _Gray : Image = Gray::new_empty()
+
 ///|
 pub fn Gray::new_empty() -> Gray {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -1173,7 +1194,7 @@ pub fn raw_data(self : Gray) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Gray) -> Int {
+pub fn Gray::get_bytes_per_pixel(_self : Gray) -> Int {
   1
 }
 
@@ -1183,12 +1204,12 @@ pub fn get_stride(self : Gray) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : Gray, x : Int, y : Int) -> Byte {
+pub fn Gray::color_index_at(_self : Gray, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : Gray) -> @color.Model {
+pub fn Gray::color_model(_self : Gray) -> @color.Model {
   @color.gray_model
 }
 
@@ -1282,7 +1303,7 @@ pub fn sub_image(self : Gray, r : Rectangle) -> Image {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub fn opaque(self : Gray) -> Bool {
+pub fn Gray::opaque(_self : Gray) -> Bool {
   true
 }
 
@@ -1308,6 +1329,9 @@ pub(all) struct Gray16 {
   rect : Rectangle
 }
 
+///| `Gray16` satisfies the `Image` trait.
+let _Gray16 : Image = Gray16::new_empty()
+
 ///|
 pub fn Gray16::new_empty() -> Gray16 {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -1319,7 +1343,7 @@ pub fn raw_data(self : Gray16) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Gray16) -> Int {
+pub fn Gray16::get_bytes_per_pixel(_self : Gray16) -> Int {
   2
 }
 
@@ -1329,12 +1353,12 @@ pub fn get_stride(self : Gray16) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : Gray16, x : Int, y : Int) -> Byte {
+pub fn Gray16::color_index_at(_self : Gray16, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : Gray16) -> @color.Model {
+pub fn Gray16::color_model(_self : Gray16) -> @color.Model {
   @color.gray16_model
 }
 
@@ -1431,7 +1455,7 @@ pub fn sub_image(self : Gray16, r : Rectangle) -> Image {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub fn opaque(self : Gray16) -> Bool {
+pub fn Gray16::opaque(_self : Gray16) -> Bool {
   true
 }
 
@@ -1457,6 +1481,9 @@ pub(all) struct CMYK {
   rect : Rectangle
 }
 
+///| `CMYK` satisfies the `Image` trait.
+let _CMYK : Image = CMYK::new_empty()
+
 ///|
 pub fn CMYK::new_empty() -> CMYK {
   { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
@@ -1468,7 +1495,7 @@ pub fn raw_data(self : CMYK) -> Slice[Byte] {
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : CMYK) -> Int {
+pub fn CMYK::get_bytes_per_pixel(_self : CMYK) -> Int {
   4
 }
 
@@ -1478,12 +1505,12 @@ pub fn get_stride(self : CMYK) -> Int {
 }
 
 ///|
-pub fn color_index_at(self : CMYK, x : Int, y : Int) -> Byte {
+pub fn CMYK::color_index_at(_self : CMYK, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn color_model(self : CMYK) -> @color.Model {
+pub fn CMYK::color_model(_self : CMYK) -> @color.Model {
   @color.cmyk_model
 }
 
@@ -1588,7 +1615,7 @@ pub fn sub_image(self : CMYK, r : Rectangle) -> Image {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub fn opaque(self : CMYK) -> Bool {
+pub fn CMYK::opaque(_self : CMYK) -> Bool {
   true
 }
 
@@ -1616,13 +1643,16 @@ pub(all) struct Paletted {
   mut palette : @color.Palette
 }
 
+///| `Paletted` satisfies the `Image` trait.
+let _Paletted : Image = Paletted::new_empty()
+
 ///|
 pub fn raw_data(self : Paletted) -> Slice[Byte] {
   self.pix
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Paletted) -> Int {
+pub fn Paletted::get_bytes_per_pixel(_self : Paletted) -> Int {
   1
 }
 

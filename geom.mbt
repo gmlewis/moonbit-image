@@ -81,8 +81,8 @@ pub(all) struct Rectangle {
   max : Point
 }
 
-///|
-let _trait : Image = Rectangle::new()
+///| `Rectangle` satisfies the `Image` trait.
+let _Rectangle : Image = Rectangle::new()
 
 ///| Rectangle::new returns an empty (all zeros) rectangle.
 pub fn Rectangle::new() -> Rectangle {
@@ -90,42 +90,47 @@ pub fn Rectangle::new() -> Rectangle {
 }
 
 ///|
-pub fn opaque(self : Rectangle) -> Bool {
+pub fn Rectangle::opaque(_self : Rectangle) -> Bool {
   true
 }
 
 ///|
-pub fn set(self : Rectangle, x : Int, y : Int, c : @color.Color) -> Unit {
+pub fn Rectangle::set(
+  _self : Rectangle,
+  _x : Int,
+  _y : Int,
+  _c : @color.Color
+) -> Unit {
 
 }
 
 ///|
-pub fn sub_image(self : Rectangle, o : Rectangle) -> Image {
+pub fn sub_image(self : Rectangle, _o : Rectangle) -> Image {
   self
 }
 
 ///|
-pub fn raw_data(self : Rectangle) -> Slice[Byte] {
+pub fn Rectangle::raw_data(_self : Rectangle) -> Slice[Byte] {
   Slice::new([])
 }
 
 ///|
-pub fn get_bytes_per_pixel(self : Rectangle) -> Int {
+pub fn Rectangle::get_bytes_per_pixel(_self : Rectangle) -> Int {
   0
 }
 
 ///|
-pub fn get_stride(self : Rectangle) -> Int {
+pub fn Rectangle::get_stride(_self : Rectangle) -> Int {
   0
 }
 
 ///|
-pub fn color_index_at(self : Rectangle, x : Int, y : Int) -> Byte {
+pub fn Rectangle::color_index_at(_self : Rectangle, _x : Int, _y : Int) -> Byte {
   0
 }
 
 ///|
-pub fn pix_offset(self : Rectangle, x : Int, y : Int) -> Int {
+pub fn Rectangle::pix_offset(_self : Rectangle, _x : Int, _y : Int) -> Int {
   0
 }
 
@@ -315,7 +320,7 @@ pub fn bounds(self : Rectangle) -> Rectangle {
 }
 
 ///| color_model implements the [Image] trait.
-pub fn color_model(self : Rectangle) -> @color.Model {
+pub fn Rectangle::color_model(_self : Rectangle) -> @color.Model {
   @color.alpha16_model
 }
 
