@@ -6,16 +6,7 @@
 // license that can be found in the LICENSE file.
 
 ///|
-typealias Rectangle = @image.Rectangle
-
-///|
-typealias Image = @image.Image
-
-///|
-typealias SizeError = @image.SizeError
-
-///|
-fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
+fn cmp(cm : &@color.Model, c0 : &@color.Color, c1 : &@color.Color) -> Bool {
   let (r0, g0, b0, a0) = cm.convert(c0).rgba()
   let (r1, g1, b1, a1) = cm.convert(c1).rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
@@ -24,42 +15,42 @@ fn cmp(cm : @color.Model, c0 : @color.Color, c1 : @color.Color) -> Bool {
 ///|
 struct TestT {
   name : String
-  image : () -> Image!SizeError
+  image : () -> &Image!SizeError
 }
 
 ///|
 let test_images : Array[TestT] = [
   {
     name: "rgba",
-    image: fn() { @image.RGBA::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.RGBA::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "rgba64",
-    image: fn() { @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "nrgba",
-    image: fn() { @image.NRGBA::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.NRGBA::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "nrgba64",
-    image: fn() { @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "alpha",
-    image: fn() { @image.Alpha::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.Alpha::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "alpha16",
-    image: fn() { @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "gray",
-    image: fn() { @image.Gray::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.Gray::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "gray16",
-    image: fn() { @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as Image },
+    image: fn() { @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "paletted",
@@ -68,7 +59,7 @@ let test_images : Array[TestT] = [
         @image.rect(0, 0, 10, 10),
         @color.Palette::from([@color.transparent, @color.opaque]),
       )
-      as Image
+      as &Image
     },
   },
 ]
@@ -143,12 +134,12 @@ test "image" {
 ///|
 struct TestR {
   name : String
-  f : (Rectangle) -> Image!SizeError
+  f : (Rectangle) -> &Image!SizeError
 }
 
 // call calls f(r) and reports whether it ran without raising an error.
 ///|
-fn call(f : (Rectangle) -> Image!SizeError, r : Rectangle) -> Bool {
+fn call(f : (Rectangle) -> &Image!SizeError, r : Rectangle) -> Bool {
   // defer func() {
   // 	if recover() != nil {
   // 		ok = false
@@ -165,15 +156,15 @@ fn call(f : (Rectangle) -> Image!SizeError, r : Rectangle) -> Bool {
 
 test "new xxx bad rectangle" {
   let test_cases = [
-    { name: "RGBA", f: fn(r) { @image.RGBA::new!(r) as Image } },
-    { name: "RGBA64", f: fn(r) { @image.RGBA64::new!(r) as Image } },
-    { name: "NRGBA", f: fn(r) { @image.NRGBA::new!(r) as Image } },
-    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new!(r) as Image } },
-    { name: "Alpha", f: fn(r) { @image.Alpha::new!(r) as Image } },
-    { name: "Alpha16", f: fn(r) { @image.Alpha16::new!(r) as Image } },
-    { name: "Gray", f: fn(r) { @image.Gray::new!(r) as Image } },
-    { name: "Gray16", f: fn(r) { @image.Gray16::new!(r) as Image } },
-    { name: "CMYK", f: fn(r) { @image.CMYK::new!(r) as Image } },
+    { name: "RGBA", f: fn(r) { @image.RGBA::new!(r) as &Image } },
+    { name: "RGBA64", f: fn(r) { @image.RGBA64::new!(r) as &Image } },
+    { name: "NRGBA", f: fn(r) { @image.NRGBA::new!(r) as &Image } },
+    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new!(r) as &Image } },
+    { name: "Alpha", f: fn(r) { @image.Alpha::new!(r) as &Image } },
+    { name: "Alpha16", f: fn(r) { @image.Alpha16::new!(r) as &Image } },
+    { name: "Gray", f: fn(r) { @image.Gray::new!(r) as &Image } },
+    { name: "Gray16", f: fn(r) { @image.Gray16::new!(r) as &Image } },
+    { name: "CMYK", f: fn(r) { @image.CMYK::new!(r) as &Image } },
     {
       name: "Paletted",
       f: fn(r) {
@@ -181,7 +172,7 @@ test "new xxx bad rectangle" {
           r,
           @color.Palette::from([@color.black, @color.white]),
         )
-        as Image
+        as &Image
       },
     },
     // {name: "YCbCr", f: fn(r ) { @image.YCbCr::new(r, YCbCrSubsampleRatio422) }},
@@ -211,13 +202,10 @@ test "new xxx bad rectangle" {
 
     // Passing a Rectangle whose width and height is MaxInt should also fail
     // (panic), due to overflow.
-    let got = call(
-      tc.f,
-      Rectangle::{
-        min: @image.pt(0, 0),
-        max: @image.pt(@int.max_value, @int.max_value),
-      },
-    )
+    let got = call(tc.f, Rectangle::{
+      min: @image.pt(0, 0),
+      max: @image.pt(@int.max_value, @int.max_value),
+    })
     if got {
       raise TestError("\{tc.name}::new: overflow: got ok, want !ok")
     }
@@ -236,11 +224,11 @@ test "16 bits per color channel" {
       continue
     }
   }
-  let test_image : Array[Image] = [
-    @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as Image,
-    @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as Image,
-    @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as Image,
-    @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as Image,
+  let test_image : Array[&Image] = [
+    @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as &Image,
   ]
   for i, m in test_image {
     m.set(1, 2, @color.NRGBA64::new(0xffff, 0xffff, 0xffff, 0x1357)) // Non-premultiplied alpha.
@@ -261,7 +249,7 @@ test "16 bits per color channel" {
 
 // test "RGBA64 image" {
 // 	let r = @image.rect(0, 0, 3, 2)
-// 	let test_cases: Array[Image] = [
+// 	let test_cases: Array[&Image] = [
 // 		@image.Alpha::new!(r),
 // 		@image.Alpha16::new!(r),
 // 		@image.CMYK::new!(r),

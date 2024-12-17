@@ -9,7 +9,7 @@
 typealias IOError = @io.IOError
 
 ///|
-fn diff(m0 : @image.Image, m1 : @image.Image) -> TestError? {
+fn diff(m0 : &@image.Image, m1 : &@image.Image) -> TestError? {
   let (b0, b1) = (m0.bounds(), m1.bounds())
   if not(b0.size() == b1.size()) {
     return Some(TestError("dimensions differ: \{b0} vs \{b1}"))
@@ -31,14 +31,14 @@ fn diff(m0 : @image.Image, m1 : @image.Image) -> TestError? {
 }
 
 ///|
-fn encode_decode(m : @image.Image) -> (@image.Image, IOError?) {
+fn encode_decode(m : &@image.Image) -> (&@image.Image, IOError?) {
   let b = @io.Buffer::new()
   guard let None = @png.encode(b, m)
   @png.decode(b)
 }
 
 ///|
-fn convert_to_nrgba(m : @image.Image) -> @image.NRGBA {
+fn convert_to_nrgba(m : &@image.Image) -> @image.NRGBA {
   let b = m.bounds()
   let ret = try {
     @image.NRGBA::new!(b)
@@ -143,7 +143,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 
 // func Testsub_image(t *testing.T) {
 test "sub_image" {
-  let mut m0 : @image.Image = @image.RGBA::new!(@image.rect(0, 0, 256, 256))
+  let mut m0 : &@image.Image = @image.RGBA::new!(@image.rect(0, 0, 256, 256))
   for y = 0; y < 256; y = y + 1 {
     for x = 0; x < 256; x = x + 1 {
       m0.set(x, y, @color.RGBA::new(x.to_byte(), y.to_byte(), 0, 255))
@@ -165,7 +165,7 @@ test "sub_image" {
 ///|
 struct ImageTest {
   name : String
-  img : @image.Image
+  img : &@image.Image
 }
 
 // func TestWriteRGBA(t *testing.T) {

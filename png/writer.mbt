@@ -8,8 +8,8 @@
 // Encoder encodes PNG images.
 ///|
 struct Encoder {
-  mut w : @io.Writer
-  mut m : @image.Image
+  mut w : &@io.Writer
+  mut m : &@image.Image
   mut cb : Int
   mut err : IOError?
   header : Slice[Byte] // [8]byte
@@ -20,7 +20,7 @@ struct Encoder {
 }
 
 ///|
-fn Encoder::new(w : @io.Writer, m : @image.Image) -> Encoder {
+fn Encoder::new(w : &@io.Writer, m : &@image.Image) -> Encoder {
   {
     w,
     m,
@@ -284,8 +284,8 @@ fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
 ///|
 fn write_image(
   self : Encoder,
-  w : @io.Writer,
-  m : @image.Image,
+  w : &@io.Writer,
+  m : &@image.Image,
   cb : Int
 ) -> IOError? {
   let zw = @zlib.Writer::new(w)
@@ -543,14 +543,14 @@ fn write_iend(self : Encoder) -> Unit {
 // Encode writes the Image m to w in PNG format. Any Image may be
 // encoded, but images that are not [image.NRGBA] might be encoded lossily.
 ///|
-pub fn encode(w : @io.Writer, m : @image.Image) -> IOError? {
+pub fn encode(w : &@io.Writer, m : &@image.Image) -> IOError? {
   let e = Encoder::new(w, m)
   e.enc(w, m)
 }
 
 // enc writes the Image m to w in PNG format.
 ///|
-pub fn enc(self : Encoder, w : @io.Writer, m : @image.Image) -> IOError? {
+pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are
   // also rejected.

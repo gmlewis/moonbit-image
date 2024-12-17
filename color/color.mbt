@@ -27,18 +27,18 @@ pub(open) trait Color {
 }
 
 ///|
-impl Show for Color with output(self, logger) {
+impl Show for &Color with output(self, logger) {
   logger.write_string(self.to_string())
 }
 
 ///|
-pub fn to_string(self : Color) -> String {
+pub fn to_string(self : &Color) -> String {
   let (r, g, b, a) = self.rgba()
   "@color.\{self.model()}::{\{r} \{g} \{b} \{a}}"
 }
 
 ///|
-pub fn op_equal(self : Color, o : Color) -> Bool {
+pub fn op_equal(self : &Color, o : &Color) -> Bool {
   let (r0, g0, b0, a0) = self.rgba()
   let (r1, g1, b1, a1) = o.rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
@@ -57,7 +57,7 @@ pub(all) struct RGBA {
 } derive(Show, Eq)
 
 ///| `RGBA` satisfies the `Color` trait.
-let _RGBA : Color = RGBA::new(0, 0, 0, 0)
+let _RGBA : &Color = RGBA::new(0, 0, 0, 0)
 
 ///|
 pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
@@ -96,7 +96,7 @@ pub(all) struct RGBA64 {
 } derive(Show, Eq)
 
 ///| `RGBA64` satisfies the `Color` trait.
-let _RGBA64 : Color = RGBA64::new(0, 0, 0, 0)
+let _RGBA64 : &Color = RGBA64::new(0, 0, 0, 0)
 
 ///|
 pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
@@ -127,7 +127,7 @@ pub(all) struct NRGBA {
 } derive(Show, Eq)
 
 ///| `NRGBA` satisfies the `Color` trait.
-let _NRGBA : Color = NRGBA::new(0, 0, 0, 0)
+let _NRGBA : &Color = NRGBA::new(0, 0, 0, 0)
 
 ///|
 pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
@@ -170,7 +170,7 @@ pub(all) struct NRGBA64 {
 } derive(Show, Eq)
 
 ///| `NRGBA64` satisfies the `Color` trait.
-let _NRGBA64 : Color = NRGBA64::new(0, 0, 0, 0)
+let _NRGBA64 : &Color = NRGBA64::new(0, 0, 0, 0)
 
 ///|
 pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
@@ -201,7 +201,7 @@ pub(all) struct Alpha {
 } derive(Show, Eq)
 
 ///| `Alpha` satisfies the `Color` trait.
-let _Alpha : Color = Alpha::new(0)
+let _Alpha : &Color = Alpha::new(0)
 
 ///|
 pub fn Alpha::new(a : Byte) -> Alpha {
@@ -231,7 +231,7 @@ pub(all) struct Alpha16 {
 } derive(Show, Eq)
 
 ///| `Alpha16` satisfies the `Color` trait.
-let _Alpha16 : Color = Alpha16::new(0)
+let _Alpha16 : &Color = Alpha16::new(0)
 
 ///|
 pub fn Alpha16::new(a : UInt) -> Alpha16 {
@@ -259,7 +259,7 @@ pub(all) struct Gray {
 } derive(Show, Eq)
 
 ///| `Gray` satisfies the `Color` trait.
-let _Gray : Color = Gray::new(0)
+let _Gray : &Color = Gray::new(0)
 
 ///|
 pub fn Gray::new(y : Byte) -> Gray {
@@ -289,7 +289,7 @@ pub(all) struct Gray16 {
 } derive(Show, Eq)
 
 ///| `Gray16` satisfies the `Color` trait.
-let _Gray16 : Color = Gray16::new(0)
+let _Gray16 : &Color = Gray16::new(0)
 
 ///|
 pub fn Gray16::new(y : UInt) -> Gray16 {
@@ -312,20 +312,20 @@ pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
   (self.y, self.y, self.y, 0xffff)
 }
 
-///| Model can convert any [Color] to one from its own color model. The conversion
+///| Model can convert any [&Color] to one from its own color model. The conversion
 /// may be lossy.
 pub(open) trait Model {
-  convert(Self, Color) -> Color
+  convert(Self, &Color) -> &Color
   name(Self) -> String
   get_palette(Self) -> Palette?
 }
 
 ///| model_func returns a [Model] that invokes f to implement the conversion.
 pub fn model_func(
-  f : (Color) -> Color,
+  f : (&Color) -> &Color,
   name : String,
   palette : Palette?
-) -> Model {
+) -> &Model {
   // Note: using ModelFunc as the implementation
   // means that callers can still use comparisons
   // like m == rgba_model. This is not possible if
@@ -337,13 +337,13 @@ pub fn model_func(
 
 ///|
 struct ModelFunc {
-  f : (Color) -> Color
+  f : (&Color) -> &Color
   name : String
   palette : Palette?
 }
 
 ///|
-pub fn convert(self : ModelFunc, c : Color) -> Color {
+pub fn convert(self : ModelFunc, c : &Color) -> &Color {
   (self.f)(c)
 }
 
@@ -358,36 +358,36 @@ pub fn get_palette(self : ModelFunc) -> Palette? {
 }
 
 ///| Models for the standard color types.
-pub let rgba_model : Model = model_func(rgba_model_fn, "RGBA", None)
+pub let rgba_model : &Model = model_func(rgba_model_fn, "RGBA", None)
 
 ///|
-pub let rgba64_model : Model = model_func(rgba64_model_fn, "RGBA64", None)
+pub let rgba64_model : &Model = model_func(rgba64_model_fn, "RGBA64", None)
 
 ///|
-pub let nrgba_model : Model = model_func(nrgba_model_fn, "NRGBA", None)
+pub let nrgba_model : &Model = model_func(nrgba_model_fn, "NRGBA", None)
 
 ///|
-pub let nrgba64_model : Model = model_func(nrgba64_model_fn, "NRGBA64", None)
+pub let nrgba64_model : &Model = model_func(nrgba64_model_fn, "NRGBA64", None)
 
 ///|
-pub let alpha_model : Model = model_func(alpha_model_fn, "Alpha", None)
+pub let alpha_model : &Model = model_func(alpha_model_fn, "Alpha", None)
 
 ///|
-pub let alpha16_model : Model = model_func(alpha16_model_fn, "Alpha16", None)
+pub let alpha16_model : &Model = model_func(alpha16_model_fn, "Alpha16", None)
 
 ///|
-pub let gray_model : Model = model_func(gray_model_fn, "Gray", None)
+pub let gray_model : &Model = model_func(gray_model_fn, "Gray", None)
 
 ///|
-pub let gray16_model : Model = model_func(gray16_model_fn, "Gray16", None)
+pub let gray16_model : &Model = model_func(gray16_model_fn, "Gray16", None)
 
 ///|
-fn rgba_model_fn(c : Color) -> Color {
+fn rgba_model_fn(c : &Color) -> &Color {
   RGBA::from(c)
 }
 
 ///|
-pub fn RGBA::from(c : Color) -> RGBA {
+pub fn RGBA::from(c : &Color) -> RGBA {
   if c.model() == "RGBA" {
     let (r, g, b, a) = c.raw()
     return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
@@ -401,12 +401,12 @@ pub fn RGBA::from(c : Color) -> RGBA {
 }
 
 ///|
-fn rgba64_model_fn(c : Color) -> Color {
+fn rgba64_model_fn(c : &Color) -> &Color {
   RGBA64::from(c)
 }
 
 ///|
-pub fn RGBA64::from(c : Color) -> RGBA64 {
+pub fn RGBA64::from(c : &Color) -> RGBA64 {
   if c.model() == "RGBA64" {
     let (r, g, b, a) = c.raw()
     return { r, g, b, a }
@@ -416,12 +416,12 @@ pub fn RGBA64::from(c : Color) -> RGBA64 {
 }
 
 ///|
-fn nrgba_model_fn(c : Color) -> Color {
+fn nrgba_model_fn(c : &Color) -> &Color {
   NRGBA::from(c)
 }
 
 ///|
-pub fn NRGBA::from(c : Color) -> NRGBA {
+pub fn NRGBA::from(c : &Color) -> NRGBA {
   if c.model() == "NRGBA" {
     let (r, g, b, a) = c.raw()
     return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
@@ -445,12 +445,12 @@ pub fn NRGBA::from(c : Color) -> NRGBA {
 }
 
 ///|
-fn nrgba64_model_fn(c : Color) -> Color {
+fn nrgba64_model_fn(c : &Color) -> &Color {
   NRGBA64::from(c)
 }
 
 ///|
-pub fn NRGBA64::from(c : Color) -> NRGBA64 {
+pub fn NRGBA64::from(c : &Color) -> NRGBA64 {
   if c.model() == "NRGBA64" {
     let (r, g, b, a) = c.raw()
     return { r, g, b, a }
@@ -470,12 +470,12 @@ pub fn NRGBA64::from(c : Color) -> NRGBA64 {
 }
 
 ///|
-fn alpha_model_fn(c : Color) -> Color {
+fn alpha_model_fn(c : &Color) -> &Color {
   Alpha::from(c)
 }
 
 ///|
-pub fn Alpha::from(c : Color) -> Alpha {
+pub fn Alpha::from(c : &Color) -> Alpha {
   if c.model() == "Alpha" {
     let (a, _, _, _) = c.raw()
     return { a: a.to_byte() }
@@ -486,12 +486,12 @@ pub fn Alpha::from(c : Color) -> Alpha {
 }
 
 ///|
-fn alpha16_model_fn(c : Color) -> Color {
+fn alpha16_model_fn(c : &Color) -> &Color {
   Alpha16::from(c)
 }
 
 ///|
-pub fn Alpha16::from(c : Color) -> Alpha16 {
+pub fn Alpha16::from(c : &Color) -> Alpha16 {
   if c.model() == "Alpha16" {
     let (a, _, _, _) = c.raw()
     return { a, }
@@ -501,12 +501,12 @@ pub fn Alpha16::from(c : Color) -> Alpha16 {
 }
 
 ///|
-fn gray_model_fn(c : Color) -> Color {
+fn gray_model_fn(c : &Color) -> &Color {
   Gray::from(c)
 }
 
 ///|
-pub fn Gray::from(c : Color) -> Gray {
+pub fn Gray::from(c : &Color) -> Gray {
   if c.model() == "Gray" {
     let (y, _, _, _) = c.raw()
     return { y: y.to_byte() }
@@ -527,12 +527,12 @@ pub fn Gray::from(c : Color) -> Gray {
 }
 
 ///|
-fn gray16_model_fn(c : Color) -> Color {
+fn gray16_model_fn(c : &Color) -> &Color {
   Gray16::from(c)
 }
 
 ///|
-pub fn Gray16::from(c : Color) -> Gray16 {
+pub fn Gray16::from(c : &Color) -> Gray16 {
   if c.model() == "Gray16" {
     let (y, _, _, _) = c.raw()
     return { y, }
@@ -552,14 +552,14 @@ pub fn Gray16::from(c : Color) -> Gray16 {
 typealias Slice[T] = @io.Slice[T]
 
 ///| Palette is a palette of colors and satisfies the Model trait.
-pub(all) type Palette Slice[Color]
+pub(all) type Palette Slice[&Color]
 
 ///|
-let _trait : Model = Palette::new(0)
+let _trait : &Model = Palette::new(0)
 
 ///| Palette::new makes a new palette with `n` colors (initially all black).
 pub fn Palette::new(n : Int) -> Palette {
-  let arr : Array[Color] = Array::new(capacity=n)
+  let arr : Array[&Color] = Array::new(capacity=n)
   for i in 0..<n {
     arr.push(black)
   }
@@ -567,17 +567,17 @@ pub fn Palette::new(n : Int) -> Palette {
 }
 
 ///|
-pub fn op_set(self : Palette, idx : Int, c : Color) -> Unit {
+pub fn op_set(self : Palette, idx : Int, c : &Color) -> Unit {
   self._[idx % self._.length()] = c
 }
 
 ///|
-pub fn op_get(self : Palette, idx : Int) -> Color {
+pub fn op_get(self : Palette, idx : Int) -> &Color {
   self._[idx % self._.length()]
 }
 
 ///| Palette::from makes a new palette from the provided colors.
-pub fn Palette::from(arr : Array[Color]) -> Palette {
+pub fn Palette::from(arr : Array[&Color]) -> Palette {
   Slice::new(arr)
 }
 
@@ -602,12 +602,12 @@ pub fn length(self : Palette) -> Int {
 }
 
 ///|
-pub fn op_as_view(self : Palette, start~ : Int, end~ : Int) -> Palette {
+pub fn op_as_view(self : Palette, start~ : Int = 0, end~ : Int) -> Palette {
   self._[start:end]
 }
 
 ///| convert returns the palette color closest to c in Euclidean R,G,B space.
-pub fn convert(self : Palette, c : Color) -> Color {
+pub fn convert(self : Palette, c : &Color) -> &Color {
   if self._.length() == 0 {
     return black
   }
@@ -617,7 +617,7 @@ pub fn convert(self : Palette, c : Color) -> Color {
 
 ///| index returns the index of the palette color closest to c in Euclidean
 /// R,G,B,A space.
-pub fn index(self : Palette, c : Color) -> Int {
+pub fn index(self : Palette, c : &Color) -> Int {
   // A batch version of this computation is in image/draw/draw.go.
 
   let (cr, cg, cb, ca) = c.rgba()

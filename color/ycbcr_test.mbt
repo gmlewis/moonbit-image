@@ -17,7 +17,7 @@ fn delta(x : Byte, y : Byte) -> Byte {
 type! EqError String derive(Show)
 
 ///|
-fn eq(c0 : @color.Color, c1 : @color.Color) -> EqError? {
+fn eq(c0 : &@color.Color, c1 : &@color.Color) -> EqError? {
   let (r0, g0, b0, a0) = c0.rgba()
   let (r1, g1, b1, a1) = c1.rgba()
   if r0 != r1 || g0 != g1 || b0 != b1 || a0 != a1 {
@@ -169,16 +169,14 @@ test "CMYK colors are a superset of Gray colors" {
 
 test "palette" {
   // func TestPalette(t *testing.T) {
-  let p = @color.Palette::from(
-    [
-      @color.RGBA::new(0xff, 0xff, 0xff, 0xff),
-      @color.RGBA::new(0x80, 0x00, 0x00, 0xff),
-      @color.RGBA::new(0x7f, 0x00, 0x00, 0x7f),
-      @color.RGBA::new(0x00, 0x00, 0x00, 0x7f),
-      @color.RGBA::new(0x00, 0x00, 0x00, 0x00),
-      @color.RGBA::new(0x40, 0x40, 0x40, 0x40),
-    ],
-  )
+  let p = @color.Palette::from([
+    @color.RGBA::new(0xff, 0xff, 0xff, 0xff),
+    @color.RGBA::new(0x80, 0x00, 0x00, 0xff),
+    @color.RGBA::new(0x7f, 0x00, 0x00, 0x7f),
+    @color.RGBA::new(0x00, 0x00, 0x00, 0x7f),
+    @color.RGBA::new(0x00, 0x00, 0x00, 0x00),
+    @color.RGBA::new(0x40, 0x40, 0x40, 0x40),
+  ])
   // Check that, for a Palette with no repeated colors, the closest color to
   // each element is itself.
   for i, c in p._ {

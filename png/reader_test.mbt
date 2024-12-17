@@ -107,7 +107,7 @@ test "multiple rns chunks" {
     guard let (_, None) = data.write_bytes(iend)
 
     //
-    let mut want : @color.Color = @color.black
+    let mut want : &@color.Color = @color.black
     let (m, err) = @png.decode(data)
     match i {
       0 => {

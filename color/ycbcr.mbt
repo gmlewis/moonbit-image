@@ -174,7 +174,7 @@ pub(all) struct YCbCr {
 } derive(Show, Eq)
 
 ///| `YCbCr` satisfies the `Color` trait.
-let _YCbCr : Color = YCbCr::new(0, 0, 0)
+let _YCbCr : &Color = YCbCr::new(0, 0, 0)
 
 ///|
 pub fn YCbCr::new(y : Byte, cb : Byte, cr : Byte) -> YCbCr {
@@ -250,10 +250,10 @@ pub fn rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
 }
 
 ///| y_cb_cr_model is the [Model] for Y'CbCr colors.
-pub let y_cb_cr_model : Model = model_func(y_cb_cr_model_fn, "YCbCr", None)
+pub let y_cb_cr_model : &Model = model_func(y_cb_cr_model_fn, "YCbCr", None)
 
 ///|
-fn y_cb_cr_model_fn(c : Color) -> Color {
+fn y_cb_cr_model_fn(c : &Color) -> &Color {
   if c.model() == "YCbCr" {
     return c
   }
@@ -276,7 +276,7 @@ pub(all) struct NYCbCrA {
 } derive(Show, Eq)
 
 ///| `NYCbCrA` satisfies the `Color` trait.
-let _NYCbCrA : Color = NYCbCrA::new(0, 0, 0, 0)
+let _NYCbCrA : &Color = NYCbCrA::new(0, 0, 0, 0)
 
 ///|
 pub fn NYCbCrA::new(y : Byte, cb : Byte, cr : Byte, a : Byte) -> NYCbCrA {
@@ -340,14 +340,14 @@ pub fn rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
 
 ///| n_y_cb_cr_a_model is the [Model] for non-alpha-premultiplied Y'CbCr-with-alpha
 /// colors.
-pub let n_y_cb_cr_a_model : Model = model_func(
+pub let n_y_cb_cr_a_model : &Model = model_func(
   n_y_cb_cr_a_model_fn,
   "NYCbCrA",
   None,
 )
 
 ///|
-fn n_y_cb_cr_a_model_fn(c : Color) -> Color {
+fn n_y_cb_cr_a_model_fn(c : &Color) -> &Color {
   if c.model() == "NYCbCrA" {
     return c
   }
@@ -424,7 +424,7 @@ pub(all) struct CMYK {
 } derive(Show, Eq)
 
 ///| `CMYK` satisfies the `Color` trait.
-let _CMYK : Color = CMYK::new(0, 0, 0, 0)
+let _CMYK : &Color = CMYK::new(0, 0, 0, 0)
 
 ///|
 pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
@@ -454,15 +454,15 @@ pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
 }
 
 ///| cmyk_model is the [Model] for CMYK colors.
-pub let cmyk_model : Model = model_func(cmyk_model_fn, "CMYK", None)
+pub let cmyk_model : &Model = model_func(cmyk_model_fn, "CMYK", None)
 
 ///|
-fn cmyk_model_fn(c : Color) -> Color {
+fn cmyk_model_fn(c : &Color) -> &Color {
   CMYK::from(c)
 }
 
 ///|
-pub fn CMYK::from(c : Color) -> CMYK {
+pub fn CMYK::from(c : &Color) -> CMYK {
   if c.model() == "CMYK" {
     let (c, m, y, k) = c.raw()
     return { c: c.to_byte(), m: m.to_byte(), y: y.to_byte(), k: k.to_byte() }

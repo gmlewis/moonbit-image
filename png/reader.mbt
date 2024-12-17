@@ -159,9 +159,9 @@ let header = b"\x89PNG\r\n\x1a\n"
 
 ///|
 struct Decoder {
-  r : @io.Reader
-  mut img : @image.Image
-  crc : @hash.Hash32
+  r : &@io.Reader
+  mut img : &@image.Image
+  crc : &@hash.Hash32
   mut width : Int
   mut height : Int
   mut depth : Int
@@ -186,10 +186,10 @@ fn read_byte(self : Decoder) -> (Byte, IOError?) {
 }
 
 ///|
-fn Decoder::new(r : @io.Reader) -> Decoder {
+fn Decoder::new(r : &@io.Reader) -> Decoder {
   {
     r,
-    img: @image.Image::new_empty(),
+    img: &@image.Image::new_empty(),
     crc: @crc32.new(),
     width: 0,
     height: 0,
@@ -491,8 +491,8 @@ pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
 
 // decode decodes the IDAT data into an image.
 ///|
-fn decode_idat(self : Decoder) -> (@image.Image, IOError?) {
-  let mut img = @image.Image::new_empty()
+fn decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
+  let mut img = &@image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
   if err != None {
     return (img, err)
@@ -566,10 +566,10 @@ fn size_error(e : @image.SizeError) -> IOError? {
 ///|
 fn read_image_pass(
   self : Decoder,
-  r : @io.Reader,
+  r : &@io.Reader,
   pass : Int,
   allocate_only : Bool
-) -> (@image.Image, IOError?) {
+) -> (&@image.Image, IOError?) {
   let mut bits_per_pixel = 0
   let mut pix_offset = 0
   let mut gray = @image.Gray::new_empty()
@@ -579,7 +579,7 @@ fn read_image_pass(
   let mut gray16 = @image.Gray16::new_empty()
   let mut rgba64 = @image.RGBA64::new_empty()
   let mut nrgba64 = @image.NRGBA64::new_empty()
-  let mut img = @image.Image::new_empty()
+  let mut img = &@image.Image::new_empty()
 
   //
   let mut width = self.width
@@ -1075,7 +1075,11 @@ fn read_image_pass(
 
 // merge_pass_into merges a single pass into a full sized image.
 ///|
-fn merge_pass_into(dst : @image.Image, src : @image.Image, pass : Int) -> Unit {
+fn merge_pass_into(
+  dst : &@image.Image,
+  src : &@image.Image,
+  pass : Int
+) -> Unit {
   let dst_pix = dst.raw_data()
   let stride = dst.get_stride()
   let rect = dst.bounds()
@@ -1229,14 +1233,14 @@ fn check_header(self : Decoder) -> IOError? {
 // decode reads a PNG image from r and returns it as an [image.Image].
 // The type of Image returned depends on the PNG contents.
 ///|
-pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
+pub fn decode(r : &@io.Reader) -> (&@image.Image, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()
   if err != None {
     if err == Some(@io.eof) {
       err = Some(@io.err_unexpected_eof)
     }
-    return (@image.Image::new_empty(), err)
+    return (&@image.Image::new_empty(), err)
   }
   while d.stage != DS_SEEN_IEND {
     let mut err = d.parse_chunk(false)
@@ -1244,7 +1248,7 @@ pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
       if err == Some(@io.eof) {
         err = Some(@io.err_unexpected_eof)
       }
-      return (@image.Image::new_empty(), err)
+      return (&@image.Image::new_empty(), err)
     }
   }
   (d.img, None)
@@ -1253,7 +1257,7 @@ pub fn decode(r : @io.Reader) -> (@image.Image, IOError?) {
 // decode_config returns the color model and dimensions of a PNG image without
 // decoding the entire image.
 ///|
-pub fn decode_config(r : @io.Reader) -> (@image.Config, IOError?) {
+pub fn decode_config(r : &@io.Reader) -> (@image.Config, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()
   if err != None {

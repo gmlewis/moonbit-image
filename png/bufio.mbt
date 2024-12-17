@@ -15,7 +15,7 @@ const DEFAULT_BUF_SIZE = 4096
 struct ReaderSize {
   mut buf : Slice[Byte]
   // reader provided by the client
-  mut rd : @io.Reader
+  mut rd : &@io.Reader
   // buf read and write positions
   mut r : Int
   mut w : Int
@@ -32,7 +32,7 @@ const MAX_CONSECUTIVE_EMPTY_READS = 100
 // size. If the argument io.Reader is already a [Reader] with large enough
 // size, it returns the underlying [Reader].
 ///|
-fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
+fn ReaderSize::new(rd : &@io.Reader, size : Int) -> ReaderSize {
   // Is it already a Reader?
   // b, ok := rd.(*Reader)
   // if ok && len(b.buf) >= size {
@@ -48,7 +48,7 @@ fn ReaderSize::new(rd : @io.Reader, size : Int) -> ReaderSize {
 }
 
 ///|
-fn reset_buf(self : ReaderSize, buf : Slice[Byte], r : @io.Reader) -> Unit {
+fn reset_buf(self : ReaderSize, buf : Slice[Byte], r : &@io.Reader) -> Unit {
   self.buf = buf
   self.rd = r
 }

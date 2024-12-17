@@ -82,7 +82,7 @@ pub(all) struct Rectangle {
 }
 
 ///| `Rectangle` satisfies the `Image` trait.
-let _Rectangle : Image = Rectangle::new()
+let _Rectangle : &Image = Rectangle::new()
 
 ///| Rectangle::new returns an empty (all zeros) rectangle.
 pub fn Rectangle::new() -> Rectangle {
@@ -99,13 +99,13 @@ pub fn Rectangle::set(
   _self : Rectangle,
   _x : Int,
   _y : Int,
-  _c : @color.Color
+  _c : &@color.Color
 ) -> Unit {
 
 }
 
 ///|
-pub fn sub_image(self : Rectangle, _o : Rectangle) -> Image {
+pub fn sub_image(self : Rectangle, _o : Rectangle) -> &Image {
   self
 }
 
@@ -299,7 +299,7 @@ pub fn canon(self : Rectangle) -> Rectangle {
 }
 
 ///| at implements the [Image] trait.
-pub fn at(self : Rectangle, x : Int, y : Int) -> @color.Color {
+pub fn at(self : Rectangle, x : Int, y : Int) -> &@color.Color {
   if pt(x, y).is_in(self) {
     return @color.opaque
   }
@@ -320,7 +320,7 @@ pub fn bounds(self : Rectangle) -> Rectangle {
 }
 
 ///| color_model implements the [Image] trait.
-pub fn Rectangle::color_model(_self : Rectangle) -> @color.Model {
+pub fn Rectangle::color_model(_self : Rectangle) -> &@color.Model {
   @color.alpha16_model
 }
 
