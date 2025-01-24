@@ -179,7 +179,7 @@ struct Decoder {
 }
 
 ///|
-fn read_byte(self : Decoder) -> (Byte, IOError?) {
+fn Decoder::read_byte(self : Decoder) -> (Byte, IOError?) {
   let b = Slice::new([b'\x00'])
   let (_, err) = self.r.read(b)
   (b[0], err)
@@ -454,7 +454,7 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
 // first IDAT and xxx, and the decoder state immediately after the last Read
 // call is that d.r is positioned between yy and crc1.
 ///|
-pub fn read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
+pub fn Decoder::read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
   if p.length() == 0 {
     return (0, None)
   }

@@ -70,12 +70,12 @@ pub fn RGBA::model(_self : RGBA) -> String {
 }
 
 ///|
-pub fn raw(self : RGBA) -> (UInt, UInt, UInt, UInt) {
+pub fn RGBA::raw(self : RGBA) -> (UInt, UInt, UInt, UInt) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
+pub fn RGBA::rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
   let r = self.r.to_uint() | (self.r.to_uint() << 8)
   let g = self.g.to_uint() | (self.g.to_uint() << 8)
   let b = self.b.to_uint() | (self.b.to_uint() << 8)
@@ -109,12 +109,12 @@ pub fn RGBA64::model(_self : RGBA64) -> String {
 }
 
 ///|
-pub fn raw(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
+pub fn RGBA64::raw(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub fn rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
+pub fn RGBA64::rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
   (self.r, self.g, self.b, self.a)
 }
 
@@ -140,12 +140,12 @@ pub fn NRGBA::model(_self : NRGBA) -> String {
 }
 
 ///|
-pub fn raw(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
+pub fn NRGBA::raw(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
+pub fn NRGBA::rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
   let a = self.a.to_uint()
   let mut r = self.r.to_uint() | (self.r.to_uint() << 8)
   r *= a
@@ -183,12 +183,12 @@ pub fn NRGBA64::model(_self : NRGBA64) -> String {
 }
 
 ///|
-pub fn raw(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
+pub fn NRGBA64::raw(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub fn rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
+pub fn NRGBA64::rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
   let r = self.r * self.a / 0xffff
   let g = self.g * self.a / 0xffff
   let b = self.b * self.a / 0xffff
@@ -214,13 +214,13 @@ pub fn Alpha::model(_self : Alpha) -> String {
 }
 
 ///|
-pub fn raw(self : Alpha) -> (UInt, UInt, UInt, UInt) {
+pub fn Alpha::raw(self : Alpha) -> (UInt, UInt, UInt, UInt) {
   let a = self.a.to_uint()
   (a, a, a, a)
 }
 
 ///|
-pub fn rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
+pub fn Alpha::rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
   let a = self.a.to_uint() | (self.a.to_uint() << 8)
   (a, a, a, a)
 }
@@ -244,12 +244,12 @@ pub fn Alpha16::model(_self : Alpha16) -> String {
 }
 
 ///|
-pub fn raw(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
+pub fn Alpha16::raw(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
   (self.a, self.a, self.a, self.a)
 }
 
 ///|
-pub fn rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
+pub fn Alpha16::rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
   (self.a, self.a, self.a, self.a)
 }
 
@@ -272,13 +272,13 @@ pub fn Gray::model(_self : Gray) -> String {
 }
 
 ///|
-pub fn raw(self : Gray) -> (UInt, UInt, UInt, UInt) {
+pub fn Gray::raw(self : Gray) -> (UInt, UInt, UInt, UInt) {
   let y = self.y.to_uint()
   (y, y, y, y)
 }
 
 ///|
-pub fn rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
+pub fn Gray::rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
   let y = self.y.to_uint() | (self.y.to_uint() << 8)
   (y, y, y, 0xffff)
 }
@@ -302,13 +302,13 @@ pub fn Gray16::model(_self : Gray16) -> String {
 }
 
 ///|
-pub fn raw(self : Gray16) -> (UInt, UInt, UInt, UInt) {
+pub fn Gray16::raw(self : Gray16) -> (UInt, UInt, UInt, UInt) {
   let y = self.y
   (y, y, y, y)
 }
 
 ///|
-pub fn rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
+pub fn Gray16::rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
   (self.y, self.y, self.y, 0xffff)
 }
 
@@ -587,7 +587,7 @@ pub fn Palette::name(_self : Palette) -> String {
 }
 
 ///|
-pub fn get_palette(self : Palette) -> Palette? {
+pub fn Palette::get_palette(self : Palette) -> Palette? {
   Some(self)
 }
 
@@ -607,7 +607,7 @@ pub fn op_as_view(self : Palette, start~ : Int = 0, end~ : Int) -> Palette {
 }
 
 ///| convert returns the palette color closest to c in Euclidean R,G,B space.
-pub fn convert(self : Palette, c : &Color) -> &Color {
+pub fn Palette::convert(self : Palette, c : &Color) -> &Color {
   if self._.length() == 0 {
     return black
   }

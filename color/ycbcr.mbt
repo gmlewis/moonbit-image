@@ -187,12 +187,12 @@ pub fn YCbCr::model(_self : YCbCr) -> String {
 }
 
 ///|
-pub fn raw(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
+pub fn YCbCr::raw(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), 0)
 }
 
 ///|
-pub fn rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
+pub fn YCbCr::rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the y_cb_cr_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff]. There is a
   // subtle difference between doing this and having YCbCr satisfy the Color
@@ -289,12 +289,12 @@ pub fn NYCbCrA::model(_self : NYCbCrA) -> String {
 }
 
 ///|
-pub fn raw(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
+pub fn NYCbCrA::raw(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
+pub fn NYCbCrA::rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
   // The first part of this method is the same as YCbCr.RGBA.
   let yy1 = self.y.to_int() * 0x10101
   let cb1 = self.cb.to_int() - 128
@@ -437,12 +437,12 @@ pub fn CMYK::model(_self : CMYK) -> String {
 }
 
 ///|
-pub fn raw(self : CMYK) -> (UInt, UInt, UInt, UInt) {
+pub fn CMYK::raw(self : CMYK) -> (UInt, UInt, UInt, UInt) {
   (self.c.to_uint(), self.m.to_uint(), self.y.to_uint(), self.k.to_uint())
 }
 
 ///|
-pub fn rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
+pub fn CMYK::rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
   // This code is a copy of the cmyk_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff].
 
