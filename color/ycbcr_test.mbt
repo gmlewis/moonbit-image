@@ -30,6 +30,7 @@ fn eq(c0 : &@color.Color, c1 : &@color.Color) -> EqError? {
   None
 }
 
+///|
 test "a subset of RGB space can be converted to YCbCr and back to within 2/256 tolerance" {
   // func TestYCbCrRoundtrip(t *testing.T) {
   for r = 0; r < 256; r = r + 7 {
@@ -48,6 +49,7 @@ test "a subset of RGB space can be converted to YCbCr and back to within 2/256 t
   }
 }
 
+///|
 test "calling the RGBA method (16 bit color) then truncating to 8 bits is equivalent to calling the YCbCrToRGB function (8 bit color)" {
   // func TestYCbCrToRGBConsistency(t *testing.T) {
   for y = 0; y < 256; y = y + 7 {
@@ -75,6 +77,7 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
   }
 }
 
+///|
 test "YCbCr colors are a superset of Gray colors" {
   // func TestYCbCrGray(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
@@ -86,6 +89,7 @@ test "YCbCr colors are a superset of Gray colors" {
   }
 }
 
+///|
 test "NYCbCrA colors are a superset of Alpha colors" {
   // func TestNYCbCrAAlpha(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
@@ -97,6 +101,7 @@ test "NYCbCrA colors are a superset of Alpha colors" {
   }
 }
 
+///|
 test "NYCbCrA colors are a superset of YCbCr colors" {
   // func TestNYCbCrAYCbCr(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
@@ -108,6 +113,7 @@ test "NYCbCrA colors are a superset of YCbCr colors" {
   }
 }
 
+///|
 test "a subset of RGB space can be converted to CMYK and back to within 1/256 tolerance" {
   // func TestCMYKRoundtrip(t *testing.T) {
   for r = 0; r < 256; r = r + 7 {
@@ -126,6 +132,7 @@ test "a subset of RGB space can be converted to CMYK and back to within 1/256 to
   }
 }
 
+///|
 test "calling the RGBA method (16 bit color) then truncating to 8 bits is equivalent to calling the CMYKToRGB function (8 bit color)" {
   // func TestCMYKToRGBConsistency(t *testing.T) {
   for c = 0; c < 256; c = c + 7 {
@@ -156,6 +163,7 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
   }
 }
 
+///|
 test "CMYK colors are a superset of Gray colors" {
   // func TestCMYKGray(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
@@ -167,6 +175,7 @@ test "CMYK colors are a superset of Gray colors" {
   }
 }
 
+///|
 test "palette" {
   // func TestPalette(t *testing.T) {
   let p = @color.Palette::from([

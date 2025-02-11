@@ -51,6 +51,7 @@ fn slow_filter_paeth(
 ///|
 type! TestError String derive(Show)
 
+///|
 test "paeth" {
   for a = 0; a < 256; a = a + 15 {
     for b = 0; b < 256; b = b + 15 {
@@ -73,6 +74,7 @@ test "paeth" {
 // 	}
 // }
 
+///|
 test "paeth decode" {
   let pdat0 = Slice::new(Array::make(32, b'\x00'))
   let pdat1 = Slice::new(Array::make(32, b'\x00'))

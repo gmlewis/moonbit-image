@@ -24,6 +24,7 @@ fn test_in(f : @image.Rectangle, g : @image.Rectangle) -> TestError? {
   None
 }
 
+///|
 test "every point in f is in g" {
   let rects = [
     @image.rect(0, 0, 10, 10),

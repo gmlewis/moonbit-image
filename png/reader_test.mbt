@@ -17,6 +17,7 @@ type! TestError String derive(Show)
 ///|
 let header = b"\x89PNG\r\n\x1a\n"
 
+///|
 test "incomplete idat on row boundary" {
   // The following is an invalid 1x2 grayscale PNG image. The header is OK,
   // but the zlib-compressed IDAT payload contains two bytes "\x02\x00",
@@ -37,6 +38,7 @@ test "incomplete idat on row boundary" {
   }
 }
 
+///|
 test "training idat chunks" {
   // The following is a valid 1x1 PNG image containing color.Gray{255} and
   // a trailing zero-length IDAT chunk (see PNG specification section 12.9):
@@ -76,6 +78,7 @@ test "training idat chunks" {
 }
 
 // func TestMultipletRNSChunks(t *testing.T) {
+///|
 test "multiple rns chunks" {
   // The following is a valid 1x1 paletted PNG image with a 1-element palette
   // containing color.NRGBA{0xff, 0x00, 0x00, 0x7f}:
@@ -139,6 +142,7 @@ test "multiple rns chunks" {
 }
 
 // func TestUnknownChunkLengthUnderflow(t *testing.T) {
+///|
 test "unknown chunk length underflow" {
   let data = [
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -157,6 +161,7 @@ test "unknown chunk length underflow" {
 }
 
 // func TestGray8Transparent(t *testing.T) {
+///|
 test "gray 8 transparent" {
   // These bytes come from https://golang.org/issues/19553
   let data = [
@@ -302,6 +307,7 @@ let test_cases : Array[TestCase] = [
 ]
 
 // func TestDimensionOverflow(t *testing.T) {
+///|
 test "dimension overflow" {
   for i, tc in test_cases {
     let buf = @io.Buffer::new()
@@ -364,6 +370,7 @@ test "dimension overflow" {
 }
 
 // func TestDecodePalettedWithTransparency(t *testing.T) {
+///|
 test "decode paletted with transparency" {
   // These bytes come from https://go.dev/issue/54325
   //

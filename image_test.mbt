@@ -64,6 +64,7 @@ let test_images : Array[TestT] = [
   },
 ]
 
+///|
 test "image" {
   for tc in test_images {
     let m = (tc.image)!()
@@ -154,6 +155,7 @@ fn call(f : (Rectangle) -> &Image!SizeError, r : Rectangle) -> Bool {
   true
 }
 
+///|
 test "new xxx bad rectangle" {
   let test_cases = [
     { name: "RGBA", f: fn(r) { @image.RGBA::new!(r) as &Image } },
@@ -212,6 +214,7 @@ test "new xxx bad rectangle" {
   }
 }
 
+///|
 test "16 bits per color channel" {
   let testcolor_model = [
     @color.rgba64_model, @color.nrgba64_model, @color.alpha16_model, @color.gray16_model,

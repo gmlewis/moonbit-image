@@ -683,6 +683,7 @@ pub let transparent : Alpha16 = { a: 0 }
 ///|
 pub let opaque : Alpha16 = { a: 0xffff }
 
+///|
 test "sq_diff" {
   // canonical sqDiff implementation
   let orig = fn(x : UInt, y : UInt) -> UInt {
