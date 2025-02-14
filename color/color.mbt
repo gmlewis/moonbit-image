@@ -27,7 +27,7 @@ pub(open) trait Color {
 }
 
 ///|
-impl Show for &Color with output(self, logger) {
+pub impl Show for &Color with output(self, logger) {
   logger.write_string(self.to_string())
 }
 

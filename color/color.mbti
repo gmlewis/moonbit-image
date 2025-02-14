@@ -231,6 +231,7 @@ impl Color {
   op_equal(&Self, &Self) -> Bool
   to_string(&Self) -> String
 }
+impl Show for &Color
 
 // Type aliases
 

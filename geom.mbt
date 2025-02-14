@@ -10,7 +10,7 @@
 pub(all) struct Point {
   mut x : Int
   mut y : Int
-}
+} derive(Show, Eq)
 
 ///| to_string returns a string representation of p like "(3,4)".
 pub fn to_string(self : Point) -> String {
@@ -79,7 +79,7 @@ pub fn pt(x : Int, y : Int) -> Point {
 pub(all) struct Rectangle {
   min : Point
   max : Point
-}
+} derive(Show, Eq)
 
 ///| `Rectangle` satisfies the `Image` trait.
 let _Rectangle : &Image = Rectangle::new()
