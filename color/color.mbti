@@ -49,11 +49,9 @@ pub(all) struct Alpha {
 }
 impl Alpha {
   from(&Color) -> Self
-  model(Self) -> String
   new(Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for Alpha
 impl Eq for Alpha
 impl Show for Alpha
 
@@ -62,11 +60,9 @@ pub(all) struct Alpha16 {
 }
 impl Alpha16 {
   from(&Color) -> Self
-  model(Self) -> String
   new(UInt) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for Alpha16
 impl Eq for Alpha16
 impl Show for Alpha16
 
@@ -78,11 +74,9 @@ pub(all) struct CMYK {
 }
 impl CMYK {
   from(&Color) -> Self
-  model(Self) -> String
   new(Byte, Byte, Byte, Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for CMYK
 impl Eq for CMYK
 impl Show for CMYK
 
@@ -91,11 +85,9 @@ pub(all) struct Gray {
 }
 impl Gray {
   from(&Color) -> Self
-  model(Self) -> String
   new(Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for Gray
 impl Eq for Gray
 impl Show for Gray
 
@@ -104,20 +96,14 @@ pub(all) struct Gray16 {
 }
 impl Gray16 {
   from(&Color) -> Self
-  model(Self) -> String
   new(UInt) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for Gray16
 impl Eq for Gray16
 impl Show for Gray16
 
 type ModelFunc
-impl ModelFunc {
-  convert(Self, &Color) -> &Color
-  get_palette(Self) -> Palette?
-  name(Self) -> String
-}
+impl Model for ModelFunc
 
 pub(all) struct NRGBA {
   r : Byte
@@ -127,11 +113,9 @@ pub(all) struct NRGBA {
 }
 impl NRGBA {
   from(&Color) -> Self
-  model(Self) -> String
   new(Byte, Byte, Byte, Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for NRGBA
 impl Eq for NRGBA
 impl Show for NRGBA
 
@@ -143,11 +127,9 @@ pub(all) struct NRGBA64 {
 }
 impl NRGBA64 {
   from(&Color) -> Self
-  model(Self) -> String
   new(UInt, UInt, UInt, UInt) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for NRGBA64
 impl Eq for NRGBA64
 impl Show for NRGBA64
 
@@ -158,28 +140,24 @@ pub(all) struct NYCbCrA {
   a : Byte
 }
 impl NYCbCrA {
-  model(Self) -> String
   new(Byte, Byte, Byte, Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for NYCbCrA
 impl Eq for NYCbCrA
 impl Show for NYCbCrA
 
 pub(all) type Palette @io.Slice[&Color]
 impl Palette {
-  convert(Self, &Color) -> &Color
   from(Array[&Color]) -> Self
-  get_palette(Self) -> Self?
   index(Self, &Color) -> Int
   length(Self) -> Int
-  name(Self) -> String
   new(Int) -> Self
   new_empty() -> Self
   op_as_view(Self, start~ : Int = .., end~ : Int) -> Self
   op_get(Self, Int) -> &Color
   op_set(Self, Int, &Color) -> Unit
 }
+impl Model for Palette
 
 pub(all) struct RGBA {
   r : Byte
@@ -189,11 +167,9 @@ pub(all) struct RGBA {
 }
 impl RGBA {
   from(&Color) -> Self
-  model(Self) -> String
   new(Byte, Byte, Byte, Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for RGBA
 impl Eq for RGBA
 impl Show for RGBA
 
@@ -205,11 +181,9 @@ pub(all) struct RGBA64 {
 }
 impl RGBA64 {
   from(&Color) -> Self
-  model(Self) -> String
   new(UInt, UInt, UInt, UInt) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for RGBA64
 impl Eq for RGBA64
 impl Show for RGBA64
 
@@ -219,18 +193,16 @@ pub(all) struct YCbCr {
   cr : Byte
 }
 impl YCbCr {
-  model(Self) -> String
   new(Byte, Byte, Byte) -> Self
-  raw(Self) -> (UInt, UInt, UInt, UInt)
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
 }
+impl Color for YCbCr
 impl Eq for YCbCr
 impl Show for YCbCr
 
 impl Color {
-  op_equal(&Self, &Self) -> Bool
   to_string(&Self) -> String
 }
+impl Eq for &Color
 impl Show for &Color
 
 // Type aliases

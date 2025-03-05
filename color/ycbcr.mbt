@@ -182,17 +182,17 @@ pub fn YCbCr::new(y : Byte, cb : Byte, cr : Byte) -> YCbCr {
 }
 
 ///|
-pub fn YCbCr::model(_self : YCbCr) -> String {
+pub impl Color for YCbCr with model(_self) {
   "YCbCr"
 }
 
 ///|
-pub fn YCbCr::raw(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for YCbCr with raw(self) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), 0)
 }
 
 ///|
-pub fn YCbCr::rgba(self : YCbCr) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for YCbCr with rgba(self) {
   // This code is a copy of the y_cb_cr_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff]. There is a
   // subtle difference between doing this and having YCbCr satisfy the Color
@@ -284,17 +284,17 @@ pub fn NYCbCrA::new(y : Byte, cb : Byte, cr : Byte, a : Byte) -> NYCbCrA {
 }
 
 ///|
-pub fn NYCbCrA::model(_self : NYCbCrA) -> String {
+pub impl Color for NYCbCrA with model(_self) {
   "NYCbCrA"
 }
 
 ///|
-pub fn NYCbCrA::raw(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NYCbCrA with raw(self) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn NYCbCrA::rgba(self : NYCbCrA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NYCbCrA with rgba(self) {
   // The first part of this method is the same as YCbCr.RGBA.
   let yy1 = self.y.to_int() * 0x10101
   let cb1 = self.cb.to_int() - 128
@@ -432,17 +432,17 @@ pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
 }
 
 ///|
-pub fn CMYK::model(_self : CMYK) -> String {
+pub impl Color for CMYK with model(_self) {
   "CMYK"
 }
 
 ///|
-pub fn CMYK::raw(self : CMYK) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for CMYK with raw(self) {
   (self.c.to_uint(), self.m.to_uint(), self.y.to_uint(), self.k.to_uint())
 }
 
 ///|
-pub fn CMYK::rgba(self : CMYK) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for CMYK with rgba(self) {
   // This code is a copy of the cmyk_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff].
 

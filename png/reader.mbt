@@ -83,8 +83,7 @@ fn cb_true_color(cb : Int) -> Bool {
   cb == CB_TC8 || cb == CB_TC16
 }
 
-// Filter type, as per the PNG spec.
-///|
+///| Filter type, as per the PNG spec.
 const FT_NONE = b'\x00'
 
 ///|
@@ -101,25 +100,22 @@ const FT_PAETH = b'\x04'
 
 // const N_FILTER = 5
 
-// Interlace type.
-///|
+///| Interlace type.
 const IT_NONE = b'\x00'
 
 ///|
 const IT_ADAM7 = b'\x01'
 
-// InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
-///|
-struct InterlaceScan {
+///| InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
+priv struct InterlaceScan {
   x_factor : Int
   y_factor : Int
   x_offset : Int
   y_offset : Int
 }
 
-// interlacing defines Adam7 interlacing, with 7 passes of reduced images.
-// See https://www.w3.org/TR/PNG/#8Interlace
-///|
+///| interlacing defines Adam7 interlacing, with 7 passes of reduced images.
+/// See https://www.w3.org/TR/PNG/#8Interlace
 let interlacing : Array[InterlaceScan] = [
   { x_factor: 8, y_factor: 8, x_offset: 0, y_offset: 0 },
   { x_factor: 8, y_factor: 8, x_offset: 4, y_offset: 0 },
@@ -136,6 +132,7 @@ let interlacing : Array[InterlaceScan] = [
 // multiple IDAT chunks, and IDAT chunks must be sequential (i.e. they may not
 // have any other chunks between them).
 // https://www.w3.org/TR/PNG/#5ChunkOrdering
+
 ///|
 const DS_START = 0
 
@@ -208,8 +205,7 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
 ///|
 typealias IOError = @io.IOError
 
-// A format_error reports that the input is not a valid PNG.
-///|
+///| A format_error reports that the input is not a valid PNG.
 fn format_error(e : String) -> IOError {
   IOError("png: invalid format: \{e}")
 }
@@ -217,8 +213,7 @@ fn format_error(e : String) -> IOError {
 ///|
 pub let chunk_order_error : IOError = format_error("chunk out of order")
 
-// An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
-///|
+///| An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
 fn unsupported_error(e : String) -> IOError {
   IOError("png: unsupported feature: \{e}")
 }
@@ -232,7 +227,7 @@ fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
-  guard let (_, None) = self.crc.write(self.tmp[:13])
+  guard self.crc.write(self.tmp[:13]) is (_, None)
   if self.tmp[10] != 0 {
     return Some(unsupported_error("compression method"))
   }
@@ -331,7 +326,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
-  guard let (_, None) = self.crc.write(self.tmp[:n])
+  guard self.crc.write(self.tmp[:n]) is (_, None)
   match self.cb {
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
       self.palette = @color.Palette::new(256)
@@ -376,7 +371,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard let (_, None) = self.crc.write(self.tmp[:n])
+      guard self.crc.write(self.tmp[:n]) is (_, None)
       let _ = slice_copy(
         self.transparent[:],
         self.tmp[:length.reinterpret_as_int()],
@@ -400,7 +395,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard let (_, None) = self.crc.write(self.tmp[:n])
+      guard self.crc.write(self.tmp[:n]) is (_, None)
       let _ = slice_copy(
         self.transparent,
         self.tmp[:length.reinterpret_as_int()],
@@ -418,7 +413,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard let (_, None) = self.crc.write(self.tmp[:n])
+      guard self.crc.write(self.tmp[:n]) is (_, None)
       if self.palette._.length() < n {
         self.palette = self.palette._[:n]
       }
@@ -444,17 +439,16 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
   n
 }
 
-// Read presents one or more IDAT chunks as one continuous stream (minus the
-// intermediate chunk headers and footers). If the PNG data looked like:
-//
-//	... len0 IDAT xxx crc0 len1 IDAT yy crc1 len2 IEND crc2
-//
-// then this reader presents xxxyy. For well-formed PNG data, the decoder state
-// immediately before the first Read call is that d.r is positioned between the
-// first IDAT and xxx, and the decoder state immediately after the last Read
-// call is that d.r is positioned between yy and crc1.
-///|
-pub fn Decoder::read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
+///| Read presents one or more IDAT chunks as one continuous stream (minus the
+/// intermediate chunk headers and footers). If the PNG data looked like:
+///
+///	... len0 IDAT xxx crc0 len1 IDAT yy crc1 len2 IEND crc2
+///
+/// then this reader presents xxxyy. For well-formed PNG data, the decoder state
+/// immediately before the first Read call is that d.r is positioned between the
+/// first IDAT and xxx, and the decoder state immediately after the last Read
+/// call is that d.r is positioned between yy and crc1.
+pub impl @io.Reader for Decoder with read(self, p) {
   if p.length() == 0 {
     return (0, None)
   }
@@ -475,7 +469,7 @@ pub fn Decoder::read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
       return (0, Some(format_error("not enough pixel data")))
     }
     self.crc.reset()
-    guard let (_, None) = self.crc.write(self.tmp[4:8])
+    guard self.crc.write(self.tmp[4:8]) is (_, None)
 
   }
   if self.idat_length.reinterpret_as_int() < 0 {
@@ -484,13 +478,12 @@ pub fn Decoder::read(self : Decoder, p : Slice[Byte]) -> (Int, IOError?) {
   let want_len = self.idat_length.reinterpret_as_int()
   let read_len = @math.minimum(p.length(), want_len)
   let (n, err) = self.r.read(p[:read_len])
-  guard let (_, None) = self.crc.write(p[:n])
+  guard self.crc.write(p[:n]) is (_, None)
   self.idat_length -= n.reinterpret_as_uint()
   (n, err)
 }
 
-// decode decodes the IDAT data into an image.
-///|
+///| decode decodes the IDAT data into an image.
 fn decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
   let mut img = &@image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
@@ -562,8 +555,7 @@ fn size_error(e : @image.SizeError) -> IOError? {
   Some(format_error(e.to_string()))
 }
 
-// read_image_pass reads a single image pass, sized according to the pass number.
-///|
+///| read_image_pass reads a single image pass, sized according to the pass number.
 fn read_image_pass(
   self : Decoder,
   r : &@io.Reader,
@@ -1073,8 +1065,7 @@ fn read_image_pass(
   (img, None)
 }
 
-// merge_pass_into merges a single pass into a full sized image.
-///|
+///| merge_pass_into merges a single pass into a full sized image.
 fn merge_pass_into(
   dst : &@image.Image,
   src : &@image.Image,
@@ -1129,7 +1120,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   }
   let mut length = be_uint32(self.tmp[:4])
   self.crc.reset()
-  guard let (_, None) = self.crc.write(self.tmp[4:8])
+  guard self.crc.write(self.tmp[4:8]) is (_, None)
 
   // Read the chunk data.
   let chunk = be_uint32(self.tmp[4:8])
@@ -1200,7 +1191,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
     if err != None {
       return err
     }
-    guard let (_, None) = self.crc.write(ignored[:n])
+    guard self.crc.write(ignored[:n]) is (_, None)
     length -= n.reinterpret_as_uint()
   }
   self.verify_checksum()
@@ -1230,9 +1221,8 @@ fn check_header(self : Decoder) -> IOError? {
   None
 }
 
-// decode reads a PNG image from r and returns it as an [image.Image].
-// The type of Image returned depends on the PNG contents.
-///|
+///| decode reads a PNG image from r and returns it as an [image.Image].
+/// The type of Image returned depends on the PNG contents.
 pub fn decode(r : &@io.Reader) -> (&@image.Image, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()
@@ -1254,9 +1244,8 @@ pub fn decode(r : &@io.Reader) -> (&@image.Image, IOError?) {
   (d.img, None)
 }
 
-// decode_config returns the color model and dimensions of a PNG image without
-// decoding the entire image.
-///|
+///| decode_config returns the color model and dimensions of a PNG image without
+/// decoding the entire image.
 pub fn decode_config(r : &@io.Reader) -> (@image.Config, IOError?) {
   let d = Decoder::new(r)
   let mut err = d.check_header()
@@ -1302,6 +1291,6 @@ pub fn decode_config(r : &@io.Reader) -> (@image.Config, IOError?) {
   ({ color_model: cm, width: d.width, height: d.height }, None)
 }
 
-// func init() {
+// func init {
 // 	image.RegisterFormat("png", header, Decode, decode_config)
 // }

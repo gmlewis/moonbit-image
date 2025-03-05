@@ -16,19 +16,13 @@ let err_negative_read : @io.IOError
 
 // Types and methods
 type Decoder
-impl Decoder {
-  read(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
-}
+impl @io.Reader for Decoder
 
 type Encoder
 impl Encoder {
   enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
   write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
 }
-
-type InterlaceScan
-
-type ReaderSize
 
 // Type aliases
 

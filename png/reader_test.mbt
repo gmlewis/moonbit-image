@@ -26,10 +26,10 @@ test "incomplete idat on row boundary" {
   let idat = b"\x00\x00\x00\x0eIDAT\x78\x9c\x62\x62\x00\x04\x00\x00\xff\xff\x00\x06\x00\x03\xfa\xd0\x59\xae"
   let iend = b"\x00\x00\x00\x00IEND\xae\x42\x60\x82"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(header)
-  guard let (_, None) = data.write_bytes(ihdr)
-  guard let (_, None) = data.write_bytes(idat)
-  guard let (_, None) = data.write_bytes(iend)
+  guard data.write_bytes(header) is (_, None)
+  guard data.write_bytes(ihdr) is (_, None)
+  guard data.write_bytes(idat) is (_, None)
+  guard data.write_bytes(iend) is (_, None)
 
   //
   let (_, err) = @png.decode(data)
@@ -47,11 +47,11 @@ test "training idat chunks" {
   let idat_zero = b"\x00\x00\x00\x00IDAT\x35\xaf\x06\x1e"
   let iend = b"\x00\x00\x00\x00IEND\xae\x42\x60\x82"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(header)
-  guard let (_, None) = data.write_bytes(ihdr)
-  guard let (_, None) = data.write_bytes(idat_white)
-  guard let (_, None) = data.write_bytes(idat_zero)
-  guard let (_, None) = data.write_bytes(iend)
+  guard data.write_bytes(header) is (_, None)
+  guard data.write_bytes(ihdr) is (_, None)
+  guard data.write_bytes(idat_white) is (_, None)
+  guard data.write_bytes(idat_zero) is (_, None)
+  guard data.write_bytes(iend) is (_, None)
 
   //
   let (_, err) = @png.decode(data)
@@ -63,11 +63,11 @@ test "training idat chunks" {
   // The following chunk contains a single pixel with color.Gray{0}.
   let idat_black = b"\x00\x00\x00\x0eIDAT\x78\x9c\x62\x62\x00\x04\x00\x00\xff\xff\x00\x06\x00\x03\xfa\xd0\x59\xae"
   let data = @io.Buffer::new()
-  guard let (_, None) = data.write_bytes(header)
-  guard let (_, None) = data.write_bytes(ihdr)
-  guard let (_, None) = data.write_bytes(idat_white)
-  guard let (_, None) = data.write_bytes(idat_black)
-  guard let (_, None) = data.write_bytes(iend)
+  guard data.write_bytes(header) is (_, None)
+  guard data.write_bytes(ihdr) is (_, None)
+  guard data.write_bytes(idat_white) is (_, None)
+  guard data.write_bytes(idat_black) is (_, None)
+  guard data.write_bytes(iend) is (_, None)
   let (img, err) = @png.decode(data)
   if err != None {
     raise TestError("trailing IDAT not ignored: \{err}")
@@ -99,15 +99,15 @@ test "multiple rns chunks" {
   //
   for i = 0; i < 4; i = i + 1 {
     let data = @io.Buffer::new()
-    guard let (_, None) = data.write_bytes(header)
-    guard let (_, None) = data.write_bytes(ihdr)
-    guard let (_, None) = data.write_bytes(plte)
+    guard data.write_bytes(header) is (_, None)
+    guard data.write_bytes(ihdr) is (_, None)
+    guard data.write_bytes(plte) is (_, None)
     for j = 0; j < i; j = j + 1 {
-      guard let (_, None) = data.write_bytes(trns)
+      guard data.write_bytes(trns) is (_, None)
 
     }
-    guard let (_, None) = data.write_bytes(idat)
-    guard let (_, None) = data.write_bytes(iend)
+    guard data.write_bytes(idat) is (_, None)
+    guard data.write_bytes(iend) is (_, None)
 
     //
     let mut want : &@color.Color = @color.black
@@ -151,7 +151,7 @@ test "unknown chunk length underflow" {
     0xff, 0x07, 0xf4, 0x7c, 0x55, 0x04, 0x1a, 0xd3,
   ].map(fn(b) { b.to_byte() })
   let b = @io.Buffer::new()
-  guard let (_, None) = b.write_bytes(Bytes::from_array(data))
+  guard b.write_bytes(Bytes::from_array(data)) is (_, None)
   let (_, err) = @png.decode(b)
   if err == None {
     raise TestError(
@@ -183,7 +183,7 @@ test "gray 8 transparent" {
     0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
   ].map(fn(b) { b.to_byte() })
   let b = @io.Buffer::new()
-  guard let (_, None) = b.write_bytes(Bytes::from_array(data))
+  guard b.write_bytes(Bytes::from_array(data)) is (_, None)
   let (m, err) = @png.decode(b)
   if err != None {
     raise TestError("decode: \{err}")
@@ -311,9 +311,8 @@ let test_cases : Array[TestCase] = [
 test "dimension overflow" {
   for i, tc in test_cases {
     let buf = @io.Buffer::new()
-    guard let (_, None) = buf.write_bytes(
-      Bytes::from_array(tc.src.map(fn(b) { b.to_byte() })),
-    )
+    guard buf.write_bytes(Bytes::from_array(tc.src.map(fn(b) { b.to_byte() })))
+      is (_, None)
     let (cfg, err) = @png.decode_config(buf)
     if tc.unsupported_config {
       match err {
@@ -415,9 +414,8 @@ test "decode paletted with transparency" {
     0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
   ]
   let buf = @io.Buffer::new()
-  guard let (_, None) = buf.write_bytes(
-    Bytes::from_array(src.map(fn(b) { b.to_byte() })),
-  )
+  guard buf.write_bytes(Bytes::from_array(src.map(fn(b) { b.to_byte() })))
+    is (_, None)
   let (cfg, err) = @png.decode_config(buf)
   if err != None {
     raise TestError("decode_config: \{err}")

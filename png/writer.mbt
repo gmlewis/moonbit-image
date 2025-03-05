@@ -5,8 +5,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Encoder encodes PNG images.
-///|
+///| Encoder encodes PNG images.
 struct Encoder {
   mut w : &@io.Writer
   mut m : &@image.Image
@@ -40,8 +39,7 @@ fn Encoder::new(w : &@io.Writer, m : &@image.Image) -> Encoder {
   }
 }
 
-// The absolute value of a byte interpreted as a signed int8.
-///|
+///| The absolute value of a byte interpreted as a signed int8.
 fn abs8(d : Byte) -> Int {
   if d < 128 {
     return d.to_int()
@@ -77,8 +75,8 @@ fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   self.header[6] = name[2]
   self.header[7] = name[3]
   let crc = @crc32.new()
-  guard let (_, None) = crc.write(self.header[4:8])
-  guard let (_, None) = crc.write(b)
+  guard crc.write(self.header[4:8]) is (_, None)
+  guard crc.write(b) is (_, None)
   be_put_uint32(self.footer[:4], crc.sum32())
   let (_, err) = self.w.write(self.header[:8])
   self.err = err
@@ -172,13 +170,12 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
   }
 }
 
-// An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
-// including an 8-byte header and 4-byte CRC checksum per write call. Such calls
-// should be relatively infrequent, since write_idats uses a [io.Buffer].
-//
-// This method should only be called from write_idats (via write_image).
-// No other code should treat an Encoder as an io.Writer.
-///|
+///| An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
+/// including an 8-byte header and 4-byte CRC checksum per write call. Such calls
+/// should be relatively infrequent, since write_idats uses a [io.Buffer].
+///
+/// This method should only be called from write_idats (via write_image).
+/// No other code should treat an Encoder as an io.Writer.
 pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   self.write_chunk(b, b"IDAT")
   if self.err != None {
@@ -187,9 +184,8 @@ pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   (b.length(), None)
 }
 
-// Chooses the filter to use for encoding the current row, and applies it.
-// The return value is the index of the filter and also of the row in cr that has had it applied.
-///|
+///| Chooses the filter to use for encoding the current row, and applies it.
+/// The return value is the index of the filter and also of the row in cr that has had it applied.
 fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
   // This is the same heuristic that libpng uses, although the filters are attempted in order of
@@ -520,8 +516,7 @@ fn clear_slice(b : Slice[Byte]) -> Unit {
   }
 }
 
-// Write the actual image data to one or more IDAT chunks.
-///|
+///| Write the actual image data to one or more IDAT chunks.
 fn write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
@@ -548,8 +543,7 @@ pub fn encode(w : &@io.Writer, m : &@image.Image) -> IOError? {
   e.enc(w, m)
 }
 
-// enc writes the Image m to w in PNG format.
-///|
+///| enc writes the Image m to w in PNG format.
 pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are

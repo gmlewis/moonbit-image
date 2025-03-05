@@ -38,7 +38,7 @@ pub fn to_string(self : &Color) -> String {
 }
 
 ///|
-pub fn op_equal(self : &Color, o : &Color) -> Bool {
+pub impl Eq for &Color with op_equal(self, o) {
   let (r0, g0, b0, a0) = self.rgba()
   let (r1, g1, b1, a1) = o.rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
@@ -65,17 +65,17 @@ pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
 }
 
 ///|
-pub fn RGBA::model(_self : RGBA) -> String {
+pub impl Color for RGBA with model(_self) {
   "RGBA"
 }
 
 ///|
-pub fn RGBA::raw(self : RGBA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for RGBA with raw(self) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn RGBA::rgba(self : RGBA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for RGBA with rgba(self) {
   let r = self.r.to_uint() | (self.r.to_uint() << 8)
   let g = self.g.to_uint() | (self.g.to_uint() << 8)
   let b = self.b.to_uint() | (self.b.to_uint() << 8)
@@ -104,17 +104,17 @@ pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
 }
 
 ///|
-pub fn RGBA64::model(_self : RGBA64) -> String {
+pub impl Color for RGBA64 with model(_self) {
   "RGBA64"
 }
 
 ///|
-pub fn RGBA64::raw(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for RGBA64 with raw(self) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub fn RGBA64::rgba(self : RGBA64) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for RGBA64 with rgba(self) {
   (self.r, self.g, self.b, self.a)
 }
 
@@ -135,17 +135,17 @@ pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
 }
 
 ///|
-pub fn NRGBA::model(_self : NRGBA) -> String {
+pub impl Color for NRGBA with model(_self) {
   "NRGBA"
 }
 
 ///|
-pub fn NRGBA::raw(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NRGBA with raw(self) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub fn NRGBA::rgba(self : NRGBA) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NRGBA with rgba(self) {
   let a = self.a.to_uint()
   let mut r = self.r.to_uint() | (self.r.to_uint() << 8)
   r *= a
@@ -178,17 +178,17 @@ pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
 }
 
 ///|
-pub fn NRGBA64::model(_self : NRGBA64) -> String {
+pub impl Color for NRGBA64 with model(_self) {
   "NRGBA64"
 }
 
 ///|
-pub fn NRGBA64::raw(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NRGBA64 with raw(self) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub fn NRGBA64::rgba(self : NRGBA64) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for NRGBA64 with rgba(self) {
   let r = self.r * self.a / 0xffff
   let g = self.g * self.a / 0xffff
   let b = self.b * self.a / 0xffff
@@ -209,18 +209,18 @@ pub fn Alpha::new(a : Byte) -> Alpha {
 }
 
 ///|
-pub fn Alpha::model(_self : Alpha) -> String {
+pub impl Color for Alpha with model(_self) {
   "Alpha"
 }
 
 ///|
-pub fn Alpha::raw(self : Alpha) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Alpha with raw(self) {
   let a = self.a.to_uint()
   (a, a, a, a)
 }
 
 ///|
-pub fn Alpha::rgba(self : Alpha) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Alpha with rgba(self) {
   let a = self.a.to_uint() | (self.a.to_uint() << 8)
   (a, a, a, a)
 }
@@ -239,17 +239,17 @@ pub fn Alpha16::new(a : UInt) -> Alpha16 {
 }
 
 ///|
-pub fn Alpha16::model(_self : Alpha16) -> String {
+pub impl Color for Alpha16 with model(_self) {
   "Alpha16"
 }
 
 ///|
-pub fn Alpha16::raw(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Alpha16 with raw(self) {
   (self.a, self.a, self.a, self.a)
 }
 
 ///|
-pub fn Alpha16::rgba(self : Alpha16) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Alpha16 with rgba(self) {
   (self.a, self.a, self.a, self.a)
 }
 
@@ -267,18 +267,18 @@ pub fn Gray::new(y : Byte) -> Gray {
 }
 
 ///|
-pub fn Gray::model(_self : Gray) -> String {
+pub impl Color for Gray with model(_self) {
   "Gray"
 }
 
 ///|
-pub fn Gray::raw(self : Gray) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Gray with raw(self) {
   let y = self.y.to_uint()
   (y, y, y, y)
 }
 
 ///|
-pub fn Gray::rgba(self : Gray) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Gray with rgba(self) {
   let y = self.y.to_uint() | (self.y.to_uint() << 8)
   (y, y, y, 0xffff)
 }
@@ -297,18 +297,18 @@ pub fn Gray16::new(y : UInt) -> Gray16 {
 }
 
 ///|
-pub fn Gray16::model(_self : Gray16) -> String {
+pub impl Color for Gray16 with model(_self) {
   "Gray16"
 }
 
 ///|
-pub fn Gray16::raw(self : Gray16) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Gray16 with raw(self) {
   let y = self.y
   (y, y, y, y)
 }
 
 ///|
-pub fn Gray16::rgba(self : Gray16) -> (UInt, UInt, UInt, UInt) {
+pub impl Color for Gray16 with rgba(self) {
   (self.y, self.y, self.y, 0xffff)
 }
 
@@ -343,17 +343,17 @@ struct ModelFunc {
 }
 
 ///|
-pub fn convert(self : ModelFunc, c : &Color) -> &Color {
+pub impl Model for ModelFunc with convert(self, c) {
   (self.f)(c)
 }
 
 ///|
-pub fn name(self : ModelFunc) -> String {
+pub impl Model for ModelFunc with name(self) {
   self.name
 }
 
 ///|
-pub fn get_palette(self : ModelFunc) -> Palette? {
+pub impl Model for ModelFunc with get_palette(self) {
   self.palette
 }
 
@@ -582,12 +582,12 @@ pub fn Palette::from(arr : Array[&Color]) -> Palette {
 }
 
 ///|
-pub fn Palette::name(_self : Palette) -> String {
+pub impl Model for Palette with name(_self) {
   "Paletted"
 }
 
 ///|
-pub fn Palette::get_palette(self : Palette) -> Palette? {
+pub impl Model for Palette with get_palette(self) {
   Some(self)
 }
 
@@ -607,7 +607,7 @@ pub fn op_as_view(self : Palette, start~ : Int = 0, end~ : Int) -> Palette {
 }
 
 ///| convert returns the palette color closest to c in Euclidean R,G,B space.
-pub fn Palette::convert(self : Palette, c : &Color) -> &Color {
+pub impl Model for Palette with convert(self, c) {
   if self._.length() == 0 {
     return black
   }

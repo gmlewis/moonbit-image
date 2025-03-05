@@ -5,8 +5,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// A Point is an X, Y coordinate pair. The axes increase right and down.
-///|
+///| A Point is an X, Y coordinate pair. The axes increase right and down.
 pub(all) struct Point {
   mut x : Int
   mut y : Int
@@ -90,47 +89,42 @@ pub fn Rectangle::new() -> Rectangle {
 }
 
 ///|
-pub fn Rectangle::opaque(_self : Rectangle) -> Bool {
+pub impl Image for Rectangle with opaque(_self) {
   true
 }
 
 ///|
-pub fn Rectangle::set(
-  _self : Rectangle,
-  _x : Int,
-  _y : Int,
-  _c : &@color.Color
-) -> Unit {
+pub impl Image for Rectangle with set(_self, _x, _y, _c) {
 
 }
 
 ///|
-pub fn sub_image(self : Rectangle, _o : Rectangle) -> &Image {
+pub impl Image for Rectangle with sub_image(self, _o) {
   self
 }
 
 ///|
-pub fn Rectangle::raw_data(_self : Rectangle) -> Slice[Byte] {
+pub impl Image for Rectangle with raw_data(_self) {
   Slice::new([])
 }
 
 ///|
-pub fn Rectangle::get_bytes_per_pixel(_self : Rectangle) -> Int {
+pub impl Image for Rectangle with get_bytes_per_pixel(_self) {
   0
 }
 
 ///|
-pub fn Rectangle::get_stride(_self : Rectangle) -> Int {
+pub impl Image for Rectangle with get_stride(_self) {
   0
 }
 
 ///|
-pub fn Rectangle::color_index_at(_self : Rectangle, _x : Int, _y : Int) -> Byte {
+pub impl Image for Rectangle with color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub fn Rectangle::pix_offset(_self : Rectangle, _x : Int, _y : Int) -> Int {
+pub impl Image for Rectangle with pix_offset(_self, _x, _y) {
   0
 }
 
@@ -299,7 +293,7 @@ pub fn canon(self : Rectangle) -> Rectangle {
 }
 
 ///| at implements the [Image] trait.
-pub fn at(self : Rectangle, x : Int, y : Int) -> &@color.Color {
+pub impl Image for Rectangle with at(self, x, y) {
   if pt(x, y).is_in(self) {
     return @color.opaque
   }
@@ -315,12 +309,12 @@ pub fn rgba64_at(self : Rectangle, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///| bounds implements the [Image] trait.
-pub fn bounds(self : Rectangle) -> Rectangle {
+pub impl Image for Rectangle with bounds(self) {
   self
 }
 
 ///| color_model implements the [Image] trait.
-pub fn Rectangle::color_model(_self : Rectangle) -> &@color.Model {
+pub impl Image for Rectangle with color_model(_self) {
   @color.alpha16_model
 }
 
