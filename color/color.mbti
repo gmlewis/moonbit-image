@@ -17,6 +17,10 @@ let gray16_model : &Model
 
 let gray_model : &Model
 
+fn index(Palette, &Color) -> Int
+
+fn length(Palette) -> Int
+
 fn model_func((&Color) -> &Color, String, Palette?) -> &Model
 
 let n_y_cb_cr_a_model : &Model
@@ -24,6 +28,12 @@ let n_y_cb_cr_a_model : &Model
 let nrgba64_model : &Model
 
 let nrgba_model : &Model
+
+fn op_as_view(Palette, start~ : Int = .., end~ : Int) -> Palette
+
+fn op_get(Palette, Int) -> &Color
+
+fn op_set(Palette, Int, &Color) -> Unit
 
 let opaque : Alpha16
 
@@ -34,6 +44,8 @@ fn rgb_to_y_cb_cr(Byte, Byte, Byte) -> (Byte, Byte, Byte)
 let rgba64_model : &Model
 
 let rgba_model : &Model
+
+fn to_string(&Color) -> String
 
 let transparent : Alpha16
 

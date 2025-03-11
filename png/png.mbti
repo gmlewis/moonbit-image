@@ -10,9 +10,13 @@ fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
 
 fn decode_config(&@io.Reader) -> (@image.Config, @io.IOError?)
 
+fn enc(Encoder, &@io.Writer, &@image.Image) -> @io.IOError?
+
 fn encode(&@io.Writer, &@image.Image) -> @io.IOError?
 
 let err_negative_read : @io.IOError
+
+fn write(Encoder, @io.Slice[Byte]) -> (Int, @io.IOError?)
 
 // Types and methods
 type Decoder
