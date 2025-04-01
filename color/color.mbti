@@ -1,6 +1,8 @@
-package gmlewis/image/color
+package "gmlewis/image/color"
 
-alias @gmlewis/io as @io
+import(
+  "gmlewis/io"
+)
 
 // Values
 let alpha16_model : &Model

@@ -1,7 +1,9 @@
-package gmlewis/image
+package "gmlewis/image"
 
-alias @gmlewis/image/color as @color
-alias @gmlewis/io as @io
+import(
+  "gmlewis/image/color"
+  "gmlewis/io"
+)
 
 // Values
 fn add(Rectangle, Point) -> Rectangle
@@ -220,7 +222,7 @@ pub(all) struct Paletted {
   pix : @io.Slice[Byte]
   stride : Int
   rect : Rectangle
-  palette : @color.Palette
+  mut palette : @color.Palette
 }
 impl Paletted {
   new(Rectangle, @color.Palette) -> Self!SizeError
@@ -234,8 +236,8 @@ impl Paletted {
 impl Image for Paletted
 
 pub(all) struct Point {
-  x : Int
-  y : Int
+  mut x : Int
+  mut y : Int
 }
 impl Point {
   div(Self, Int) -> Self

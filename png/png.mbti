@@ -1,7 +1,9 @@
-package gmlewis/image/png
+package "gmlewis/image/png"
 
-alias @gmlewis/image as @image
-alias @gmlewis/io as @io
+import(
+  "gmlewis/image"
+  "gmlewis/io"
+)
 
 // Values
 let chunk_order_error : @io.IOError
