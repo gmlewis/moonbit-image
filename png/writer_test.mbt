@@ -114,7 +114,9 @@ test "writer paletted" {
         }
       } else if chunk == be_uint32(Slice::new(b"IDAT".to_array())) {
         // Uncompress the image data
-        guard @zlib.Reader::new(@io.Buffer::from(data[i + 8:i + 8 + length]))
+        guard @zlib.Reader::new(
+            @io.Buffer::from_slice(data[i + 8:i + 8 + length]),
+          )
           is (r, None)
         let (n, err) = @io.copy(@io.discard, r)
         if err != None {
