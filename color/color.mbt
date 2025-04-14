@@ -7,7 +7,8 @@
 /// Use of this source code is governed by a BSD-style
 /// license that can be found in the LICENSE file.
 
-///| Color can convert itself to alpha-premultiplied 16-bits per channel RGBA.
+///|
+/// Color can convert itself to alpha-premultiplied 16-bits per channel RGBA.
 /// The conversion may be lossy.
 pub(open) trait Color {
   // rgba returns the alpha-premultiplied red, green, blue and alpha values
@@ -44,7 +45,8 @@ pub impl Eq for &Color with op_equal(self, o) {
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
 }
 
-///| RGBA represents a traditional 32-bit alpha-premultiplied color, having 8
+///|
+/// RGBA represents a traditional 32-bit alpha-premultiplied color, having 8
 /// bits for each of red, green, blue and alpha.
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
@@ -56,7 +58,8 @@ pub(all) struct RGBA {
   a : Byte
 } derive(Show, Eq)
 
-///| `RGBA` satisfies the `Color` trait.
+///|
+/// `RGBA` satisfies the `Color` trait.
 let _RGBA : &Color = RGBA::new(0, 0, 0, 0)
 
 ///|
@@ -83,7 +86,8 @@ pub impl Color for RGBA with rgba(self) {
   (r, g, b, a)
 }
 
-///| RGBA64 represents a 64-bit alpha-premultiplied color, having 16 bits for
+///|
+/// RGBA64 represents a 64-bit alpha-premultiplied color, having 16 bits for
 /// each of red, green, blue and alpha.
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
@@ -95,7 +99,8 @@ pub(all) struct RGBA64 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
-///| `RGBA64` satisfies the `Color` trait.
+///|
+/// `RGBA64` satisfies the `Color` trait.
 let _RGBA64 : &Color = RGBA64::new(0, 0, 0, 0)
 
 ///|
@@ -118,7 +123,8 @@ pub impl Color for RGBA64 with rgba(self) {
   (self.r, self.g, self.b, self.a)
 }
 
-///| NRGBA represents a non-alpha-premultiplied 32-bit color.
+///|
+/// NRGBA represents a non-alpha-premultiplied 32-bit color.
 pub(all) struct NRGBA {
   r : Byte
   g : Byte
@@ -126,7 +132,8 @@ pub(all) struct NRGBA {
   a : Byte
 } derive(Show, Eq)
 
-///| `NRGBA` satisfies the `Color` trait.
+///|
+/// `NRGBA` satisfies the `Color` trait.
 let _NRGBA : &Color = NRGBA::new(0, 0, 0, 0)
 
 ///|
@@ -160,7 +167,8 @@ pub impl Color for NRGBA with rgba(self) {
   (r, g, b, a)
 }
 
-///| NRGBA64 represents a non-alpha-premultiplied 64-bit color,
+///|
+/// NRGBA64 represents a non-alpha-premultiplied 64-bit color,
 /// having 16 bits for each of red, green, blue and alpha.
 pub(all) struct NRGBA64 {
   r : UInt // 16 bits
@@ -169,7 +177,8 @@ pub(all) struct NRGBA64 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
-///| `NRGBA64` satisfies the `Color` trait.
+///|
+/// `NRGBA64` satisfies the `Color` trait.
 let _NRGBA64 : &Color = NRGBA64::new(0, 0, 0, 0)
 
 ///|
@@ -195,12 +204,14 @@ pub impl Color for NRGBA64 with rgba(self) {
   (r, g, b, self.a)
 }
 
-///| Alpha represents an 8-bit alpha color.
+///|
+/// Alpha represents an 8-bit alpha color.
 pub(all) struct Alpha {
   a : Byte
 } derive(Show, Eq)
 
-///| `Alpha` satisfies the `Color` trait.
+///|
+/// `Alpha` satisfies the `Color` trait.
 let _Alpha : &Color = Alpha::new(0)
 
 ///|
@@ -225,12 +236,14 @@ pub impl Color for Alpha with rgba(self) {
   (a, a, a, a)
 }
 
-///| Alpha16 represents a 16-bit alpha color.
+///|
+/// Alpha16 represents a 16-bit alpha color.
 pub(all) struct Alpha16 {
   a : UInt // 16 bits
 } derive(Show, Eq)
 
-///| `Alpha16` satisfies the `Color` trait.
+///|
+/// `Alpha16` satisfies the `Color` trait.
 let _Alpha16 : &Color = Alpha16::new(0)
 
 ///|
@@ -253,12 +266,14 @@ pub impl Color for Alpha16 with rgba(self) {
   (self.a, self.a, self.a, self.a)
 }
 
-///| Gray represents an 8-bit grayscale color.
+///|
+/// Gray represents an 8-bit grayscale color.
 pub(all) struct Gray {
   y : Byte
 } derive(Show, Eq)
 
-///| `Gray` satisfies the `Color` trait.
+///|
+/// `Gray` satisfies the `Color` trait.
 let _Gray : &Color = Gray::new(0)
 
 ///|
@@ -283,12 +298,14 @@ pub impl Color for Gray with rgba(self) {
   (y, y, y, 0xffff)
 }
 
-///| Gray16 represents a 16-bit grayscale color.
+///|
+/// Gray16 represents a 16-bit grayscale color.
 pub(all) struct Gray16 {
   y : UInt // 16 bits
 } derive(Show, Eq)
 
-///| `Gray16` satisfies the `Color` trait.
+///|
+/// `Gray16` satisfies the `Color` trait.
 let _Gray16 : &Color = Gray16::new(0)
 
 ///|
@@ -312,7 +329,8 @@ pub impl Color for Gray16 with rgba(self) {
   (self.y, self.y, self.y, 0xffff)
 }
 
-///| Model can convert any [&Color] to one from its own color model. The conversion
+///|
+/// Model can convert any [&Color] to one from its own color model. The conversion
 /// may be lossy.
 pub(open) trait Model {
   convert(Self, &Color) -> &Color
@@ -320,7 +338,8 @@ pub(open) trait Model {
   get_palette(Self) -> Palette?
 }
 
-///| model_func returns a [Model] that invokes f to implement the conversion.
+///|
+/// model_func returns a [Model] that invokes f to implement the conversion.
 pub fn model_func(
   f : (&Color) -> &Color,
   name : String,
@@ -357,7 +376,8 @@ pub impl Model for ModelFunc with get_palette(self) {
   self.palette
 }
 
-///| Models for the standard color types.
+///|
+/// Models for the standard color types.
 pub let rgba_model : &Model = model_func(rgba_model_fn, "RGBA", None)
 
 ///|
@@ -551,13 +571,15 @@ pub fn Gray16::from(c : &Color) -> Gray16 {
 ///|
 typealias Slice[T] = @io.Slice[T]
 
-///| Palette is a palette of colors and satisfies the Model trait.
+///|
+/// Palette is a palette of colors and satisfies the Model trait.
 pub(all) type Palette Slice[&Color]
 
 ///|
 let _trait : &Model = Palette::new(0)
 
-///| Palette::new makes a new palette with `n` colors (initially all black).
+///|
+/// Palette::new makes a new palette with `n` colors (initially all black).
 pub fn Palette::new(n : Int) -> Palette {
   let arr : Array[&Color] = Array::new(capacity=n)
   for i in 0..<n {
@@ -576,7 +598,8 @@ pub fn op_get(self : Palette, idx : Int) -> &Color {
   self._[idx % self._.length()]
 }
 
-///| Palette::from makes a new palette from the provided colors.
+///|
+/// Palette::from makes a new palette from the provided colors.
 pub fn Palette::from(arr : Array[&Color]) -> Palette {
   Slice::new(arr)
 }
@@ -606,7 +629,8 @@ pub fn op_as_view(self : Palette, start~ : Int = 0, end~ : Int) -> Palette {
   self._[start:end]
 }
 
-///| convert returns the palette color closest to c in Euclidean R,G,B space.
+///|
+/// convert returns the palette color closest to c in Euclidean R,G,B space.
 pub impl Model for Palette with convert(self, c) {
   if self._.length() == 0 {
     return black
@@ -615,7 +639,8 @@ pub impl Model for Palette with convert(self, c) {
   self._[idx]
 }
 
-///| index returns the index of the palette color closest to c in Euclidean
+///|
+/// index returns the index of the palette color closest to c in Euclidean
 /// R,G,B,A space.
 pub fn index(self : Palette, c : &Color) -> Int {
   // A batch version of this computation is in image/draw/draw.go.
@@ -640,7 +665,8 @@ pub fn index(self : Palette, c : &Color) -> Int {
   return ret
 }
 
-///| sq_diff returns the squared-difference of x and y, shifted by 2 so that
+///|
+/// sq_diff returns the squared-difference of x and y, shifted by 2 so that
 /// adding four of those won't overflow a uint32.
 ///
 /// x and y are both assumed to be in the range [0, 0xffff].
@@ -671,7 +697,8 @@ fn sq_diff(x : UInt, y : UInt) -> UInt {
   (d * d) >> 2
 }
 
-///| Standard colors.
+///|
+/// Standard colors.
 pub let black : Gray16 = { y: 0 }
 
 ///|

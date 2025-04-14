@@ -1,4 +1,5 @@
-///| Package png implements a PNG image decoder and encoder.
+///|
+/// Package png implements a PNG image decoder and encoder.
 ///
 /// The PNG specification is at https://www.w3.org/TR/PNG/.
 ///
@@ -83,7 +84,8 @@ fn cb_true_color(cb : Int) -> Bool {
   cb == CB_TC8 || cb == CB_TC16
 }
 
-///| Filter type, as per the PNG spec.
+///|
+/// Filter type, as per the PNG spec.
 const FT_NONE = b'\x00'
 
 ///|
@@ -100,13 +102,15 @@ const FT_PAETH = b'\x04'
 
 // const N_FILTER = 5
 
-///| Interlace type.
+///|
+/// Interlace type.
 const IT_NONE = b'\x00'
 
 ///|
 const IT_ADAM7 = b'\x01'
 
-///| InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
+///|
+/// InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
 priv struct InterlaceScan {
   x_factor : Int
   y_factor : Int
@@ -114,7 +118,8 @@ priv struct InterlaceScan {
   y_offset : Int
 }
 
-///| interlacing defines Adam7 interlacing, with 7 passes of reduced images.
+///|
+/// interlacing defines Adam7 interlacing, with 7 passes of reduced images.
 /// See https://www.w3.org/TR/PNG/#8Interlace
 let interlacing : Array[InterlaceScan] = [
   { x_factor: 8, y_factor: 8, x_offset: 0, y_offset: 0 },
@@ -205,7 +210,8 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
 ///|
 typealias IOError = @io.IOError
 
-///| A format_error reports that the input is not a valid PNG.
+///|
+/// A format_error reports that the input is not a valid PNG.
 fn format_error(e : String) -> IOError {
   IOError("png: invalid format: \{e}")
 }
@@ -213,7 +219,8 @@ fn format_error(e : String) -> IOError {
 ///|
 pub let chunk_order_error : IOError = format_error("chunk out of order")
 
-///| An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
+///|
+/// An unsupported_error reports that the input uses a valid but unimplemented PNG feature.
 fn unsupported_error(e : String) -> IOError {
   IOError("png: unsupported feature: \{e}")
 }
@@ -439,7 +446,8 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
   n
 }
 
-///| Read presents one or more IDAT chunks as one continuous stream (minus the
+///|
+/// Read presents one or more IDAT chunks as one continuous stream (minus the
 /// intermediate chunk headers and footers). If the PNG data looked like:
 ///
 ///	... len0 IDAT xxx crc0 len1 IDAT yy crc1 len2 IEND crc2
@@ -483,7 +491,8 @@ pub impl @io.Reader for Decoder with read(self, p) {
   (n, err)
 }
 
-///| decode decodes the IDAT data into an image.
+///|
+/// decode decodes the IDAT data into an image.
 fn decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
   let mut img = &@image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
@@ -555,7 +564,8 @@ fn size_error(e : @image.SizeError) -> IOError? {
   Some(format_error(e.to_string()))
 }
 
-///| read_image_pass reads a single image pass, sized according to the pass number.
+///|
+/// read_image_pass reads a single image pass, sized according to the pass number.
 fn read_image_pass(
   self : Decoder,
   r : &@io.Reader,
@@ -1065,7 +1075,8 @@ fn read_image_pass(
   (img, None)
 }
 
-///| merge_pass_into merges a single pass into a full sized image.
+///|
+/// merge_pass_into merges a single pass into a full sized image.
 fn merge_pass_into(
   dst : &@image.Image,
   src : &@image.Image,
@@ -1221,7 +1232,8 @@ fn check_header(self : Decoder) -> IOError? {
   None
 }
 
-///| decode reads a PNG image from r and returns it as an [image.Image].
+///|
+/// decode reads a PNG image from r and returns it as an [image.Image].
 /// The type of Image returned depends on the PNG contents.
 pub fn decode(r : &@io.Reader) -> (&@image.Image, IOError?) {
   let d = Decoder::new(r)
@@ -1244,7 +1256,8 @@ pub fn decode(r : &@io.Reader) -> (&@image.Image, IOError?) {
   (d.img, None)
 }
 
-///| decode_config returns the color model and dimensions of a PNG image without
+///|
+/// decode_config returns the color model and dimensions of a PNG image without
 /// decoding the entire image.
 pub fn decode_config(r : &@io.Reader) -> (@image.Config, IOError?) {
   let d = Decoder::new(r)

@@ -5,7 +5,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-///| Encoder encodes PNG images.
+///|
+/// Encoder encodes PNG images.
 struct Encoder {
   mut w : &@io.Writer
   mut m : &@image.Image
@@ -39,7 +40,8 @@ fn Encoder::new(w : &@io.Writer, m : &@image.Image) -> Encoder {
   }
 }
 
-///| The absolute value of a byte interpreted as a signed int8.
+///|
+/// The absolute value of a byte interpreted as a signed int8.
 fn abs8(d : Byte) -> Int {
   if d < 128 {
     return d.to_int()
@@ -170,7 +172,8 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
   }
 }
 
-///| An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
+///|
+/// An Encoder is an io.Writer that satisfies writes by writing PNG IDAT chunks,
 /// including an 8-byte header and 4-byte CRC checksum per write call. Such calls
 /// should be relatively infrequent, since write_idats uses a [io.Buffer].
 ///
@@ -184,7 +187,8 @@ pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   (b.length(), None)
 }
 
-///| Chooses the filter to use for encoding the current row, and applies it.
+///|
+/// Chooses the filter to use for encoding the current row, and applies it.
 /// The return value is the index of the filter and also of the row in cr that has had it applied.
 fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
@@ -516,7 +520,8 @@ fn clear_slice(b : Slice[Byte]) -> Unit {
   }
 }
 
-///| Write the actual image data to one or more IDAT chunks.
+///|
+/// Write the actual image data to one or more IDAT chunks.
 fn write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
@@ -543,7 +548,8 @@ pub fn encode(w : &@io.Writer, m : &@image.Image) -> IOError? {
   e.enc(w, m)
 }
 
-///| enc writes the Image m to w in PNG format.
+///|
+/// enc writes the Image m to w in PNG format.
 pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are

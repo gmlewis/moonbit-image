@@ -1,4 +1,5 @@
-///| This file is based on the Go implementation found here:
+///|
+/// This file is based on the Go implementation found here:
 /// https://cs.opensource.google/go/go/+/refs/tags/go1.23.3:src/bufio.go
 /// which has the copyright notice:
 /// Copyright 2009 The Go Authors. All rights reserved.
@@ -10,7 +11,8 @@
 /// the interface but provides buffering and some help for textual I/O.
 const DEFAULT_BUF_SIZE = 4096
 
-///| ReaderSize implements buffering for an io.Reader object.
+///|
+/// ReaderSize implements buffering for an io.Reader object.
 priv struct ReaderSize {
   mut buf : Slice[Byte]
   // reader provided by the client
@@ -27,7 +29,8 @@ const MIN_READ_BUFFER_SIZE = 16
 ///|
 const MAX_CONSECUTIVE_EMPTY_READS = 100
 
-///| `ReaderSize::new` returns a new [Reader] whose buffer has at least the specified
+///|
+/// `ReaderSize::new` returns a new [Reader] whose buffer has at least the specified
 /// size. If the argument io.Reader is already a [Reader] with large enough
 /// size, it returns the underlying [Reader].
 fn ReaderSize::new(rd : &@io.Reader, size : Int) -> ReaderSize {
@@ -56,7 +59,8 @@ pub let err_negative_read : IOError = IOError(
   "bufio: reader returned negative count from read",
 )
 
-///| fill reads a new chunk into the buffer.
+///|
+/// fill reads a new chunk into the buffer.
 fn fill(self : ReaderSize) -> IOError? {
   // Slide existing data to beginning.
   if self.r > 0 {
@@ -93,7 +97,8 @@ fn read_err(self : ReaderSize) -> IOError? {
   err
 }
 
-///| read reads data into p.
+///|
+/// read reads data into p.
 /// It returns the number of bytes read into p.
 /// The bytes are taken from at most one Read on the underlying [Reader],
 /// hence n may be less than len(p).
@@ -147,7 +152,8 @@ impl @flate.Reader for ReaderSize with read(self, p) {
   (n, None)
 }
 
-///| read_byte reads and returns a single byte.
+///|
+/// read_byte reads and returns a single byte.
 /// If no byte is available, returns an error.
 impl @flate.Reader for ReaderSize with read_byte(self) {
   // self.lastRuneSize = -1
@@ -162,7 +168,8 @@ impl @flate.Reader for ReaderSize with read_byte(self) {
   (c, None)
 }
 
-///| Buffered returns the number of bytes that can be read from the current buffer.
+///|
+/// Buffered returns the number of bytes that can be read from the current buffer.
 fn buffered(self : ReaderSize) -> Int {
   self.w - self.r
 }

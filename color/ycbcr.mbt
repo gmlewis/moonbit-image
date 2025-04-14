@@ -5,7 +5,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-///| rgb_to_y_cb_cr converts an RGB triple to a Y'CbCr triple.
+///|
+/// rgb_to_y_cb_cr converts an RGB triple to a Y'CbCr triple.
 pub fn rgb_to_y_cb_cr(r : Byte, g : Byte, b : Byte) -> (Byte, Byte, Byte) {
   // The JFIF specification says:
   //	Y' =  0.2990*R + 0.5870*G + 0.1140*B
@@ -57,7 +58,8 @@ pub fn rgb_to_y_cb_cr(r : Byte, g : Byte, b : Byte) -> (Byte, Byte, Byte) {
   (yy, cb, cr)
 }
 
-///| y_cb_cr_to_rgb converts a Y'CbCr triple to an RGB triple.
+///|
+/// y_cb_cr_to_rgb converts a Y'CbCr triple to an RGB triple.
 pub fn y_cb_cr_to_rgb(y : Byte, cb : Byte, cr : Byte) -> (Byte, Byte, Byte) {
   // The JFIF specification says:
   //	R = Y' + 1.40200*(Cr-128)
@@ -156,7 +158,8 @@ pub fn y_cb_cr_to_rgb(y : Byte, cb : Byte, cr : Byte) -> (Byte, Byte, Byte) {
   (r, g, b)
 }
 
-///| YCbCr represents a fully opaque 24-bit Y'CbCr color, having 8 bits each for
+///|
+/// YCbCr represents a fully opaque 24-bit Y'CbCr color, having 8 bits each for
 /// one luma and two chroma components.
 ///
 /// JPEG, VP8, the MPEG family and other codecs use this color model. Such
@@ -173,7 +176,8 @@ pub(all) struct YCbCr {
   cr : Byte
 } derive(Show, Eq)
 
-///| `YCbCr` satisfies the `Color` trait.
+///|
+/// `YCbCr` satisfies the `Color` trait.
 let _YCbCr : &Color = YCbCr::new(0, 0, 0)
 
 ///|
@@ -249,7 +253,8 @@ pub impl Color for YCbCr with rgba(self) {
   (r, g, b, 0xffff)
 }
 
-///| y_cb_cr_model is the [Model] for Y'CbCr colors.
+///|
+/// y_cb_cr_model is the [Model] for Y'CbCr colors.
 pub let y_cb_cr_model : &Model = model_func(y_cb_cr_model_fn, "YCbCr", None)
 
 ///|
@@ -266,7 +271,8 @@ fn y_cb_cr_model_fn(c : &Color) -> &Color {
   c
 }
 
-///| NYCbCrA represents a non-alpha-premultiplied Y'CbCr-with-alpha color, having
+///|
+/// NYCbCrA represents a non-alpha-premultiplied Y'CbCr-with-alpha color, having
 /// 8 bits each for one luma, two chroma and one alpha component.
 pub(all) struct NYCbCrA {
   y : Byte
@@ -275,7 +281,8 @@ pub(all) struct NYCbCrA {
   a : Byte
 } derive(Show, Eq)
 
-///| `NYCbCrA` satisfies the `Color` trait.
+///|
+/// `NYCbCrA` satisfies the `Color` trait.
 let _NYCbCrA : &Color = NYCbCrA::new(0, 0, 0, 0)
 
 ///|
@@ -338,7 +345,8 @@ pub impl Color for NYCbCrA with rgba(self) {
   (r, g, b, a)
 }
 
-///| n_y_cb_cr_a_model is the [Model] for non-alpha-premultiplied Y'CbCr-with-alpha
+///|
+/// n_y_cb_cr_a_model is the [Model] for non-alpha-premultiplied Y'CbCr-with-alpha
 /// colors.
 pub let n_y_cb_cr_a_model : &Model = model_func(
   n_y_cb_cr_a_model_fn,
@@ -373,7 +381,8 @@ fn n_y_cb_cr_a_model_fn(c : &Color) -> &Color {
   c
 }
 
-///| rgb_to_cmyk converts an RGB triple to a CMYK quadruple.
+///|
+/// rgb_to_cmyk converts an RGB triple to a CMYK quadruple.
 pub fn rgb_to_cmyk(r : Byte, g : Byte, b : Byte) -> (Byte, Byte, Byte, Byte) {
   let rr = r.to_uint()
   let gg = g.to_uint()
@@ -395,7 +404,8 @@ pub fn rgb_to_cmyk(r : Byte, g : Byte, b : Byte) -> (Byte, Byte, Byte, Byte) {
   (c, m, y, k)
 }
 
-///| cmyk_to_rgb converts a [CMYK] quadruple to an RGB triple.
+///|
+/// cmyk_to_rgb converts a [CMYK] quadruple to an RGB triple.
 pub fn cmyk_to_rgb(
   c : Byte,
   m : Byte,
@@ -412,7 +422,8 @@ pub fn cmyk_to_rgb(
   (r, g, b)
 }
 
-///| CMYK represents a fully opaque CMYK color, having 8 bits for each of cyan,
+///|
+/// CMYK represents a fully opaque CMYK color, having 8 bits for each of cyan,
 /// magenta, yellow and black.
 ///
 /// It is not associated with any particular color profile.
@@ -423,7 +434,8 @@ pub(all) struct CMYK {
   k : Byte
 } derive(Show, Eq)
 
-///| `CMYK` satisfies the `Color` trait.
+///|
+/// `CMYK` satisfies the `Color` trait.
 let _CMYK : &Color = CMYK::new(0, 0, 0, 0)
 
 ///|
@@ -453,7 +465,8 @@ pub impl Color for CMYK with rgba(self) {
   (r, g, b, 0xffff)
 }
 
-///| cmyk_model is the [Model] for CMYK colors.
+///|
+/// cmyk_model is the [Model] for CMYK colors.
 pub let cmyk_model : &Model = model_func(cmyk_model_fn, "CMYK", None)
 
 ///|

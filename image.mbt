@@ -1,4 +1,5 @@
-///| This file is based on the Go implementation found here:
+///|
+/// This file is based on the Go implementation found here:
 /// https://cs.opensource.google/go/go/+/refs/tags/go1.23.3:src/image/image.go
 /// which has the copyright notice:
 /// Copyright 2009 The Go Authors. All rights reserved.
@@ -25,7 +26,8 @@
 /// [Go Security Policy](https://go.dev/security/policy).
 typealias Slice[T] = @io.Slice[T]
 
-///| Config holds an image's color model and dimensions.
+///|
+/// Config holds an image's color model and dimensions.
 pub(all) struct Config {
   color_model : &@color.Model
   width : Int
@@ -37,7 +39,8 @@ pub fn Config::new_empty() -> Config {
   { color_model: @color.rgba_model, width: 0, height: 0 }
 }
 
-///| Image is a finite rectangular grid of [color.Color] values taken from a color
+///|
+/// Image is a finite rectangular grid of [color.Color] values taken from a color
 /// model.
 pub(open) trait Image {
   /// color_model returns the Image's color model.
@@ -76,7 +79,8 @@ pub fn &Image::empty(self : &Image) -> Bool {
   self.bounds().empty()
 }
 
-///| RGBA64Image is an [Image] whose pixels can be converted directly to a
+///|
+/// RGBA64Image is an [Image] whose pixels can be converted directly to a
 /// color.RGBA64.
 pub(open) trait RGBA64Image {
   /// rgba64_at returns the RGBA64 color of the pixel at (x, y). It is
@@ -112,7 +116,8 @@ fn pixel_buffer_length(
   return total_length
 }
 
-///| RGBA is an in-memory image whose At method returns [color.RGBA] values.
+///|
+/// RGBA is an in-memory image whose At method returns [color.RGBA] values.
 pub(all) struct RGBA {
   // pix holds the image's pixels, in R, G, B, A order. The pixel at
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
@@ -123,7 +128,8 @@ pub(all) struct RGBA {
   rect : Rectangle
 }
 
-///| `RGBA` satisfies the `Image` trait.
+///|
+/// `RGBA` satisfies the `Image` trait.
 let _RGBA : &Image = RGBA::new_empty()
 
 ///|
@@ -256,7 +262,8 @@ pub fn set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
   self.pix[i + 3] = c.a
 }
 
-///| sub_image returns an image representing the portion of the image p visible
+///|
+/// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
 pub impl Image for RGBA with sub_image(self, r) {
   let r = r.intersect(self.rect)
@@ -312,7 +319,8 @@ pub(all) struct RGBA64 {
   rect : Rectangle
 }
 
-///| `RGBA64` satisfies the `Image` trait.
+///|
+/// `RGBA64` satisfies the `Image` trait.
 let _RGBA64 : &Image = RGBA64::new_empty()
 
 ///|
@@ -480,7 +488,8 @@ pub(all) struct NRGBA {
   rect : Rectangle
 }
 
-///| `NRGBA` satisfies the `Image` trait.
+///|
+/// `NRGBA` satisfies the `Image` trait.
 let _NRGBA : &Image = NRGBA::new_empty()
 
 ///|
@@ -667,7 +676,8 @@ pub(all) struct NRGBA64 {
   rect : Rectangle
 }
 
-///| `NRGBA64` satisfies the `Image` trait.
+///|
+/// `NRGBA64` satisfies the `Image` trait.
 let _NRGBA64 : &Image = NRGBA64::new_empty()
 
 ///|
@@ -870,7 +880,8 @@ pub(all) struct Alpha {
   rect : Rectangle
 }
 
-///| `Alpha` satisfies the `Image` trait.
+///|
+/// `Alpha` satisfies the `Image` trait.
 let _Alpha : &Image = Alpha::new_empty()
 
 ///|
@@ -1036,7 +1047,8 @@ pub(all) struct Alpha16 {
   rect : Rectangle
 }
 
-///| `Alpha16` satisfies the `Image` trait.
+///|
+/// `Alpha16` satisfies the `Image` trait.
 let _Alpha16 : &Image = Alpha16::new_empty()
 
 ///|
@@ -1210,7 +1222,8 @@ pub(all) struct Gray {
   rect : Rectangle
 }
 
-///| `Gray` satisfies the `Image` trait.
+///|
+/// `Gray` satisfies the `Image` trait.
 let _Gray : &Image = Gray::new_empty()
 
 ///|
@@ -1364,7 +1377,8 @@ pub(all) struct Gray16 {
   rect : Rectangle
 }
 
-///| `Gray16` satisfies the `Image` trait.
+///|
+/// `Gray16` satisfies the `Image` trait.
 let _Gray16 : &Image = Gray16::new_empty()
 
 ///|
@@ -1521,7 +1535,8 @@ pub(all) struct CMYK {
   rect : Rectangle
 }
 
-///| `CMYK` satisfies the `Image` trait.
+///|
+/// `CMYK` satisfies the `Image` trait.
 let _CMYK : &Image = CMYK::new_empty()
 
 ///|
@@ -1688,7 +1703,8 @@ pub(all) struct Paletted {
   mut palette : @color.Palette
 }
 
-///| `Paletted` satisfies the `Image` trait.
+///|
+/// `Paletted` satisfies the `Image` trait.
 let _Paletted : &Image = Paletted::new_empty()
 
 ///|
