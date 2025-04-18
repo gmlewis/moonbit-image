@@ -48,12 +48,6 @@ fn nrgba64_at(NRGBA64, Int, Int) -> @color.NRGBA64
 
 fn nrgba_at(NRGBA, Int, Int) -> @color.NRGBA
 
-fn op_add(Point, Point) -> Point
-
-fn op_equal(Point, Point) -> Bool
-
-fn op_sub(Point, Point) -> Point
-
 fn overlaps(Rectangle, Rectangle) -> Bool
 
 fn pt(Int, Int) -> Point
@@ -244,13 +238,12 @@ impl Point {
   is_in(Self, Rectangle) -> Bool
   mod(Self, Rectangle) -> Self
   mul(Self, Int) -> Self
-  op_add(Self, Self) -> Self
-  op_equal(Self, Self) -> Bool
-  op_sub(Self, Self) -> Self
   to_string(Self) -> String
 }
+impl Add for Point
 impl Eq for Point
 impl Show for Point
+impl Sub for Point
 
 pub(all) struct RGBA {
   pix : @io.Slice[Byte]
@@ -299,7 +292,6 @@ impl Rectangle {
   intersect(Self, Self) -> Self
   is_in(Self, Self) -> Bool
   new() -> Self
-  op_equal(Self, Self) -> Bool
   overlaps(Self, Self) -> Bool
   rgba64_at(Self, Int, Int) -> @color.RGBA64
   size(Self) -> Point

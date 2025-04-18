@@ -20,13 +20,13 @@ pub fn to_string(self : Point) -> String {
 
 ///|
 /// op_add (+) returns the vector p+q.
-pub fn op_add(self : Point, q : Point) -> Point {
+pub impl Add for Point with op_add(self, q) {
   { x: self.x + q.x, y: self.y + q.y }
 }
 
 ///|
 /// op_sub (-) returns the vector p-q.
-pub fn op_sub(self : Point, q : Point) -> Point {
+pub impl Sub for Point with op_sub(self, q) {
   { x: self.x - q.x, y: self.y - q.y }
 }
 
@@ -66,12 +66,6 @@ pub fn mod(self : Point, r : Rectangle) -> Point {
 }
 
 ///|
-/// op_equal reports whether p and q are equal.
-pub fn op_equal(self : Point, q : Point) -> Bool {
-  self.x == q.x && self.y == q.y
-}
-
-///|
 /// pt is shorthand for [Point]{X, Y}.
 pub fn pt(x : Int, y : Int) -> Point {
   { x, y }
@@ -89,7 +83,7 @@ pub fn pt(x : Int, y : Int) -> Point {
 pub(all) struct Rectangle {
   min : Point
   max : Point
-} derive(Show, Eq)
+} derive(Show)
 
 ///|
 /// `Rectangle` satisfies the `Image` trait.
@@ -273,7 +267,7 @@ pub fn empty(self : Rectangle) -> Bool {
 ///|
 /// op_equal reports whether r and s contain the same set of points. All empty
 /// rectangles are considered equal.
-pub fn Rectangle::op_equal(self : Rectangle, s : Rectangle) -> Bool {
+pub impl Eq for Rectangle with op_equal(self, s) {
   (self.min == s.min && self.max == s.max) || (self.empty() && s.empty())
 }
 
