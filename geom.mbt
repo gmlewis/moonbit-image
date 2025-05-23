@@ -366,9 +366,7 @@ pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
     return -1
   }
   let s = v.to_string()
-  try {
-    @strconv.parse_int!(s)
-  } catch {
+  try @strconv.parse_int!(s) catch {
     _ => return -1
   }
 }

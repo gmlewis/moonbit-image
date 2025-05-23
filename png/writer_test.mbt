@@ -40,9 +40,7 @@ fn encode_decode(m : &@image.Image) -> (&@image.Image, IOError?) {
 ///|
 fn convert_to_nrgba(m : &@image.Image) -> @image.NRGBA {
   let b = m.bounds()
-  let ret = try {
-    @image.NRGBA::new!(b)
-  } catch {
+  let ret = try @image.NRGBA::new!(b) catch {
     _ => abort("bad bounds")
   }
   // draw.draw(ret, b, m, b.min, draw.src)
