@@ -82,7 +82,9 @@ test "paeth decode" {
   let cdat0 = Slice::new(Array::make(32, b'\x00'))
   let cdat1 = Slice::new(Array::make(32, b'\x00'))
   let cdat2 = Slice::new(Array::make(32, b'\x00'))
-  let r = @random.new(seed=b"00000000000000000000000000000000")
+  let r = @random.Rand::new(
+    generator=@random.chacha8(seed=b"00000000000000000000000000000000"),
+  )
   for bytes_per_pixel = 1
       bytes_per_pixel <= 8
       bytes_per_pixel = bytes_per_pixel + 1 {

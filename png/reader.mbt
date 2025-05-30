@@ -478,7 +478,6 @@ pub impl @io.Reader for Decoder with read(self, p) {
     }
     self.crc.reset()
     guard self.crc.write(self.tmp[4:8]) is (_, None)
-
   }
   if self.idat_length.reinterpret_as_int() < 0 {
     return (0, Some(unsupported_error("IDAT chunk length overflow")))

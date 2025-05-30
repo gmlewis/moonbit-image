@@ -104,7 +104,6 @@ test "multiple rns chunks" {
     guard data.write_bytes(plte) is (_, None)
     for j = 0; j < i; j = j + 1 {
       guard data.write_bytes(trns) is (_, None)
-
     }
     guard data.write_bytes(idat) is (_, None)
     guard data.write_bytes(iend) is (_, None)
@@ -196,8 +195,18 @@ test "gray 8 transparent" {
       let (r, _, _, a) = m.at(x, y).rgba()
       if a != 0 {
         got.write_char(' ')
-        got.write_char(hex[0x0f & (r >> 12).reinterpret_as_int()])
-        got.write_char(hex[0x0f & (r >> 8).reinterpret_as_int()])
+        got.write_char(
+          hex
+          .charcode_at(0x0f & (r >> 12).reinterpret_as_int())
+          .to_char()
+          .unwrap(),
+        )
+        got.write_char(
+          hex
+          .charcode_at(0x0f & (r >> 8).reinterpret_as_int())
+          .to_char()
+          .unwrap(),
+        )
       } else {
         got.write_string(" ..")
       }

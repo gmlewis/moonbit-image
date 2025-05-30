@@ -25,10 +25,8 @@ type Decoder
 impl @io.Reader for Decoder
 
 type Encoder
-impl Encoder {
-  enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
-  write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
-}
+fn Encoder::enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
+fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
 
 // Type aliases
 

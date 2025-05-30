@@ -85,7 +85,6 @@ test "YCbCr colors are a superset of Gray colors" {
     let c1 : @color.Gray = { y: i.to_byte() }
     let err = eq(c0, c1)
     guard err is None else { raise EqError("i=\{i}:\n\{err}") }
-
   }
 }
 
@@ -97,7 +96,6 @@ test "NYCbCrA colors are a superset of Alpha colors" {
     let c1 : @color.Alpha = { a: i.to_byte() }
     let err = eq(c0, c1)
     guard err is None else { raise EqError("i=\{i}:\n\{err}") }
-
   }
 }
 
@@ -109,7 +107,6 @@ test "NYCbCrA colors are a superset of YCbCr colors" {
     let c1 : @color.YCbCr = { y: i.to_byte(), cb: 0x40, cr: 0xc0 }
     let err = eq(c0, c1)
     guard err is None else { raise EqError("i=\{i}:\n\{err}") }
-
   }
 }
 
@@ -171,7 +168,6 @@ test "CMYK colors are a superset of Gray colors" {
     let c1 : @color.Gray = { y: i.to_byte() }
     let err = eq(c0, c1)
     guard err is None else { raise EqError("i=\{i}:\n\{err}") }
-
   }
 }
 

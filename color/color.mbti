@@ -61,10 +61,8 @@ fn y_cb_cr_to_rgb(Byte, Byte, Byte) -> (Byte, Byte, Byte)
 pub(all) struct Alpha {
   a : Byte
 }
-impl Alpha {
-  from(&Color) -> Self
-  new(Byte) -> Self
-}
+fn Alpha::from(&Color) -> Self
+fn Alpha::new(Byte) -> Self
 impl Color for Alpha
 impl Eq for Alpha
 impl Show for Alpha
@@ -72,10 +70,8 @@ impl Show for Alpha
 pub(all) struct Alpha16 {
   a : UInt
 }
-impl Alpha16 {
-  from(&Color) -> Self
-  new(UInt) -> Self
-}
+fn Alpha16::from(&Color) -> Self
+fn Alpha16::new(UInt) -> Self
 impl Color for Alpha16
 impl Eq for Alpha16
 impl Show for Alpha16
@@ -86,10 +82,8 @@ pub(all) struct CMYK {
   y : Byte
   k : Byte
 }
-impl CMYK {
-  from(&Color) -> Self
-  new(Byte, Byte, Byte, Byte) -> Self
-}
+fn CMYK::from(&Color) -> Self
+fn CMYK::new(Byte, Byte, Byte, Byte) -> Self
 impl Color for CMYK
 impl Eq for CMYK
 impl Show for CMYK
@@ -97,10 +91,8 @@ impl Show for CMYK
 pub(all) struct Gray {
   y : Byte
 }
-impl Gray {
-  from(&Color) -> Self
-  new(Byte) -> Self
-}
+fn Gray::from(&Color) -> Self
+fn Gray::new(Byte) -> Self
 impl Color for Gray
 impl Eq for Gray
 impl Show for Gray
@@ -108,10 +100,8 @@ impl Show for Gray
 pub(all) struct Gray16 {
   y : UInt
 }
-impl Gray16 {
-  from(&Color) -> Self
-  new(UInt) -> Self
-}
+fn Gray16::from(&Color) -> Self
+fn Gray16::new(UInt) -> Self
 impl Color for Gray16
 impl Eq for Gray16
 impl Show for Gray16
@@ -125,10 +115,8 @@ pub(all) struct NRGBA {
   b : Byte
   a : Byte
 }
-impl NRGBA {
-  from(&Color) -> Self
-  new(Byte, Byte, Byte, Byte) -> Self
-}
+fn NRGBA::from(&Color) -> Self
+fn NRGBA::new(Byte, Byte, Byte, Byte) -> Self
 impl Color for NRGBA
 impl Eq for NRGBA
 impl Show for NRGBA
@@ -139,10 +127,8 @@ pub(all) struct NRGBA64 {
   b : UInt
   a : UInt
 }
-impl NRGBA64 {
-  from(&Color) -> Self
-  new(UInt, UInt, UInt, UInt) -> Self
-}
+fn NRGBA64::from(&Color) -> Self
+fn NRGBA64::new(UInt, UInt, UInt, UInt) -> Self
 impl Color for NRGBA64
 impl Eq for NRGBA64
 impl Show for NRGBA64
@@ -153,24 +139,20 @@ pub(all) struct NYCbCrA {
   cr : Byte
   a : Byte
 }
-impl NYCbCrA {
-  new(Byte, Byte, Byte, Byte) -> Self
-}
+fn NYCbCrA::new(Byte, Byte, Byte, Byte) -> Self
 impl Color for NYCbCrA
 impl Eq for NYCbCrA
 impl Show for NYCbCrA
 
 pub(all) type Palette @io.Slice[&Color]
-impl Palette {
-  from(Array[&Color]) -> Self
-  index(Self, &Color) -> Int
-  length(Self) -> Int
-  new(Int) -> Self
-  new_empty() -> Self
-  op_as_view(Self, start~ : Int = .., end~ : Int) -> Self
-  op_get(Self, Int) -> &Color
-  op_set(Self, Int, &Color) -> Unit
-}
+fn Palette::from(Array[&Color]) -> Self
+fn Palette::index(Self, &Color) -> Int
+fn Palette::length(Self) -> Int
+fn Palette::new(Int) -> Self
+fn Palette::new_empty() -> Self
+fn Palette::op_as_view(Self, start~ : Int = .., end~ : Int) -> Self
+fn Palette::op_get(Self, Int) -> &Color
+fn Palette::op_set(Self, Int, &Color) -> Unit
 impl Model for Palette
 
 pub(all) struct RGBA {
@@ -179,10 +161,8 @@ pub(all) struct RGBA {
   b : Byte
   a : Byte
 }
-impl RGBA {
-  from(&Color) -> Self
-  new(Byte, Byte, Byte, Byte) -> Self
-}
+fn RGBA::from(&Color) -> Self
+fn RGBA::new(Byte, Byte, Byte, Byte) -> Self
 impl Color for RGBA
 impl Eq for RGBA
 impl Show for RGBA
@@ -193,10 +173,8 @@ pub(all) struct RGBA64 {
   b : UInt
   a : UInt
 }
-impl RGBA64 {
-  from(&Color) -> Self
-  new(UInt, UInt, UInt, UInt) -> Self
-}
+fn RGBA64::from(&Color) -> Self
+fn RGBA64::new(UInt, UInt, UInt, UInt) -> Self
 impl Color for RGBA64
 impl Eq for RGBA64
 impl Show for RGBA64
@@ -206,16 +184,12 @@ pub(all) struct YCbCr {
   cb : Byte
   cr : Byte
 }
-impl YCbCr {
-  new(Byte, Byte, Byte) -> Self
-}
+fn YCbCr::new(Byte, Byte, Byte) -> Self
 impl Color for YCbCr
 impl Eq for YCbCr
 impl Show for YCbCr
 
-impl Color {
-  to_string(&Self) -> String
-}
+fn Color::to_string(&Self) -> String
 impl Eq for &Color
 impl Show for &Color
 

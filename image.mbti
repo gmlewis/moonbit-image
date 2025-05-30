@@ -90,16 +90,14 @@ pub(all) struct Alpha {
   stride : Int
   rect : Rectangle
 }
-impl Alpha {
-  alpha_at(Self, Int, Int) -> @color.Alpha
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_alpha(Self, Int, Int, @color.Alpha) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn Alpha::alpha_at(Self, Int, Int) -> @color.Alpha
+fn Alpha::new(Rectangle) -> Self!SizeError
+fn Alpha::new_empty() -> Self
+fn Alpha::op_get(Self, Point) -> &@color.Color
+fn Alpha::op_set(Self, Point, &@color.Color) -> Unit
+fn Alpha::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Alpha::set_alpha(Self, Int, Int, @color.Alpha) -> Unit
+fn Alpha::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for Alpha
 
 pub(all) struct Alpha16 {
@@ -107,16 +105,14 @@ pub(all) struct Alpha16 {
   stride : Int
   rect : Rectangle
 }
-impl Alpha16 {
-  alpha16_at(Self, Int, Int) -> @color.Alpha16
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_alpha16(Self, Int, Int, @color.Alpha16) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn Alpha16::alpha16_at(Self, Int, Int) -> @color.Alpha16
+fn Alpha16::new(Rectangle) -> Self!SizeError
+fn Alpha16::new_empty() -> Self
+fn Alpha16::op_get(Self, Point) -> &@color.Color
+fn Alpha16::op_set(Self, Point, &@color.Color) -> Unit
+fn Alpha16::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Alpha16::set_alpha16(Self, Int, Int, @color.Alpha16) -> Unit
+fn Alpha16::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for Alpha16
 
 pub(all) struct CMYK {
@@ -124,15 +120,13 @@ pub(all) struct CMYK {
   stride : Int
   rect : Rectangle
 }
-impl CMYK {
-  cmyk_at(Self, Int, Int) -> @color.CMYK
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_cmyk(Self, Int, Int, @color.CMYK) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn CMYK::cmyk_at(Self, Int, Int) -> @color.CMYK
+fn CMYK::new(Rectangle) -> Self!SizeError
+fn CMYK::new_empty() -> Self
+fn CMYK::op_get(Self, Point) -> &@color.Color
+fn CMYK::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn CMYK::set_cmyk(Self, Int, Int, @color.CMYK) -> Unit
+fn CMYK::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for CMYK
 
 pub(all) struct Config {
@@ -140,25 +134,21 @@ pub(all) struct Config {
   width : Int
   height : Int
 }
-impl Config {
-  new_empty() -> Self
-}
+fn Config::new_empty() -> Self
 
 pub(all) struct Gray {
   pix : @io.Slice[Byte]
   stride : Int
   rect : Rectangle
 }
-impl Gray {
-  gray_at(Self, Int, Int) -> @color.Gray
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_gray(Self, Int, Int, @color.Gray) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn Gray::gray_at(Self, Int, Int) -> @color.Gray
+fn Gray::new(Rectangle) -> Self!SizeError
+fn Gray::new_empty() -> Self
+fn Gray::op_get(Self, Point) -> &@color.Color
+fn Gray::op_set(Self, Point, &@color.Color) -> Unit
+fn Gray::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Gray::set_gray(Self, Int, Int, @color.Gray) -> Unit
+fn Gray::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for Gray
 
 pub(all) struct Gray16 {
@@ -166,16 +156,14 @@ pub(all) struct Gray16 {
   stride : Int
   rect : Rectangle
 }
-impl Gray16 {
-  gray16_at(Self, Int, Int) -> @color.Gray16
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_gray16(Self, Int, Int, @color.Gray16) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn Gray16::gray16_at(Self, Int, Int) -> @color.Gray16
+fn Gray16::new(Rectangle) -> Self!SizeError
+fn Gray16::new_empty() -> Self
+fn Gray16::op_get(Self, Point) -> &@color.Color
+fn Gray16::op_set(Self, Point, &@color.Color) -> Unit
+fn Gray16::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Gray16::set_gray16(Self, Int, Int, @color.Gray16) -> Unit
+fn Gray16::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for Gray16
 
 pub(all) struct NRGBA {
@@ -183,16 +171,14 @@ pub(all) struct NRGBA {
   stride : Int
   rect : Rectangle
 }
-impl NRGBA {
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  nrgba_at(Self, Int, Int) -> @color.NRGBA
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_nrgba(Self, Int, Int, @color.NRGBA) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn NRGBA::new(Rectangle) -> Self!SizeError
+fn NRGBA::new_empty() -> Self
+fn NRGBA::nrgba_at(Self, Int, Int) -> @color.NRGBA
+fn NRGBA::op_get(Self, Point) -> &@color.Color
+fn NRGBA::op_set(Self, Point, &@color.Color) -> Unit
+fn NRGBA::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn NRGBA::set_nrgba(Self, Int, Int, @color.NRGBA) -> Unit
+fn NRGBA::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for NRGBA
 
 pub(all) struct NRGBA64 {
@@ -200,16 +186,14 @@ pub(all) struct NRGBA64 {
   stride : Int
   rect : Rectangle
 }
-impl NRGBA64 {
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  nrgba64_at(Self, Int, Int) -> @color.NRGBA64
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_nrgba64(Self, Int, Int, @color.NRGBA64) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn NRGBA64::new(Rectangle) -> Self!SizeError
+fn NRGBA64::new_empty() -> Self
+fn NRGBA64::nrgba64_at(Self, Int, Int) -> @color.NRGBA64
+fn NRGBA64::op_get(Self, Point) -> &@color.Color
+fn NRGBA64::op_set(Self, Point, &@color.Color) -> Unit
+fn NRGBA64::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn NRGBA64::set_nrgba64(Self, Int, Int, @color.NRGBA64) -> Unit
+fn NRGBA64::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for NRGBA64
 
 pub(all) struct Paletted {
@@ -218,28 +202,24 @@ pub(all) struct Paletted {
   rect : Rectangle
   mut palette : @color.Palette
 }
-impl Paletted {
-  new(Rectangle, @color.Palette) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_color_index(Self, Int, Int, Byte) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn Paletted::new(Rectangle, @color.Palette) -> Self!SizeError
+fn Paletted::new_empty() -> Self
+fn Paletted::op_get(Self, Point) -> &@color.Color
+fn Paletted::op_set(Self, Point, &@color.Color) -> Unit
+fn Paletted::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Paletted::set_color_index(Self, Int, Int, Byte) -> Unit
+fn Paletted::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for Paletted
 
 pub(all) struct Point {
   mut x : Int
   mut y : Int
 }
-impl Point {
-  div(Self, Int) -> Self
-  is_in(Self, Rectangle) -> Bool
-  mod(Self, Rectangle) -> Self
-  mul(Self, Int) -> Self
-  to_string(Self) -> String
-}
+fn Point::div(Self, Int) -> Self
+fn Point::is_in(Self, Rectangle) -> Bool
+fn Point::mod(Self, Rectangle) -> Self
+fn Point::mul(Self, Int) -> Self
+fn Point::to_string(Self) -> String
 impl Add for Point
 impl Eq for Point
 impl Show for Point
@@ -250,16 +230,14 @@ pub(all) struct RGBA {
   stride : Int
   rect : Rectangle
 }
-impl RGBA {
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  rgba_at(Self, Int, Int) -> @color.RGBA
-  set_rgba(Self, Int, Int, @color.RGBA) -> Unit
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn RGBA::new(Rectangle) -> Self!SizeError
+fn RGBA::new_empty() -> Self
+fn RGBA::op_get(Self, Point) -> &@color.Color
+fn RGBA::op_set(Self, Point, &@color.Color) -> Unit
+fn RGBA::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn RGBA::rgba_at(Self, Int, Int) -> @color.RGBA
+fn RGBA::set_rgba(Self, Int, Int, @color.RGBA) -> Unit
+fn RGBA::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for RGBA
 
 pub(all) struct RGBA64 {
@@ -267,38 +245,34 @@ pub(all) struct RGBA64 {
   stride : Int
   rect : Rectangle
 }
-impl RGBA64 {
-  new(Rectangle) -> Self!SizeError
-  new_empty() -> Self
-  op_get(Self, Point) -> &@color.Color
-  op_set(Self, Point, &@color.Color) -> Unit
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
-}
+fn RGBA64::new(Rectangle) -> Self!SizeError
+fn RGBA64::new_empty() -> Self
+fn RGBA64::op_get(Self, Point) -> &@color.Color
+fn RGBA64::op_set(Self, Point, &@color.Color) -> Unit
+fn RGBA64::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn RGBA64::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
 impl Image for RGBA64
 
 pub(all) struct Rectangle {
   min : Point
   max : Point
 }
-impl Rectangle {
-  add(Self, Point) -> Self
-  canon(Self) -> Self
-  copy(Self) -> Self
-  dx(Self) -> Int
-  dy(Self) -> Int
-  empty(Self) -> Bool
-  inset(Self, Int) -> Self
-  intersect(Self, Self) -> Self
-  is_in(Self, Self) -> Bool
-  new() -> Self
-  overlaps(Self, Self) -> Bool
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  size(Self) -> Point
-  sub(Self, Point) -> Self
-  to_string(Self) -> String
-  union(Self, Self) -> Self
-}
+fn Rectangle::add(Self, Point) -> Self
+fn Rectangle::canon(Self) -> Self
+fn Rectangle::copy(Self) -> Self
+fn Rectangle::dx(Self) -> Int
+fn Rectangle::dy(Self) -> Int
+fn Rectangle::empty(Self) -> Bool
+fn Rectangle::inset(Self, Int) -> Self
+fn Rectangle::intersect(Self, Self) -> Self
+fn Rectangle::is_in(Self, Self) -> Bool
+fn Rectangle::new() -> Self
+fn Rectangle::overlaps(Self, Self) -> Bool
+fn Rectangle::rgba64_at(Self, Int, Int) -> @color.RGBA64
+fn Rectangle::size(Self) -> Point
+fn Rectangle::sub(Self, Point) -> Self
+fn Rectangle::to_string(Self) -> String
+fn Rectangle::union(Self, Self) -> Self
 impl Image for Rectangle
 impl Eq for Rectangle
 impl Show for Rectangle
@@ -307,10 +281,8 @@ type SizeError
 impl Eq for SizeError
 impl Show for SizeError
 
-impl Image {
-  empty(&Self) -> Bool
-  new_empty() -> &Self
-}
+fn Image::empty(&Self) -> Bool
+fn Image::new_empty() -> &Self
 
 // Type aliases
 
