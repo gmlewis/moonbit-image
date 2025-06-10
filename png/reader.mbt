@@ -208,7 +208,7 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
 }
 
 ///|
-typealias IOError = @io.IOError
+typealias @io.IOError
 
 ///|
 /// A format_error reports that the input is not a valid PNG.

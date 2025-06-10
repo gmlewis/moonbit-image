@@ -24,7 +24,7 @@
 /// [DecodeConfig] which returns a header which does not match the image returned
 /// by [Decode] may be considered a security issue, and should be reported per the
 /// [Go Security Policy](https://go.dev/security/policy).
-typealias Slice[T] = @io.Slice[T]
+typealias @io.Slice
 
 ///|
 /// Config holds an image's color model and dimensions.

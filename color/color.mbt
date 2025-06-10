@@ -569,7 +569,7 @@ pub fn Gray16::from(c : &Color) -> Gray16 {
 }
 
 ///|
-typealias Slice[T] = @io.Slice[T]
+typealias @io.Slice
 
 ///|
 /// Palette is a palette of colors and satisfies the Model trait.
