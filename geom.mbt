@@ -96,7 +96,7 @@ pub fn Rectangle::new() -> Rectangle {
 }
 
 ///|
-pub impl Image for Rectangle with opaque(_self) {
+pub impl Image for Rectangle with opaque_(_self) {
   true
 }
 
@@ -318,7 +318,7 @@ pub fn canon(self : Rectangle) -> Rectangle {
 /// at implements the [Image] trait.
 pub impl Image for Rectangle with at(self, x, y) {
   if pt(x, y).is_in(self) {
-    return @color.opaque
+    return @color.opaque_
   }
   @color.transparent
 }
@@ -366,7 +366,7 @@ pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
     return -1
   }
   let s = v.to_string()
-  try @strconv.parse_int!(s) catch {
+  @strconv.parse_int(s) catch {
     _ => return -1
   }
 }

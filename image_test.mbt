@@ -15,49 +15,49 @@ fn cmp(cm : &@color.Model, c0 : &@color.Color, c1 : &@color.Color) -> Bool {
 ///|
 struct TestT {
   name : String
-  image : () -> &Image!SizeError
+  image : () -> &Image raise SizeError
 }
 
 ///|
 let test_images : Array[TestT] = [
   {
     name: "rgba",
-    image: fn() { @image.RGBA::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.RGBA::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "rgba64",
-    image: fn() { @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.RGBA64::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "nrgba",
-    image: fn() { @image.NRGBA::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.NRGBA::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "nrgba64",
-    image: fn() { @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "alpha",
-    image: fn() { @image.Alpha::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.Alpha::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "alpha16",
-    image: fn() { @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.Alpha16::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "gray",
-    image: fn() { @image.Gray::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.Gray::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "gray16",
-    image: fn() { @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as &Image },
+    image: fn() { @image.Gray16::new(@image.rect(0, 0, 10, 10)) as &Image },
   },
   {
     name: "paletted",
     image: fn() {
-      @image.Paletted::new!(
+      @image.Paletted::new(
         @image.rect(0, 0, 10, 10),
-        @color.Palette::from([@color.transparent, @color.opaque]),
+        @color.Palette::from([@color.transparent, @color.opaque_]),
       )
       as &Image
     },
@@ -67,7 +67,7 @@ let test_images : Array[TestT] = [
 ///|
 test "image" {
   for tc in test_images {
-    let m = (tc.image)!()
+    let m = (tc.image)()
     if not(@image.rect(0, 0, 10, 10) == m.bounds()) {
       raise TestError(
         "\{tc.name}: want bounds \{@image.rect(0,0,10,10)}, got \{m.bounds()}",
@@ -80,11 +80,11 @@ test "image" {
       )
       continue
     }
-    m.set(6, 3, @color.opaque)
-    if not(cmp(m.color_model(), @color.opaque, m.at(6, 3))) {
+    m.set(6, 3, @color.opaque_)
+    if not(cmp(m.color_model(), @color.opaque_, m.at(6, 3))) {
       // Note that this test passes for targets `js` and `wasm-gc` but fails for `native`:
       let cm = m.color_model()
-      let c0 = @color.opaque
+      let c0 = @color.opaque_
       let c1 = m.at(6, 3)
       let (r0, g0, b0, a0) = cm.convert(c0).rgba()
       let (r1, g1, b1, a1) = cm.convert(c1).rgba()
@@ -93,7 +93,7 @@ test "image" {
       )
       continue
     }
-    if not(m.sub_image(@image.rect(6, 3, 7, 4)).opaque()) {
+    if not(m.sub_image(@image.rect(6, 3, 7, 4)).opaque_()) {
       raise TestError("\{tc.name}: at (6, 3) was not opaque")
       continue
     }
@@ -104,7 +104,7 @@ test "image" {
       )
       continue
     }
-    if not(cmp(m.color_model(), @color.opaque, m.at(6, 3))) {
+    if not(cmp(m.color_model(), @color.opaque_, m.at(6, 3))) {
       raise TestError(
         "\{tc.name}: sub-image at (6, 3), want a non-zero color, got \{m.at(6, 3)}",
       )
@@ -116,8 +116,8 @@ test "image" {
       )
       continue
     }
-    m.set(3, 3, @color.opaque)
-    if not(cmp(m.color_model(), @color.opaque, m.at(3, 3))) {
+    m.set(3, 3, @color.opaque_)
+    if not(cmp(m.color_model(), @color.opaque_, m.at(3, 3))) {
       raise TestError(
         "\{tc.name}: sub-image at (3, 3), want a non-zero color, got \{m.at(6, 3)}",
       )
@@ -135,19 +135,19 @@ test "image" {
 ///|
 struct TestR {
   name : String
-  f : (Rectangle) -> &Image!SizeError
+  f : (Rectangle) -> &Image raise SizeError
 }
 
 // call calls f(r) and reports whether it ran without raising an error.
 ///|
-fn call(f : (Rectangle) -> &Image!SizeError, r : Rectangle) -> Bool {
+fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
   // defer func() {
   // 	if recover() != nil {
   // 		ok = false
   // 	}
   // }()
   try {
-    let _ = f!(r)
+    let _ = f(r)
 
   } catch {
     _ => return false
@@ -158,19 +158,19 @@ fn call(f : (Rectangle) -> &Image!SizeError, r : Rectangle) -> Bool {
 ///|
 test "new xxx bad rectangle" {
   let test_cases = [
-    { name: "RGBA", f: fn(r) { @image.RGBA::new!(r) as &Image } },
-    { name: "RGBA64", f: fn(r) { @image.RGBA64::new!(r) as &Image } },
-    { name: "NRGBA", f: fn(r) { @image.NRGBA::new!(r) as &Image } },
-    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new!(r) as &Image } },
-    { name: "Alpha", f: fn(r) { @image.Alpha::new!(r) as &Image } },
-    { name: "Alpha16", f: fn(r) { @image.Alpha16::new!(r) as &Image } },
-    { name: "Gray", f: fn(r) { @image.Gray::new!(r) as &Image } },
-    { name: "Gray16", f: fn(r) { @image.Gray16::new!(r) as &Image } },
-    { name: "CMYK", f: fn(r) { @image.CMYK::new!(r) as &Image } },
+    { name: "RGBA", f: fn(r) { @image.RGBA::new(r) as &Image } },
+    { name: "RGBA64", f: fn(r) { @image.RGBA64::new(r) as &Image } },
+    { name: "NRGBA", f: fn(r) { @image.NRGBA::new(r) as &Image } },
+    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new(r) as &Image } },
+    { name: "Alpha", f: fn(r) { @image.Alpha::new(r) as &Image } },
+    { name: "Alpha16", f: fn(r) { @image.Alpha16::new(r) as &Image } },
+    { name: "Gray", f: fn(r) { @image.Gray::new(r) as &Image } },
+    { name: "Gray16", f: fn(r) { @image.Gray16::new(r) as &Image } },
+    { name: "CMYK", f: fn(r) { @image.CMYK::new(r) as &Image } },
     {
       name: "Paletted",
       f: fn(r) {
-        @image.Paletted::new!(
+        @image.Paletted::new(
           r,
           @color.Palette::from([@color.black, @color.white]),
         )
@@ -228,10 +228,10 @@ test "16 bits per color channel" {
     }
   }
   let test_image : Array[&Image] = [
-    @image.RGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image,
-    @image.NRGBA64::new!(@image.rect(0, 0, 10, 10)) as &Image,
-    @image.Alpha16::new!(@image.rect(0, 0, 10, 10)) as &Image,
-    @image.Gray16::new!(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.RGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.Alpha16::new(@image.rect(0, 0, 10, 10)) as &Image,
+    @image.Gray16::new(@image.rect(0, 0, 10, 10)) as &Image,
   ]
   for i, m in test_image {
     m.set(1, 2, @color.NRGBA64::new(0xffff, 0xffff, 0xffff, 0x1357)) // Non-premultiplied alpha.
@@ -306,7 +306,7 @@ test "16 bits per color channel" {
 
 // 		case Rectangle:
 // 			// No-op. Rectangle pixels' colors are immutable. They're always
-// 			// @color.Opaque.
+// 			// @color.Opaque_.
 
 // 		default:
 // 			raise TestError("could not initialize pixels for %T", tc)

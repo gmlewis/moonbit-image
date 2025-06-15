@@ -37,7 +37,7 @@ fn op_get(Palette, Int) -> &Color
 
 fn op_set(Palette, Int, &Color) -> Unit
 
-let opaque : Alpha16
+let opaque_ : Alpha16
 
 fn rgb_to_cmyk(Byte, Byte, Byte) -> (Byte, Byte, Byte, Byte)
 

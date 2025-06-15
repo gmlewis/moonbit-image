@@ -40,9 +40,7 @@ fn encode_decode(m : &@image.Image) -> (&@image.Image, IOError?) {
 ///|
 fn convert_to_nrgba(m : &@image.Image) -> @image.NRGBA {
   let b = m.bounds()
-  let ret = try @image.NRGBA::new!(b) catch {
-    _ => abort("bad bounds")
-  }
+  let ret = @image.NRGBA::new(b) catch { _ => abort("bad bounds") }
   // draw.draw(ret, b, m, b.min, draw.src)
   for y = b.min.y; y < b.max.y; y = y + 1 {
     for x = b.min.x; x < b.max.x; x = x + 1 {
@@ -81,7 +79,7 @@ test "writer paletted" {
     }
 
     //
-    let m0 = @image.Paletted::new!(@image.rect(0, 0, width, height), palette)
+    let m0 = @image.Paletted::new(@image.rect(0, 0, width, height), palette)
     let mut i = 0
 
     //
@@ -144,7 +142,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 // func Testsub_image(t *testing.T) {
 ///|
 test "sub_image" {
-  let mut m0 : &@image.Image = @image.RGBA::new!(@image.rect(0, 0, 256, 256))
+  let mut m0 : &@image.Image = @image.RGBA::new(@image.rect(0, 0, 256, 256))
   for y = 0; y < 256; y = y + 1 {
     for x = 0; x < 256; x = x + 1 {
       m0.set(x, y, @color.RGBA::new(x.to_byte(), y.to_byte(), 0, 255))
@@ -173,10 +171,10 @@ struct ImageTest {
 ///|
 test "write RGBA" {
   let (width, height) = (640, 480)
-  let transparent_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
-  let opaque_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
-  let mixed_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
-  let translucent_img = @image.RGBA::new!(@image.rect(0, 0, width, height))
+  let transparent_img = @image.RGBA::new(@image.rect(0, 0, width, height))
+  let opaque_img = @image.RGBA::new(@image.rect(0, 0, width, height))
+  let mixed_img = @image.RGBA::new(@image.rect(0, 0, width, height))
+  let translucent_img = @image.RGBA::new(@image.rect(0, 0, width, height))
   for y = 0; y < height; y = y + 1 {
     for x = 0; x < width; x = x + 1 {
       let opaque_color = @color.RGBA::new(

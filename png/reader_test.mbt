@@ -11,7 +11,7 @@
 typealias @io.Slice
 
 ///|
-type! TestError String derive(Show)
+suberror TestError String derive(Show)
 
 // header copied here to enable black-box testing.
 ///|
@@ -429,7 +429,7 @@ test "decode paletted with transparency" {
   if err != None {
     raise TestError("decode_config: \{err}")
   }
-  assert_eq!(cfg.color_model.name(), "Paletted")
+  assert_eq(cfg.color_model.name(), "Paletted")
   // MoonBit has no reflection.
   // let (_, _, _, alpha) = cfg.color_model // [0].rgba()
   // if alpha != 0 {

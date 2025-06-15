@@ -580,12 +580,12 @@ pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
     "Gray" => self.cb = CB_G8
     "Gray16" => self.cb = CB_G16
     "RGBA" | "NRGBA" | "Alpha" =>
-      if m.opaque() {
+      if m.opaque_() {
         self.cb = CB_TC8
       } else {
         self.cb = CB_TCA8
       }
-    _ => if m.opaque() { self.cb = CB_TC16 } else { self.cb = CB_TCA16 }
+    _ => if m.opaque_() { self.cb = CB_TC16 } else { self.cb = CB_TCA16 }
   }
 
   //

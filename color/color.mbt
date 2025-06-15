@@ -708,7 +708,7 @@ pub let white : Gray16 = { y: 0xffff }
 pub let transparent : Alpha16 = { a: 0 }
 
 ///|
-pub let opaque : Alpha16 = { a: 0xffff }
+pub let opaque_ : Alpha16 = { a: 0xffff }
 
 ///|
 test "sq_diff" {
@@ -725,7 +725,7 @@ test "sq_diff" {
     for y in test_cases {
       let got = sq_diff(x, y)
       let want = orig(x, y)
-      assert_eq!(got, want)
+      assert_eq(got, want)
     }
   }
 }

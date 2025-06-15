@@ -54,7 +54,7 @@ pub(open) trait Image {
   at(Self, Int, Int) -> &@color.Color
 
   // other available methods:
-  opaque(Self) -> Bool
+  opaque_(Self) -> Bool
   set(Self, Int, Int, &@color.Color) -> Unit
   sub_image(Self, Rectangle) -> &Image
 
@@ -95,7 +95,7 @@ pub(open) trait RGBA64Image {
 }
 
 ///|
-type! SizeError String derive(Show, Eq)
+suberror SizeError String derive(Show, Eq)
 
 // pixel_buffer_length returns the length of the Slice[Byte] typed pix slice field
 // for the Xxx::new functions. Conceptually, this is just (bpp * width * height),
@@ -106,7 +106,7 @@ fn pixel_buffer_length(
   bytes_per_pixel : Int,
   r : Rectangle,
   image_type_name : String
-) -> Int!SizeError {
+) -> Int raise SizeError {
   let total_length = mul3_non_neg(bytes_per_pixel, r.dx(), r.dy())
   if total_length < 0 {
     raise SizeError(
@@ -279,7 +279,7 @@ pub impl Image for RGBA with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for RGBA with opaque(self) {
+pub impl Image for RGBA with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -299,9 +299,9 @@ pub impl Image for RGBA with opaque(self) {
 
 // RGBA::new returns a new [RGBA] image with the given bounds.
 ///|
-pub fn RGBA::new(r : Rectangle) -> RGBA!SizeError {
+pub fn RGBA::new(r : Rectangle) -> RGBA raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "RGBA"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(4, r, "RGBA"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -448,7 +448,7 @@ pub impl Image for RGBA64 with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for RGBA64 with opaque(self) {
+pub impl Image for RGBA64 with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -468,9 +468,9 @@ pub impl Image for RGBA64 with opaque(self) {
 
 // RGBA64::new returns a new [RGBA64] image with the given bounds.
 ///|
-pub fn RGBA64::new(r : Rectangle) -> RGBA64!SizeError {
+pub fn RGBA64::new(r : Rectangle) -> RGBA64 raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "RGBA64"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(8, r, "RGBA64"), b'\x00')),
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -636,7 +636,7 @@ pub impl Image for NRGBA with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for NRGBA with opaque(self) {
+pub impl Image for NRGBA with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -656,9 +656,9 @@ pub impl Image for NRGBA with opaque(self) {
 
 // NRGBA::new returns a new [NRGBA] image with the given bounds.
 ///|
-pub fn NRGBA::new(r : Rectangle) -> NRGBA!SizeError {
+pub fn NRGBA::new(r : Rectangle) -> NRGBA raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "NRGBA"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(4, r, "NRGBA"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -840,7 +840,7 @@ pub impl Image for NRGBA64 with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for NRGBA64 with opaque(self) {
+pub impl Image for NRGBA64 with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -860,9 +860,9 @@ pub impl Image for NRGBA64 with opaque(self) {
 
 // NRGBA64::new returns a new [NRGBA64] image with the given bounds.
 ///|
-pub fn NRGBA64::new(r : Rectangle) -> NRGBA64!SizeError {
+pub fn NRGBA64::new(r : Rectangle) -> NRGBA64 raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(8, r, "NRGBA64"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(8, r, "NRGBA64"), b'\x00')),
     stride: 8 * r.dx(),
     rect: r,
   }
@@ -1007,7 +1007,7 @@ pub impl Image for Alpha with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for Alpha with opaque(self) {
+pub impl Image for Alpha with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -1027,9 +1027,9 @@ pub impl Image for Alpha with opaque(self) {
 
 // Alpha::new returns a new [Alpha] image with the given bounds.
 ///|
-pub fn Alpha::new(r : Rectangle) -> Alpha!SizeError {
+pub fn Alpha::new(r : Rectangle) -> Alpha raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Alpha"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(1, r, "Alpha"), b'\x00')),
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -1182,7 +1182,7 @@ pub impl Image for Alpha16 with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for Alpha16 with opaque(self) {
+pub impl Image for Alpha16 with opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -1202,9 +1202,9 @@ pub impl Image for Alpha16 with opaque(self) {
 
 // Alpha16::new returns a new [Alpha16] image with the given bounds.
 ///|
-pub fn Alpha16::new(r : Rectangle) -> Alpha16!SizeError {
+pub fn Alpha16::new(r : Rectangle) -> Alpha16 raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Alpha16"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(2, r, "Alpha16"), b'\x00')),
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -1351,15 +1351,15 @@ pub impl Image for Gray with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for Gray with opaque(_self) {
+pub impl Image for Gray with opaque_(_self) {
   true
 }
 
 // Gray::new returns a new [Gray] image with the given bounds.
 ///|
-pub fn Gray::new(r : Rectangle) -> Gray!SizeError {
+pub fn Gray::new(r : Rectangle) -> Gray raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(1, r, "Gray"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(1, r, "Gray"), b'\x00')),
     stride: 1 * r.dx(),
     rect: r,
   }
@@ -1509,15 +1509,15 @@ pub impl Image for Gray16 with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for Gray16 with opaque(_self) {
+pub impl Image for Gray16 with opaque_(_self) {
   true
 }
 
 // Gray16::new returns a new [Gray16] image with the given bounds.
 ///|
-pub fn Gray16::new(r : Rectangle) -> Gray16!SizeError {
+pub fn Gray16::new(r : Rectangle) -> Gray16 raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(2, r, "Gray16"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(2, r, "Gray16"), b'\x00')),
     stride: 2 * r.dx(),
     rect: r,
   }
@@ -1675,15 +1675,15 @@ pub impl Image for CMYK with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for CMYK with opaque(_self) {
+pub impl Image for CMYK with opaque_(_self) {
   true
 }
 
 // CMYK::new returns a new CMYK image with the given bounds.
 ///|
-pub fn CMYK::new(r : Rectangle) -> CMYK!SizeError {
+pub fn CMYK::new(r : Rectangle) -> CMYK raise SizeError {
   {
-    pix: Slice::new(Array::make(pixel_buffer_length!(4, r, "CMYK"), b'\x00')),
+    pix: Slice::new(Array::make(pixel_buffer_length(4, r, "CMYK"), b'\x00')),
     stride: 4 * r.dx(),
     rect: r,
   }
@@ -1845,7 +1845,7 @@ pub impl Image for Paletted with sub_image(self, r) {
 
 // opaque scans the entire image and reports whether it is fully opaque.
 ///|
-pub impl Image for Paletted with opaque(self) {
+pub impl Image for Paletted with opaque_(self) {
   let present = Array::make(256, false)
   let mut i0 = 0
   let mut i1 = self.rect.dx()
@@ -1871,11 +1871,12 @@ pub impl Image for Paletted with opaque(self) {
 // Paletted::new returns a new [Paletted] image with the given width, height and
 // palette.
 ///|
-pub fn Paletted::new(r : Rectangle, p : @color.Palette) -> Paletted!SizeError {
+pub fn Paletted::new(
+  r : Rectangle,
+  p : @color.Palette
+) -> Paletted raise SizeError {
   {
-    pix: Slice::new(
-      Array::make(pixel_buffer_length!(1, r, "Paletted"), b'\x00'),
-    ),
+    pix: Slice::new(Array::make(pixel_buffer_length(1, r, "Paletted"), b'\x00')),
     stride: 1 * r.dx(),
     rect: r,
     palette: p,

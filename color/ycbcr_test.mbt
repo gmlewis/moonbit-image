@@ -14,7 +14,7 @@ fn delta(x : Byte, y : Byte) -> Byte {
 }
 
 ///|
-type! EqError String derive(Show)
+suberror EqError String derive(Show)
 
 ///|
 fn eq(c0 : &@color.Color, c1 : &@color.Color) -> EqError? {

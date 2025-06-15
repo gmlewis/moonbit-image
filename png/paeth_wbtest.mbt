@@ -49,7 +49,7 @@ fn slow_filter_paeth(
 }
 
 ///|
-type! TestError String derive(Show)
+suberror TestError String derive(Show)
 
 ///|
 test "paeth" {

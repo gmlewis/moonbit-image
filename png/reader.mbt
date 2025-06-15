@@ -603,12 +603,12 @@ fn read_image_pass(
     CB_G1 | CB_G2 | CB_G4 | CB_G8 => {
       bits_per_pixel = self.depth
       if self.use_transparent {
-        nrgba = try @image.NRGBA::new!(@image.rect(0, 0, width, height)) catch {
+        nrgba = @image.NRGBA::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = nrgba
       } else {
-        gray = try @image.Gray::new!(@image.rect(0, 0, width, height)) catch {
+        gray = @image.Gray::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = gray
@@ -616,7 +616,7 @@ fn read_image_pass(
     }
     CB_GA8 => {
       bits_per_pixel = 16
-      nrgba = try @image.NRGBA::new!(@image.rect(0, 0, width, height)) catch {
+      nrgba = @image.NRGBA::new(@image.rect(0, 0, width, height)) catch {
         e => return (img, size_error(e))
       }
       img = nrgba
@@ -624,12 +624,12 @@ fn read_image_pass(
     CB_TC8 => {
       bits_per_pixel = 24
       if self.use_transparent {
-        nrgba = try @image.NRGBA::new!(@image.rect(0, 0, width, height)) catch {
+        nrgba = @image.NRGBA::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = nrgba
       } else {
-        rgba = try @image.RGBA::new!(@image.rect(0, 0, width, height)) catch {
+        rgba = @image.RGBA::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = rgba
@@ -637,15 +637,17 @@ fn read_image_pass(
     }
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
       bits_per_pixel = self.depth
-      paletted = try
-        @image.Paletted::new!(@image.rect(0, 0, width, height), self.palette) catch {
+      paletted = @image.Paletted::new(
+        @image.rect(0, 0, width, height),
+        self.palette,
+      ) catch {
         e => return (img, size_error(e))
       }
       img = paletted
     }
     CB_TCA8 => {
       bits_per_pixel = 32
-      nrgba = try @image.NRGBA::new!(@image.rect(0, 0, width, height)) catch {
+      nrgba = @image.NRGBA::new(@image.rect(0, 0, width, height)) catch {
         e => return (img, size_error(e))
       }
       img = nrgba
@@ -653,12 +655,12 @@ fn read_image_pass(
     CB_G16 => {
       bits_per_pixel = 16
       if self.use_transparent {
-        nrgba64 = try @image.NRGBA64::new!(@image.rect(0, 0, width, height)) catch {
+        nrgba64 = @image.NRGBA64::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = nrgba64
       } else {
-        gray16 = try @image.Gray16::new!(@image.rect(0, 0, width, height)) catch {
+        gray16 = @image.Gray16::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = gray16
@@ -666,7 +668,7 @@ fn read_image_pass(
     }
     CB_GA16 => {
       bits_per_pixel = 32
-      nrgba64 = try @image.NRGBA64::new!(@image.rect(0, 0, width, height)) catch {
+      nrgba64 = @image.NRGBA64::new(@image.rect(0, 0, width, height)) catch {
         e => return (img, size_error(e))
       }
       img = nrgba64
@@ -674,12 +676,12 @@ fn read_image_pass(
     CB_TC16 => {
       bits_per_pixel = 48
       if self.use_transparent {
-        nrgba64 = try @image.NRGBA64::new!(@image.rect(0, 0, width, height)) catch {
+        nrgba64 = @image.NRGBA64::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = nrgba64
       } else {
-        rgba64 = try @image.RGBA64::new!(@image.rect(0, 0, width, height)) catch {
+        rgba64 = @image.RGBA64::new(@image.rect(0, 0, width, height)) catch {
           e => return (img, size_error(e))
         }
         img = rgba64
@@ -687,7 +689,7 @@ fn read_image_pass(
     }
     CB_TCA16 => {
       bits_per_pixel = 64
-      nrgba64 = try @image.NRGBA64::new!(@image.rect(0, 0, width, height)) catch {
+      nrgba64 = @image.NRGBA64::new(@image.rect(0, 0, width, height)) catch {
         e => return (img, size_error(e))
       }
       img = nrgba64
