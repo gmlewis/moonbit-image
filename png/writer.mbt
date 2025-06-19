@@ -156,7 +156,7 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
     return
   }
   let mut last = -1
-  for i, c in p._ {
+  for i, c in p.inner() {
     let c1 = @color.NRGBA::from(c)
     self.tmp[3 * i + 0] = c1.r
     self.tmp[3 * i + 1] = c1.g
@@ -540,9 +540,9 @@ fn write_iend(self : Encoder) -> Unit {
   self.write_chunk(Slice::new([]), b"IEND")
 }
 
-// Encode writes the Image m to w in PNG format. Any Image may be
-// encoded, but images that are not [image.NRGBA] might be encoded lossily.
 ///|
+/// Encode writes the Image m to w in PNG format. Any Image may be
+/// encoded, but images that are not [image.NRGBA] might be encoded lossily.
 pub fn encode(w : &@io.Writer, m : &@image.Image) -> IOError? {
   let e = Encoder::new(w, m)
   e.enc(w, m)
@@ -556,7 +556,7 @@ pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
   // also rejected.
   let mw = m.bounds().dx().to_int64()
   let mh = m.bounds().dy().to_int64()
-  if mw <= 0 || mh <= 0 || mw >= (1L << 32) || mh >= (1L << 32) {
+  if mw <= 0 || mh <= 0 || mw >= 1L << 32 || mh >= 1L << 32 {
     return Some(format_error("invalid image size: \{mw}x\{mh}"))
   }
 

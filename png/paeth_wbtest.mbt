@@ -13,9 +13,9 @@ fn slow_abs(x : Int) -> Int {
   x
 }
 
+///|
 // slow_paeth is a slow but simple implementation of the Paeth function.
 // It is a straight port of the sample code in the PNG spec, section 9.4.
-///|
 fn slow_paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   let p = a.to_int() + b.to_int() - c.to_int()
   let pa = slow_abs(p - a.to_int())
@@ -29,8 +29,8 @@ fn slow_paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   c
 }
 
-// slow_filter_paeth is a slow but simple implementation of func filter_paeth.
 ///|
+// slow_filter_paeth is a slow but simple implementation of func filter_paeth.
 fn slow_filter_paeth(
   cdat : Slice[Byte],
   pdat : Slice[Byte],

@@ -26,6 +26,7 @@ const CT_GRAYSCALE_ALPHA = 4
 const CT_TRUE_COLOR_ALPHA = 6
 
 // A cb is a combination of color type and bit depth.
+
 ///|
 const CB_INVALID = 0
 
@@ -181,11 +182,11 @@ struct Decoder {
 }
 
 ///|
-fn Decoder::read_byte(self : Decoder) -> (Byte, IOError?) {
-  let b = Slice::new([b'\x00'])
-  let (_, err) = self.r.read(b)
-  (b[0], err)
-}
+// fn Decoder::read_byte(self : Decoder) -> (Byte, IOError?) {
+//   let b = Slice::new([b'\x00'])
+//   let (_, err) = self.r.read(b)
+//   (b[0], err)
+// }
 
 ///|
 fn Decoder::new(r : &@io.Reader) -> Decoder {
@@ -326,7 +327,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 ///|
 fn parse_plte(self : Decoder, length : UInt) -> IOError? {
   let np = (length / 3).reinterpret_as_int() // The number of palette entries.
-  if length % 3 != 0 || np <= 0 || np > 256 || np > (1 << self.depth) {
+  if length % 3 != 0 || np <= 0 || np > 256 || np > 1 << self.depth {
     return Some(format_error("bad PLTE length"))
   }
   let (n, err) = @io.read_full(self.r, self.tmp[:3 * np])
@@ -338,7 +339,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
       self.palette = @color.Palette::new(256)
       for i = 0; i < np; i = i + 1 {
-        self.palette._[i] = @color.RGBA::new(
+        self.palette.inner()[i] = @color.RGBA::new(
           self.tmp[3 * i + 0],
           self.tmp[3 * i + 1],
           self.tmp[3 * i + 2],
@@ -351,9 +352,9 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
         // is an error", but some real-world PNG files have out-of-range pixel
         // values. We fall back to opaque black, the same as libpng 1.5.13;
         // ImageMagick 6.5.7 returns an error.
-        self.palette._[i] = @color.RGBA::new(0x00, 0x00, 0x00, 0xff)
+        self.palette.inner()[i] = @color.RGBA::new(0x00, 0x00, 0x00, 0xff)
       }
-      self.palette = @color.Palette(self.palette._[:np])
+      self.palette = @color.Palette(self.palette.inner()[:np])
     }
     CB_TC8 | CB_TCA8 | CB_TC16 | CB_TCA16 =>
       // As per the PNG spec, a PLTE chunk is optional (and for practical purposes,
@@ -421,15 +422,15 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
         return err
       }
       guard self.crc.write(self.tmp[:n]) is (_, None)
-      if self.palette._.length() < n {
-        self.palette = self.palette._[:n]
+      if self.palette.inner().length() < n {
+        self.palette = self.palette.inner()[:n]
       }
       for i = 0; i < n; i = i + 1 {
-        let (r, g, b, _) = self.palette._[i].rgba()
+        let (r, g, b, _) = self.palette.inner()[i].rgba()
         let r = (r >> 8).to_byte()
         let g = (g >> 8).to_byte()
         let b = (b >> 8).to_byte()
-        self.palette._[i] = @color.NRGBA::new(r, g, b, self.tmp[i])
+        self.palette.inner()[i] = @color.NRGBA::new(r, g, b, self.tmp[i])
       }
     }
     _ => return Some(format_error("tRNS, color type mismatch"))

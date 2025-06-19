@@ -59,6 +59,7 @@ struct PalettedTestCase {
 }
 
 // func TestWriterPaletted(t *testing.T) {
+
 ///|
 test "writer paletted" {
   let (width, height) = (32, 16)
@@ -140,6 +141,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 }
 
 // func Testsub_image(t *testing.T) {
+
 ///|
 test "sub_image" {
   let mut m0 : &@image.Image = @image.RGBA::new(@image.rect(0, 0, 256, 256))
@@ -168,6 +170,7 @@ struct ImageTest {
 }
 
 // func TestWriteRGBA(t *testing.T) {
+
 ///|
 test "write RGBA" {
   let (width, height) = (640, 480)

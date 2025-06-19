@@ -6,83 +6,13 @@ import(
 )
 
 // Values
-fn add(Rectangle, Point) -> Rectangle
-
 fn add2_non_neg(Int, Int) -> Int
 
-fn alpha16_at(Alpha16, Int, Int) -> @color.Alpha16
-
-fn alpha_at(Alpha, Int, Int) -> @color.Alpha
-
-fn canon(Rectangle) -> Rectangle
-
-fn cmyk_at(CMYK, Int, Int) -> @color.CMYK
-
-fn copy(Rectangle) -> Rectangle
-
-fn div(Point, Int) -> Point
-
-fn dx(Rectangle) -> Int
-
-fn dy(Rectangle) -> Int
-
-fn empty(Rectangle) -> Bool
-
-fn gray16_at(Gray16, Int, Int) -> @color.Gray16
-
-fn gray_at(Gray, Int, Int) -> @color.Gray
-
-fn inset(Rectangle, Int) -> Rectangle
-
-fn intersect(Rectangle, Rectangle) -> Rectangle
-
-fn is_in(Point, Rectangle) -> Bool
-
-fn mod(Point, Rectangle) -> Point
-
-fn mul(Point, Int) -> Point
-
 fn mul3_non_neg(Int, Int, Int) -> Int
-
-fn nrgba64_at(NRGBA64, Int, Int) -> @color.NRGBA64
-
-fn nrgba_at(NRGBA, Int, Int) -> @color.NRGBA
-
-fn overlaps(Rectangle, Rectangle) -> Bool
 
 fn pt(Int, Int) -> Point
 
 fn rect(Int, Int, Int, Int) -> Rectangle
-
-fn rgba64_at(Rectangle, Int, Int) -> @color.RGBA64
-
-fn rgba_at(RGBA, Int, Int) -> @color.RGBA
-
-fn set_alpha(Alpha, Int, Int, @color.Alpha) -> Unit
-
-fn set_alpha16(Alpha16, Int, Int, @color.Alpha16) -> Unit
-
-fn set_cmyk(CMYK, Int, Int, @color.CMYK) -> Unit
-
-fn set_color_index(Paletted, Int, Int, Byte) -> Unit
-
-fn set_gray(Gray, Int, Int, @color.Gray) -> Unit
-
-fn set_gray16(Gray16, Int, Int, @color.Gray16) -> Unit
-
-fn set_nrgba(NRGBA, Int, Int, @color.NRGBA) -> Unit
-
-fn set_nrgba64(NRGBA64, Int, Int, @color.NRGBA64) -> Unit
-
-fn set_rgba(RGBA, Int, Int, @color.RGBA) -> Unit
-
-fn size(Rectangle) -> Point
-
-fn sub(Rectangle, Point) -> Rectangle
-
-fn to_string(Point) -> String
-
-fn union(Rectangle, Rectangle) -> Rectangle
 
 // Types and methods
 pub(all) struct Alpha {

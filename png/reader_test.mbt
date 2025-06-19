@@ -13,8 +13,8 @@ typealias @io.Slice
 ///|
 suberror TestError String derive(Show)
 
-// header copied here to enable black-box testing.
 ///|
+// header copied here to enable black-box testing.
 let header = b"\x89PNG\r\n\x1a\n"
 
 ///|
@@ -78,6 +78,7 @@ test "training idat chunks" {
 }
 
 // func TestMultipletRNSChunks(t *testing.T) {
+
 ///|
 test "multiple rns chunks" {
   // The following is a valid 1x1 paletted PNG image with a 1-element palette
@@ -141,6 +142,7 @@ test "multiple rns chunks" {
 }
 
 // func TestUnknownChunkLengthUnderflow(t *testing.T) {
+
 ///|
 test "unknown chunk length underflow" {
   let data = [
@@ -160,6 +162,7 @@ test "unknown chunk length underflow" {
 }
 
 // func TestGray8Transparent(t *testing.T) {
+
 ///|
 test "gray 8 transparent" {
   // These bytes come from https://golang.org/issues/19553
@@ -316,6 +319,7 @@ let test_cases : Array[TestCase] = [
 ]
 
 // func TestDimensionOverflow(t *testing.T) {
+
 ///|
 test "dimension overflow" {
   for i, tc in test_cases {
@@ -378,6 +382,7 @@ test "dimension overflow" {
 }
 
 // func TestDecodePalettedWithTransparency(t *testing.T) {
+
 ///|
 test "decode paletted with transparency" {
   // These bytes come from https://go.dev/issue/54325

@@ -138,8 +138,8 @@ struct TestR {
   f : (Rectangle) -> &Image raise SizeError
 }
 
-// call calls f(r) and reports whether it ran without raising an error.
 ///|
+/// call calls f(r) and reports whether it ran without raising an error.
 fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
   // defer func() {
   // 	if recover() != nil {

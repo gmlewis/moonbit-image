@@ -21,8 +21,8 @@ fn abs(x : Int) -> Int {
   (x ^ m) - m
 }
 
-// paeth implements the Paeth filter function, as per the PNG specification.
 ///|
+// paeth implements the Paeth filter function, as per the PNG specification.
 fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   // This is an optimized version of the sample code in the PNG spec.
   // For example, the sample code starts with:
@@ -46,9 +46,9 @@ fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
   c
 }
 
+///|
 // filter_paeth applies the Paeth filter to the cdat slice.
 // cdat is the current row's data, pdat is the previous row's data.
-///|
 fn filter_paeth(
   cdat : Slice[Byte],
   pdat : Slice[Byte],
