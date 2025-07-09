@@ -440,7 +440,7 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
 
 ///|
 fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
-  let n = @math.minimum(dst.length(), src.length())
+  let n = @cmp.minimum(dst.length(), src.length())
   for i = 0; i < n; i = i + 1 {
     dst[i] = src[i]
   }
@@ -484,7 +484,7 @@ pub impl @io.Reader for Decoder with read(self, p) {
     return (0, Some(unsupported_error("IDAT chunk length overflow")))
   }
   let want_len = self.idat_length.reinterpret_as_int()
-  let read_len = @math.minimum(p.length(), want_len)
+  let read_len = @cmp.minimum(p.length(), want_len)
   let (n, err) = self.r.read(p[:read_len])
   guard self.crc.write(p[:n]) is (_, None)
   self.idat_length -= n.reinterpret_as_uint()
@@ -1174,7 +1174,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   while length > 0 {
     let (n, err) = @io.read_full(
       self.r,
-      ignored[:@math.minimum(ignored.length(), length.reinterpret_as_int())],
+      ignored[:@cmp.minimum(ignored.length(), length.reinterpret_as_int())],
     )
     if err != None {
       return err
