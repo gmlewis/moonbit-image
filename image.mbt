@@ -105,7 +105,7 @@ suberror SizeError String derive(Show, Eq)
 fn pixel_buffer_length(
   bytes_per_pixel : Int,
   r : Rectangle,
-  image_type_name : String
+  image_type_name : String,
 ) -> Int raise SizeError {
   let total_length = mul3_non_neg(bytes_per_pixel, r.dx(), r.dy())
   if total_length < 0 {
@@ -238,7 +238,7 @@ pub fn RGBA::set_rgba64(
   self : RGBA,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -415,7 +415,7 @@ pub fn RGBA64::set_rgba64(
   self : RGBA64,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -587,7 +587,7 @@ pub fn NRGBA::set_rgba64(
   self : NRGBA,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -778,7 +778,7 @@ pub fn NRGBA64::set_rgba64(
   self : NRGBA64,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -807,7 +807,7 @@ pub fn set_nrgba64(
   self : NRGBA64,
   x : Int,
   y : Int,
-  c : @color.NRGBA64
+  c : @color.NRGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -972,7 +972,7 @@ pub fn Alpha::set_rgba64(
   self : Alpha,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1140,7 +1140,7 @@ pub fn Alpha16::set_rgba64(
   self : Alpha16,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1155,7 +1155,7 @@ pub fn set_alpha16(
   self : Alpha16,
   x : Int,
   y : Int,
-  c : @color.Alpha16
+  c : @color.Alpha16,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1314,7 +1314,7 @@ pub fn Gray::set_rgba64(
   self : Gray,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1470,7 +1470,7 @@ pub fn Gray16::set_rgba64(
   self : Gray16,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1629,7 +1629,7 @@ pub fn CMYK::set_rgba64(
   self : CMYK,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1791,7 +1791,7 @@ pub fn Paletted::set_rgba64(
   self : Paletted,
   x : Int,
   y : Int,
-  c : @color.RGBA64
+  c : @color.RGBA64,
 ) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
@@ -1873,7 +1873,7 @@ pub impl Image for Paletted with opaque_(self) {
 /// palette.
 pub fn Paletted::new(
   r : Rectangle,
-  p : @color.Palette
+  p : @color.Palette,
 ) -> Paletted raise SizeError {
   {
     pix: Slice::new(Array::make(pixel_buffer_length(1, r, "Paletted"), b'\x00')),

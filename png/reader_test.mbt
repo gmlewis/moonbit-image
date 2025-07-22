@@ -199,16 +199,10 @@ test "gray 8 transparent" {
       if a != 0 {
         got.write_char(' ')
         got.write_char(
-          hex
-          .charcode_at(0x0f & (r >> 12).reinterpret_as_int())
-          .to_char()
-          .unwrap(),
+          hex[0x0f & (r >> 12).reinterpret_as_int()].to_char().unwrap(),
         )
         got.write_char(
-          hex
-          .charcode_at(0x0f & (r >> 8).reinterpret_as_int())
-          .to_char()
-          .unwrap(),
+          hex[0x0f & (r >> 8).reinterpret_as_int()].to_char().unwrap(),
         )
       } else {
         got.write_string(" ..")

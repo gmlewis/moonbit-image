@@ -570,7 +570,7 @@ fn read_image_pass(
   self : Decoder,
   r : &@io.Reader,
   pass : Int,
-  allocate_only : Bool
+  allocate_only : Bool,
 ) -> (&@image.Image, IOError?) {
   let mut bits_per_pixel = 0
   let mut pix_offset = 0
@@ -1057,7 +1057,7 @@ fn read_image_pass(
 fn merge_pass_into(
   dst : &@image.Image,
   src : &@image.Image,
-  pass : Int
+  pass : Int,
 ) -> Unit {
   let dst_pix = dst.raw_data()
   let stride = dst.get_stride()

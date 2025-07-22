@@ -34,7 +34,7 @@ fn slow_paeth(a : Byte, b : Byte, c : Byte) -> Byte {
 fn slow_filter_paeth(
   cdat : Slice[Byte],
   pdat : Slice[Byte],
-  bytes_per_pixel : Int
+  bytes_per_pixel : Int,
 ) -> Unit {
   for i = 0; i < bytes_per_pixel; i = i + 1 {
     cdat[i] += paeth(0, pdat[i], 0)

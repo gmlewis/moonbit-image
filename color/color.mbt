@@ -343,7 +343,7 @@ pub(open) trait Model {
 pub fn model_func(
   f : (&Color) -> &Color,
   name : String,
-  palette : Palette?
+  palette : Palette?,
 ) -> &Model {
   // Note: using ModelFunc as the implementation
   // means that callers can still use comparisons

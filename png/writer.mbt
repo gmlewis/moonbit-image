@@ -286,7 +286,7 @@ fn write_image(
   self : Encoder,
   w : &@io.Writer,
   m : &@image.Image,
-  cb : Int
+  cb : Int,
 ) -> IOError? {
   let zw = @zlib.Writer::new(w)
   let mut bits_per_pixel = 0
