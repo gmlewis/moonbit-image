@@ -46,6 +46,8 @@ let y_cb_cr_model : &Model
 
 fn y_cb_cr_to_rgb(Byte, Byte, Byte) -> (Byte, Byte, Byte)
 
+// Errors
+
 // Types and methods
 pub(all) struct Alpha {
   a : Byte

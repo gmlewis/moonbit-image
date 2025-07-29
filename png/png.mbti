@@ -17,6 +17,8 @@ fn encode(&@io.Writer, &@image.Image) -> @io.IOError?
 
 let err_negative_read : @io.IOError
 
+// Errors
+
 // Types and methods
 type Decoder
 impl @io.Reader for Decoder

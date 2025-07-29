@@ -15,6 +15,11 @@ fn pt(Int, Int) -> Point
 
 fn rect(Int, Int, Int, Int) -> Rectangle
 
+// Errors
+type SizeError
+impl Eq for SizeError
+impl Show for SizeError
+
 // Types and methods
 pub(all) struct Alpha {
   pix : @io.Slice[Byte]
@@ -207,10 +212,6 @@ fn Rectangle::union(Self, Self) -> Self
 impl Image for Rectangle
 impl Eq for Rectangle
 impl Show for Rectangle
-
-type SizeError
-impl Eq for SizeError
-impl Show for SizeError
 
 fn Image::empty(&Self) -> Bool
 fn Image::new_empty() -> &Self
