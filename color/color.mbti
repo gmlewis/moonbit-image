@@ -135,14 +135,14 @@ impl Color for NYCbCrA
 impl Eq for NYCbCrA
 impl Show for NYCbCrA
 
-pub(all) type Palette @io.Slice[&Color]
+pub(all) struct Palette(@io.Slice[&Color])
 fn Palette::from(Array[&Color]) -> Self
 fn Palette::index(Self, &Color) -> Int
 fn Palette::inner(Self) -> @io.Slice[&Color]
 fn Palette::length(Self) -> Int
 fn Palette::new(Int) -> Self
 fn Palette::new_empty() -> Self
-fn Palette::op_as_view(Self, start~ : Int = .., end~ : Int) -> Self
+fn Palette::op_as_view(Self, start? : Int, end~ : Int) -> Self
 fn Palette::op_get(Self, Int) -> &Color
 fn Palette::op_set(Self, Int, &Color) -> Unit
 impl Model for Palette

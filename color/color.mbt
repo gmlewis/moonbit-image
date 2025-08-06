@@ -573,7 +573,7 @@ typealias @io.Slice
 
 ///|
 /// Palette is a palette of colors and satisfies the Model trait.
-pub(all) type Palette Slice[&Color]
+pub(all) struct Palette(Slice[&Color])
 
 ///|
 let _trait : &Model = Palette::new(0)
