@@ -625,7 +625,7 @@ pub fn length(self : Palette) -> Int {
 }
 
 ///|
-pub fn op_as_view(self : Palette, start~ : Int = 0, end~ : Int) -> Palette {
+pub fn op_as_view(self : Palette, start? : Int = 0, end~ : Int) -> Palette {
   self.inner()[start:end]
 }
 

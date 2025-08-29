@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "gmlewis/image/png"
+
+import(
+  "gmlewis/image"
+  "gmlewis/io"
+)
+
+// Values
+let chunk_order_error : @io.IOError
+
+fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
+
+fn decode_config(&@io.Reader) -> (@image.Config, @io.IOError?)
+
+fn encode(&@io.Writer, &@image.Image) -> @io.IOError?
+
+let err_negative_read : @io.IOError
+
+// Errors
+
+// Types and methods
+type Decoder
+impl @io.Reader for Decoder
+
+type Encoder
+fn Encoder::enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
+fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
+
+// Type aliases
+
+// Traits
+
