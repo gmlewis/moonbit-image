@@ -19,14 +19,14 @@ pub fn to_string(self : Point) -> String {
 }
 
 ///|
-/// op_add (+) returns the vector p+q.
-pub impl Add for Point with op_add(self, q) {
+/// add (+) returns the vector p+q.
+pub impl Add for Point with add(self, q) {
   { x: self.x + q.x, y: self.y + q.y }
 }
 
 ///|
-/// op_sub (-) returns the vector p-q.
-pub impl Sub for Point with op_sub(self, q) {
+/// sub (-) returns the vector p-q.
+pub impl Sub for Point with sub(self, q) {
   { x: self.x - q.x, y: self.y - q.y }
 }
 
@@ -265,9 +265,9 @@ pub fn empty(self : Rectangle) -> Bool {
 }
 
 ///|
-/// op_equal reports whether r and s contain the same set of points. All empty
+/// equal reports whether r and s contain the same set of points. All empty
 /// rectangles are considered equal.
-pub impl Eq for Rectangle with op_equal(self, s) {
+pub impl Eq for Rectangle with equal(self, s) {
   (self.min == s.min && self.max == s.max) || (self.empty() && s.empty())
 }
 

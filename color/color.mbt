@@ -39,7 +39,7 @@ pub fn to_string(self : &Color) -> String {
 }
 
 ///|
-pub impl Eq for &Color with op_equal(self, o) {
+pub impl Eq for &Color with equal(self, o) {
   let (r0, g0, b0, a0) = self.rgba()
   let (r1, g1, b1, a1) = o.rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
