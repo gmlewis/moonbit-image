@@ -138,6 +138,7 @@ impl Show for NYCbCrA
 pub(all) struct Palette(@io.Slice[&Color])
 fn Palette::from(Array[&Color]) -> Self
 fn Palette::index(Self, &Color) -> Int
+#deprecated
 fn Palette::inner(Self) -> @io.Slice[&Color]
 fn Palette::length(Self) -> Int
 fn Palette::new(Int) -> Self

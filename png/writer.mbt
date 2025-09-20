@@ -156,7 +156,7 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
     return
   }
   let mut last = -1
-  for i, c in p.inner() {
+  for i, c in p.0 {
     let c1 = @color.NRGBA::from(c)
     self.tmp[3 * i + 0] = c1.r
     self.tmp[3 * i + 1] = c1.g

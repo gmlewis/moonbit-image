@@ -339,7 +339,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
       self.palette = @color.Palette::new(256)
       for i = 0; i < np; i = i + 1 {
-        self.palette.inner()[i] = @color.RGBA::new(
+        self.palette.0[i] = @color.RGBA::new(
           self.tmp[3 * i + 0],
           self.tmp[3 * i + 1],
           self.tmp[3 * i + 2],
@@ -352,9 +352,9 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
         // is an error", but some real-world PNG files have out-of-range pixel
         // values. We fall back to opaque black, the same as libpng 1.5.13;
         // ImageMagick 6.5.7 returns an error.
-        self.palette.inner()[i] = @color.RGBA::new(0x00, 0x00, 0x00, 0xff)
+        self.palette.0[i] = @color.RGBA::new(0x00, 0x00, 0x00, 0xff)
       }
-      self.palette = @color.Palette(self.palette.inner()[:np])
+      self.palette = @color.Palette(self.palette.0[:np])
     }
     CB_TC8 | CB_TCA8 | CB_TC16 | CB_TCA16 =>
       // As per the PNG spec, a PLTE chunk is optional (and for practical purposes,
@@ -422,15 +422,15 @@ fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
         return err
       }
       guard self.crc.write(self.tmp[:n]) is (_, None)
-      if self.palette.inner().length() < n {
-        self.palette = self.palette.inner()[:n]
+      if self.palette.0.length() < n {
+        self.palette = self.palette.0[:n]
       }
       for i = 0; i < n; i = i + 1 {
-        let (r, g, b, _) = self.palette.inner()[i].rgba()
+        let (r, g, b, _) = self.palette.0[i].rgba()
         let r = (r >> 8).to_byte()
         let g = (g >> 8).to_byte()
         let b = (b >> 8).to_byte()
-        self.palette.inner()[i] = @color.NRGBA::new(r, g, b, self.tmp[i])
+        self.palette.0[i] = @color.NRGBA::new(r, g, b, self.tmp[i])
       }
     }
     _ => return Some(format_error("tRNS, color type mismatch"))

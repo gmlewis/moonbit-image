@@ -590,12 +590,12 @@ pub fn Palette::new(n : Int) -> Palette {
 
 ///|
 pub fn op_set(self : Palette, idx : Int, c : &Color) -> Unit {
-  self.inner()[idx % self.inner().length()] = c
+  self.0[idx % self.0.length()] = c
 }
 
 ///|
 pub fn op_get(self : Palette, idx : Int) -> &Color {
-  self.inner()[idx % self.inner().length()]
+  self.0[idx % self.0.length()]
 }
 
 ///|
@@ -621,22 +621,22 @@ pub fn Palette::new_empty() -> Palette {
 
 ///|
 pub fn length(self : Palette) -> Int {
-  self.inner().length()
+  self.0.length()
 }
 
 ///|
 pub fn op_as_view(self : Palette, start? : Int = 0, end~ : Int) -> Palette {
-  self.inner()[start:end]
+  self.0[start:end]
 }
 
 ///|
 /// convert returns the palette color closest to c in Euclidean R,G,B space.
 pub impl Model for Palette with convert(self, c) {
-  if self.inner().length() == 0 {
+  if self.0.length() == 0 {
     return black
   }
   let idx = self.index(c)
-  self.inner()[idx]
+  self.0[idx]
 }
 
 ///|
@@ -648,7 +648,7 @@ pub fn index(self : Palette, c : &Color) -> Int {
   let (cr, cg, cb, ca) = c.rgba()
   let mut ret = 0
   let mut best_sum = @uint.max_value
-  for i, v in self.inner() {
+  for i, v in self.0 {
     let (vr, vg, vb, va) = v.rgba()
     let sum = sq_diff(cr, vr) +
       sq_diff(cg, vg) +

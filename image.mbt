@@ -1739,27 +1739,27 @@ pub fn Paletted::op_get(self : Paletted, p : Point) -> &@color.Color {
 
 ///|
 pub impl Image for Paletted with at(self, x, y) {
-  if self.palette.inner().length() == 0 {
+  if self.palette.0.length() == 0 {
     return @color.black // nil
   }
   if not(pt(x, y).is_in(self.rect)) {
-    return self.palette.inner()[0]
+    return self.palette.0[0]
   }
   let i = self.pix_offset(x, y)
-  return self.palette.inner()[self.pix[i].to_int()]
+  return self.palette.0[self.pix[i].to_int()]
 }
 
 ///|
 pub fn Paletted::rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
-  if self.palette.inner().length() == 0 {
+  if self.palette.0.length() == 0 {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
   let mut c : &@color.Color = @color.black
   if not(pt(x, y).is_in(self.rect)) {
-    c = self.palette.inner()[0]
+    c = self.palette.0[0]
   } else {
     let i = self.pix_offset(x, y)
-    c = self.palette.inner()[self.pix[i].to_int()]
+    c = self.palette.0[self.pix[i].to_int()]
   }
   let (r, g, b, a) = c.rgba()
   { r, g, b, a }
@@ -1856,7 +1856,7 @@ pub impl Image for Paletted with opaque_(self) {
     i0 += self.stride
     i1 += self.stride
   }
-  for i, c in self.palette.inner() {
+  for i, c in self.palette.0 {
     if not(present[i]) {
       continue
     }

@@ -184,12 +184,10 @@ test "palette" {
   ])
   // Check that, for a Palette with no repeated colors, the closest color to
   // each element is itself.
-  for i, c in p.inner() {
+  for i, c in p.0 {
     let j = p.index(c)
     if i != j {
-      raise EqError(
-        "Index(\{c}): got \{j} (color = \{p.inner()[j]}), want \{i}",
-      )
+      raise EqError("Index(\{c}): got \{j} (color = \{p.0[j]}), want \{i}")
     }
   }
   // Check that finding the closest color considers alpha, not just red,
