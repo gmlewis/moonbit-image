@@ -52,8 +52,16 @@ fn y_cb_cr_to_rgb(Byte, Byte, Byte) -> (Byte, Byte, Byte)
 pub(all) struct Alpha {
   a : Byte
 }
+fn Alpha::equal(Self, Self) -> Bool // from trait `Eq`
 fn Alpha::from(&Color) -> Self
+fn Alpha::model(Self) -> String // from trait `Color`
 fn Alpha::new(Byte) -> Self
+#deprecated
+fn Alpha::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Alpha::output(Self, &Logger) -> Unit // from trait `Show`
+fn Alpha::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Alpha::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Alpha::to_string(Self) -> String // from trait `Show`
 impl Color for Alpha
 impl Eq for Alpha
 impl Show for Alpha
@@ -61,8 +69,16 @@ impl Show for Alpha
 pub(all) struct Alpha16 {
   a : UInt
 }
+fn Alpha16::equal(Self, Self) -> Bool // from trait `Eq`
 fn Alpha16::from(&Color) -> Self
+fn Alpha16::model(Self) -> String // from trait `Color`
 fn Alpha16::new(UInt) -> Self
+#deprecated
+fn Alpha16::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Alpha16::output(Self, &Logger) -> Unit // from trait `Show`
+fn Alpha16::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Alpha16::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Alpha16::to_string(Self) -> String // from trait `Show`
 impl Color for Alpha16
 impl Eq for Alpha16
 impl Show for Alpha16
@@ -73,8 +89,16 @@ pub(all) struct CMYK {
   y : Byte
   k : Byte
 }
+fn CMYK::equal(Self, Self) -> Bool // from trait `Eq`
 fn CMYK::from(&Color) -> Self
+fn CMYK::model(Self) -> String // from trait `Color`
 fn CMYK::new(Byte, Byte, Byte, Byte) -> Self
+#deprecated
+fn CMYK::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn CMYK::output(Self, &Logger) -> Unit // from trait `Show`
+fn CMYK::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn CMYK::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn CMYK::to_string(Self) -> String // from trait `Show`
 impl Color for CMYK
 impl Eq for CMYK
 impl Show for CMYK
@@ -82,8 +106,16 @@ impl Show for CMYK
 pub(all) struct Gray {
   y : Byte
 }
+fn Gray::equal(Self, Self) -> Bool // from trait `Eq`
 fn Gray::from(&Color) -> Self
+fn Gray::model(Self) -> String // from trait `Color`
 fn Gray::new(Byte) -> Self
+#deprecated
+fn Gray::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Gray::output(Self, &Logger) -> Unit // from trait `Show`
+fn Gray::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Gray::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Gray::to_string(Self) -> String // from trait `Show`
 impl Color for Gray
 impl Eq for Gray
 impl Show for Gray
@@ -91,13 +123,24 @@ impl Show for Gray
 pub(all) struct Gray16 {
   y : UInt
 }
+fn Gray16::equal(Self, Self) -> Bool // from trait `Eq`
 fn Gray16::from(&Color) -> Self
+fn Gray16::model(Self) -> String // from trait `Color`
 fn Gray16::new(UInt) -> Self
+#deprecated
+fn Gray16::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Gray16::output(Self, &Logger) -> Unit // from trait `Show`
+fn Gray16::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Gray16::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn Gray16::to_string(Self) -> String // from trait `Show`
 impl Color for Gray16
 impl Eq for Gray16
 impl Show for Gray16
 
 type ModelFunc
+fn ModelFunc::convert(Self, &Color) -> &Color // from trait `Model`
+fn ModelFunc::get_palette(Self) -> Palette? // from trait `Model`
+fn ModelFunc::name(Self) -> String // from trait `Model`
 impl Model for ModelFunc
 
 pub(all) struct NRGBA {
@@ -106,8 +149,16 @@ pub(all) struct NRGBA {
   b : Byte
   a : Byte
 }
+fn NRGBA::equal(Self, Self) -> Bool // from trait `Eq`
 fn NRGBA::from(&Color) -> Self
+fn NRGBA::model(Self) -> String // from trait `Color`
 fn NRGBA::new(Byte, Byte, Byte, Byte) -> Self
+#deprecated
+fn NRGBA::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn NRGBA::output(Self, &Logger) -> Unit // from trait `Show`
+fn NRGBA::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NRGBA::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NRGBA::to_string(Self) -> String // from trait `Show`
 impl Color for NRGBA
 impl Eq for NRGBA
 impl Show for NRGBA
@@ -118,8 +169,16 @@ pub(all) struct NRGBA64 {
   b : UInt
   a : UInt
 }
+fn NRGBA64::equal(Self, Self) -> Bool // from trait `Eq`
 fn NRGBA64::from(&Color) -> Self
+fn NRGBA64::model(Self) -> String // from trait `Color`
 fn NRGBA64::new(UInt, UInt, UInt, UInt) -> Self
+#deprecated
+fn NRGBA64::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn NRGBA64::output(Self, &Logger) -> Unit // from trait `Show`
+fn NRGBA64::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NRGBA64::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NRGBA64::to_string(Self) -> String // from trait `Show`
 impl Color for NRGBA64
 impl Eq for NRGBA64
 impl Show for NRGBA64
@@ -130,17 +189,28 @@ pub(all) struct NYCbCrA {
   cr : Byte
   a : Byte
 }
+fn NYCbCrA::equal(Self, Self) -> Bool // from trait `Eq`
+fn NYCbCrA::model(Self) -> String // from trait `Color`
 fn NYCbCrA::new(Byte, Byte, Byte, Byte) -> Self
+#deprecated
+fn NYCbCrA::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn NYCbCrA::output(Self, &Logger) -> Unit // from trait `Show`
+fn NYCbCrA::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NYCbCrA::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn NYCbCrA::to_string(Self) -> String // from trait `Show`
 impl Color for NYCbCrA
 impl Eq for NYCbCrA
 impl Show for NYCbCrA
 
 pub(all) struct Palette(@io.Slice[&Color])
+fn Palette::convert(Self, &Color) -> &Color // from trait `Model`
 fn Palette::from(Array[&Color]) -> Self
+fn Palette::get_palette(Self) -> Self? // from trait `Model`
 fn Palette::index(Self, &Color) -> Int
 #deprecated
 fn Palette::inner(Self) -> @io.Slice[&Color]
 fn Palette::length(Self) -> Int
+fn Palette::name(Self) -> String // from trait `Model`
 fn Palette::new(Int) -> Self
 fn Palette::new_empty() -> Self
 fn Palette::op_as_view(Self, start? : Int, end~ : Int) -> Self
@@ -154,8 +224,16 @@ pub(all) struct RGBA {
   b : Byte
   a : Byte
 }
+fn RGBA::equal(Self, Self) -> Bool // from trait `Eq`
 fn RGBA::from(&Color) -> Self
+fn RGBA::model(Self) -> String // from trait `Color`
 fn RGBA::new(Byte, Byte, Byte, Byte) -> Self
+#deprecated
+fn RGBA::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn RGBA::output(Self, &Logger) -> Unit // from trait `Show`
+fn RGBA::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn RGBA::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn RGBA::to_string(Self) -> String // from trait `Show`
 impl Color for RGBA
 impl Eq for RGBA
 impl Show for RGBA
@@ -166,8 +244,16 @@ pub(all) struct RGBA64 {
   b : UInt
   a : UInt
 }
+fn RGBA64::equal(Self, Self) -> Bool // from trait `Eq`
 fn RGBA64::from(&Color) -> Self
+fn RGBA64::model(Self) -> String // from trait `Color`
 fn RGBA64::new(UInt, UInt, UInt, UInt) -> Self
+#deprecated
+fn RGBA64::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn RGBA64::output(Self, &Logger) -> Unit // from trait `Show`
+fn RGBA64::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn RGBA64::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn RGBA64::to_string(Self) -> String // from trait `Show`
 impl Color for RGBA64
 impl Eq for RGBA64
 impl Show for RGBA64
@@ -177,14 +263,18 @@ pub(all) struct YCbCr {
   cb : Byte
   cr : Byte
 }
+fn YCbCr::equal(Self, Self) -> Bool // from trait `Eq`
+fn YCbCr::model(Self) -> String // from trait `Color`
 fn YCbCr::new(Byte, Byte, Byte) -> Self
+#deprecated
+fn YCbCr::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn YCbCr::output(Self, &Logger) -> Unit // from trait `Show`
+fn YCbCr::raw(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn YCbCr::rgba(Self) -> (UInt, UInt, UInt, UInt) // from trait `Color`
+fn YCbCr::to_string(Self) -> String // from trait `Show`
 impl Color for YCbCr
 impl Eq for YCbCr
 impl Show for YCbCr
-
-fn Color::to_string(&Self) -> String
-impl Eq for &Color
-impl Show for &Color
 
 // Type aliases
 
@@ -194,6 +284,13 @@ pub(open) trait Color {
   model(Self) -> String
   raw(Self) -> (UInt, UInt, UInt, UInt)
 }
+fn &Color::equal(Self, Self) -> Bool // from trait `Eq`
+#deprecated
+fn &Color::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn &Color::output(Self, &Logger) -> Unit // from trait `Show`
+fn &Color::to_string(Self) -> String
+impl Eq for &Color
+impl Show for &Color
 
 pub(open) trait Model {
   convert(Self, &Color) -> &Color
