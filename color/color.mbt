@@ -33,7 +33,7 @@ pub impl Show for &Color with output(self, logger) {
 }
 
 ///|
-pub fn to_string(self : &Color) -> String {
+pub fn &Color::to_string(self : &Color) -> String {
   let (r, g, b, a) = self.rgba()
   "@color.\{self.model()}::{\{r} \{g} \{b} \{a}}"
 }
@@ -569,7 +569,7 @@ pub fn Gray16::from(c : &Color) -> Gray16 {
 }
 
 ///|
-typealias @io.Slice
+using @io {type Slice}
 
 ///|
 /// Palette is a palette of colors and satisfies the Model trait.
@@ -589,12 +589,12 @@ pub fn Palette::new(n : Int) -> Palette {
 }
 
 ///|
-pub fn op_set(self : Palette, idx : Int, c : &Color) -> Unit {
+pub fn Palette::op_set(self : Palette, idx : Int, c : &Color) -> Unit {
   self.0[idx % self.0.length()] = c
 }
 
 ///|
-pub fn op_get(self : Palette, idx : Int) -> &Color {
+pub fn Palette::op_get(self : Palette, idx : Int) -> &Color {
   self.0[idx % self.0.length()]
 }
 
@@ -620,12 +620,16 @@ pub fn Palette::new_empty() -> Palette {
 }
 
 ///|
-pub fn length(self : Palette) -> Int {
+pub fn Palette::length(self : Palette) -> Int {
   self.0.length()
 }
 
 ///|
-pub fn op_as_view(self : Palette, start? : Int = 0, end~ : Int) -> Palette {
+pub fn Palette::op_as_view(
+  self : Palette,
+  start? : Int = 0,
+  end~ : Int,
+) -> Palette {
   self.0[start:end]
 }
 
@@ -642,7 +646,7 @@ pub impl Model for Palette with convert(self, c) {
 ///|
 /// index returns the index of the palette color closest to c in Euclidean
 /// R,G,B,A space.
-pub fn index(self : Palette, c : &Color) -> Int {
+pub fn Palette::index(self : Palette, c : &Color) -> Int {
   // A batch version of this computation is in image/draw/draw.go.
 
   let (cr, cg, cb, ca) = c.rgba()

@@ -21,7 +21,6 @@ let err_negative_read : @io.IOError
 
 // Types and methods
 type Decoder
-fn Decoder::read(Self, @io.Slice[Byte]) -> (Int, @io.IOError?) // from trait `@io.Reader`
 impl @io.Reader for Decoder
 
 type Encoder

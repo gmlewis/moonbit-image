@@ -49,7 +49,11 @@ fn ReaderSize::new(rd : &@io.Reader, size : Int) -> ReaderSize {
 }
 
 ///|
-fn reset_buf(self : ReaderSize, buf : Slice[Byte], r : &@io.Reader) -> Unit {
+fn ReaderSize::reset_buf(
+  self : ReaderSize,
+  buf : Slice[Byte],
+  r : &@io.Reader,
+) -> Unit {
   self.buf = buf
   self.rd = r
 }
@@ -61,7 +65,7 @@ pub let err_negative_read : IOError = IOError(
 
 ///|
 /// fill reads a new chunk into the buffer.
-fn fill(self : ReaderSize) -> IOError? {
+fn ReaderSize::fill(self : ReaderSize) -> IOError? {
   // Slide existing data to beginning.
   if self.r > 0 {
     let _ = slice_copy(self.buf, self.buf[self.r:self.w])
@@ -91,7 +95,7 @@ fn fill(self : ReaderSize) -> IOError? {
 }
 
 ///|
-fn read_err(self : ReaderSize) -> IOError? {
+fn ReaderSize::read_err(self : ReaderSize) -> IOError? {
   let err = self.err
   self.err = None
   err
@@ -170,6 +174,6 @@ impl @flate.Reader for ReaderSize with read_byte(self) {
 
 ///|
 /// Buffered returns the number of bytes that can be read from the current buffer.
-fn buffered(self : ReaderSize) -> Int {
+fn ReaderSize::buffered(self : ReaderSize) -> Int {
   self.w - self.r
 }

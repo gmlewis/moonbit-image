@@ -24,7 +24,7 @@
 /// [DecodeConfig] which returns a header which does not match the image returned
 /// by [Decode] may be considered a security issue, and should be reported per the
 /// [Go Security Policy](https://go.dev/security/policy).
-typealias @io.Slice
+using @io {type Slice}
 
 ///|
 /// Config holds an image's color model and dimensions.
@@ -195,7 +195,7 @@ pub fn RGBA::rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
+pub fn RGBA::rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.RGBA::new(0, 0, 0, 0)
   }
@@ -251,7 +251,7 @@ pub fn RGBA::set_rgba64(
 }
 
 ///|
-pub fn set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
+pub fn RGBA::set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -544,7 +544,7 @@ pub fn NRGBA::rgba64_at(self : NRGBA, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
+pub fn NRGBA::nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.NRGBA::new(0, 0, 0, 0)
   }
@@ -608,7 +608,12 @@ pub fn NRGBA::set_rgba64(
 }
 
 ///|
-pub fn set_nrgba(self : NRGBA, x : Int, y : Int, c : @color.NRGBA) -> Unit {
+pub fn NRGBA::set_nrgba(
+  self : NRGBA,
+  x : Int,
+  y : Int,
+  c : @color.NRGBA,
+) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -732,7 +737,7 @@ pub fn NRGBA64::rgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
+pub fn NRGBA64::nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.NRGBA64::new(0, 0, 0, 0)
   }
@@ -803,7 +808,7 @@ pub fn NRGBA64::set_rgba64(
 }
 
 ///|
-pub fn set_nrgba64(
+pub fn NRGBA64::set_nrgba64(
   self : NRGBA64,
   x : Int,
   y : Int,
@@ -937,7 +942,7 @@ pub fn Alpha::rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
+pub fn Alpha::alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Alpha::new(0)
   }
@@ -982,7 +987,12 @@ pub fn Alpha::set_rgba64(
 }
 
 ///|
-pub fn set_alpha(self : Alpha, x : Int, y : Int, c : @color.Alpha) -> Unit {
+pub fn Alpha::set_alpha(
+  self : Alpha,
+  x : Int,
+  y : Int,
+  c : @color.Alpha,
+) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -1103,7 +1113,7 @@ pub fn Alpha16::rgba64_at(self : Alpha16, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
+pub fn Alpha16::alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Alpha16::new(0)
   }
@@ -1151,7 +1161,7 @@ pub fn Alpha16::set_rgba64(
 }
 
 ///|
-pub fn set_alpha16(
+pub fn Alpha16::set_alpha16(
   self : Alpha16,
   x : Int,
   y : Int,
@@ -1279,7 +1289,7 @@ pub fn Gray::rgba64_at(self : Gray, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
+pub fn Gray::gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Gray::new(0)
   }
@@ -1326,7 +1336,7 @@ pub fn Gray::set_rgba64(
 }
 
 ///|
-pub fn set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
+pub fn Gray::set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -1433,7 +1443,7 @@ pub fn Gray16::rgba64_at(self : Gray16, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
+pub fn Gray16::gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.Gray16::new(0)
   }
@@ -1483,7 +1493,12 @@ pub fn Gray16::set_rgba64(
 }
 
 ///|
-pub fn set_gray16(self : Gray16, x : Int, y : Int, c : @color.Gray16) -> Unit {
+pub fn Gray16::set_gray16(
+  self : Gray16,
+  x : Int,
+  y : Int,
+  c : @color.Gray16,
+) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -1591,7 +1606,7 @@ pub fn CMYK::rgba64_at(self : CMYK, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
+pub fn CMYK::cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
   if not(pt(x, y).is_in(self.rect)) {
     return @color.CMYK::new(0, 0, 0, 0)
   }
@@ -1647,7 +1662,7 @@ pub fn CMYK::set_rgba64(
 }
 
 ///|
-pub fn set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
+pub fn CMYK::set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }
@@ -1810,7 +1825,12 @@ pub impl Image for Paletted with color_index_at(self, x, y) {
 }
 
 ///|
-pub fn set_color_index(self : Paletted, x : Int, y : Int, index : Byte) -> Unit {
+pub fn Paletted::set_color_index(
+  self : Paletted,
+  x : Int,
+  y : Int,
+  index : Byte,
+) -> Unit {
   if not(pt(x, y).is_in(self.rect)) {
     return
   }

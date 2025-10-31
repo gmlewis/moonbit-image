@@ -209,7 +209,7 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
 }
 
 ///|
-typealias @io.IOError
+using @io {type IOError}
 
 ///|
 /// A format_error reports that the input is not a valid PNG.
@@ -227,7 +227,7 @@ fn unsupported_error(e : String) -> IOError {
 }
 
 ///|
-fn parse_ihdr(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if length != 13 {
     return Some(format_error("bad IHDR length"))
   }
@@ -325,7 +325,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 }
 
 ///|
-fn parse_plte(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_plte(self : Decoder, length : UInt) -> IOError? {
   let np = (length / 3).reinterpret_as_int() // The number of palette entries.
   if length % 3 != 0 || np <= 0 || np > 256 || np > 1 << self.depth {
     return Some(format_error("bad PLTE length"))
@@ -366,7 +366,7 @@ fn parse_plte(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn parse_t_rns(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
   match self.cb {
     CB_G1 | CB_G2 | CB_G4 | CB_G8 | CB_G16 => {
       if length != 2 {
@@ -493,7 +493,7 @@ pub impl @io.Reader for Decoder with read(self, p) {
 
 ///|
 /// decode decodes the IDAT data into an image.
-fn decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
+fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
   let mut img = &@image.Image::new_empty()
   let (r, err) = @zlib.Reader::new(ReaderSize::new(self, DEFAULT_BUF_SIZE))
   if err != None {
@@ -566,7 +566,7 @@ fn size_error(e : @image.SizeError) -> IOError? {
 
 ///|
 /// read_image_pass reads a single image pass, sized according to the pass number.
-fn read_image_pass(
+fn Decoder::read_image_pass(
   self : Decoder,
   r : &@io.Reader,
   pass : Int,
@@ -1081,7 +1081,7 @@ fn merge_pass_into(
 }
 
 ///|
-fn parse_idat(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_idat(self : Decoder, length : UInt) -> IOError? {
   self.idat_length = length
   let (img, err) = self.decode_idat()
   self.img = img
@@ -1092,7 +1092,7 @@ fn parse_idat(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn parse_iend(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_iend(self : Decoder, length : UInt) -> IOError? {
   if length != 0 {
     return Some(format_error("bad IEND length"))
   }
@@ -1100,7 +1100,7 @@ fn parse_iend(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
+fn Decoder::parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   // Read the length and chunk type.
   let (_, err) = @io.read_full(self.r, self.tmp[:8])
   if err != None {
@@ -1186,7 +1186,7 @@ fn parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
 }
 
 ///|
-fn verify_checksum(self : Decoder) -> IOError? {
+fn Decoder::verify_checksum(self : Decoder) -> IOError? {
   let (_, err) = @io.read_full(self.r, self.tmp[:4])
   if err != None {
     return err
@@ -1198,7 +1198,7 @@ fn verify_checksum(self : Decoder) -> IOError? {
 }
 
 ///|
-fn check_header(self : Decoder) -> IOError? {
+fn Decoder::check_header(self : Decoder) -> IOError? {
   let (_, err) = @io.read_full(self.r, self.tmp[:header.length()])
   if err != None {
     return err

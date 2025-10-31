@@ -6,7 +6,7 @@
 // license that can be found in the LICENSE file.
 
 ///|
-typealias @io.IOError
+using @io {type IOError}
 
 ///|
 fn diff(m0 : &@image.Image, m1 : &@image.Image) -> TestError? {

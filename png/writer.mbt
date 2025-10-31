@@ -58,7 +58,7 @@ fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
 }
 
 ///|
-fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
+fn Encoder::write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   if self.err != None {
     return
   }
@@ -95,7 +95,7 @@ fn write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
 }
 
 ///|
-fn write_ihdr(self : Encoder) -> Unit {
+fn Encoder::write_ihdr(self : Encoder) -> Unit {
   let b = self.m.bounds()
   be_put_uint32(self.tmp[0:4], b.dx().reinterpret_as_uint())
   be_put_uint32(self.tmp[4:8], b.dy().reinterpret_as_uint())
@@ -150,7 +150,7 @@ fn write_ihdr(self : Encoder) -> Unit {
 }
 
 ///|
-fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
+fn Encoder::write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
   if p.length() < 1 || p.length() > 256 {
     self.err = Some(format_error("bad palette length: \{p.length()}"))
     return
@@ -179,7 +179,7 @@ fn write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
 ///
 /// This method should only be called from write_idats (via write_image).
 /// No other code should treat an Encoder as an io.Writer.
-pub fn write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
+pub fn Encoder::write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
   self.write_chunk(b, b"IDAT")
   if self.err != None {
     return (0, self.err)
@@ -282,7 +282,7 @@ fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
 }
 
 ///|
-fn write_image(
+fn Encoder::write_image(
   self : Encoder,
   w : &@io.Writer,
   m : &@image.Image,
@@ -522,7 +522,7 @@ fn clear_slice(b : Slice[Byte]) -> Unit {
 
 ///|
 /// Write the actual image data to one or more IDAT chunks.
-fn write_idats(self : Encoder) -> Unit {
+fn Encoder::write_idats(self : Encoder) -> Unit {
   if self.err != None {
     return
   }
@@ -536,7 +536,7 @@ fn write_idats(self : Encoder) -> Unit {
 }
 
 ///|
-fn write_iend(self : Encoder) -> Unit {
+fn Encoder::write_iend(self : Encoder) -> Unit {
   self.write_chunk(Slice::new([]), b"IEND")
 }
 
@@ -550,7 +550,11 @@ pub fn encode(w : &@io.Writer, m : &@image.Image) -> IOError? {
 
 ///|
 /// enc writes the Image m to w in PNG format.
-pub fn enc(self : Encoder, w : &@io.Writer, m : &@image.Image) -> IOError? {
+pub fn Encoder::enc(
+  self : Encoder,
+  w : &@io.Writer,
+  m : &@image.Image,
+) -> IOError? {
   // Obviously, negative widths and heights are invalid. Furthermore, the PNG
   // spec section 11.2.2 says that zero is invalid. Excessively large images are
   // also rejected.
