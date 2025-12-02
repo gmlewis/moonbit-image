@@ -7,25 +7,25 @@ import(
 )
 
 // Values
-let chunk_order_error : @io.IOError
+pub let chunk_order_error : @io.IOError
 
-fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
+pub fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
 
-fn decode_config(&@io.Reader) -> (@image.Config, @io.IOError?)
+pub fn decode_config(&@io.Reader) -> (@image.Config, @io.IOError?)
 
-fn encode(&@io.Writer, &@image.Image) -> @io.IOError?
+pub fn encode(&@io.Writer, &@image.Image) -> @io.IOError?
 
-let err_negative_read : @io.IOError
+pub let err_negative_read : @io.IOError
 
 // Errors
 
 // Types and methods
 type Decoder
-impl @io.Reader for Decoder
+pub impl @io.Reader for Decoder
 
 type Encoder
-fn Encoder::enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
-fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
+pub fn Encoder::enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
+pub fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
 
 // Type aliases
 
