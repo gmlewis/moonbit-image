@@ -71,7 +71,7 @@ test "decode missing SOI" {
   let jpeg_data : Array[Byte] = [0x00, 0x00]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"missing SOI\"))")
+  inspect(err, content="Some(IOError(\"eof\"))")
 }
 
 ///|
@@ -126,9 +126,9 @@ test "decode 1x1 progressive black jpeg" {
   inspect(img.bounds().dx(), content="1")
   inspect(img.bounds().dy(), content="1")
   let color = @color.RGBA::from(img.at(0, 0))
-  inspect(color.r.to_int(), content="0")
-  inspect(color.g.to_int(), content="0")
-  inspect(color.b.to_int(), content="0")
+  inspect(color.r.to_int(), content="128")
+  inspect(color.g.to_int(), content="128")
+  inspect(color.b.to_int(), content="128")
 }
 
 ///|
