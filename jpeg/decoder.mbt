@@ -1084,8 +1084,8 @@ fn Decoder::decode_dc_refine(
 ///|
 fn Decoder::decode_ac_initial(
   self : Decoder,
-  block : Array[Int],
   comp_idx : Int,
+  block : Array[Int],
 ) -> @io.IOError? {
   if self.eob_run > 0 {
     self.eob_run -= 1
@@ -1113,7 +1113,7 @@ fn Decoder::decode_ac_initial(
       block[zig_zag_order[k]] = val << self.al
     } else {
       if run != 0xF {
-        self.eob_run = (1 << run) - 1
+        self.eob_run = 1 << run
         if run > 0 {
           let (bits, err2) = self.read_bits(run)
           if err2 != None {
@@ -1121,6 +1121,7 @@ fn Decoder::decode_ac_initial(
           }
           self.eob_run += bits
         }
+        self.eob_run -= 1
         break
       }
       k += 15
@@ -1133,74 +1134,11 @@ fn Decoder::decode_ac_initial(
 ///|
 fn Decoder::decode_ac_refine(
   self : Decoder,
-  block : Array[Int],
   comp_idx : Int,
+  block : Array[Int],
 ) -> @io.IOError? {
   let act = self.comp[comp_idx].actbl
   let mut k = self.ss
-  if self.eob_run == 0 {
-    while k <= self.se {
-      let (sym, err) = self.huffman_decode(1, act)
-      if err != None {
-        return err
-      }
-      let run = (sym >> 4) & 0xF
-      let size = sym & 0xF
-      if size != 0 {
-        if size != 1 {
-          return Some(@io.IOError("bad AC refinement size"))
-        }
-        let (bit, err2) = self.read_bit()
-        if err2 != None {
-          return err2
-        }
-        let val = if bit != 0 { 1 << self.al } else { -(1 << self.al) }
-        let mut r = run
-        while k <= self.se {
-          let pos = zig_zag_order[k]
-          if block[pos] != 0 {
-            let err_refine = self.refine(block, pos)
-            if err_refine != None {
-              return err_refine
-            }
-          } else {
-            if r == 0 {
-              block[pos] = val
-              break
-            }
-            r -= 1
-          }
-          k += 1
-        }
-      } else {
-        if run != 0xF {
-          self.eob_run = 1 << run
-          if run > 0 {
-            let (bits, err2) = self.read_bits(run)
-            if err2 != None {
-              return err2
-            }
-            self.eob_run += bits
-          }
-          break
-        }
-        let mut r = 16
-        while k <= self.se && r > 0 {
-          let pos = zig_zag_order[k]
-          if block[pos] != 0 {
-            let err_refine = self.refine(block, pos)
-            if err_refine != None {
-              return err_refine
-            }
-          } else {
-            r -= 1
-          }
-          k += 1
-        }
-      }
-      k += 1
-    }
-  }
   if self.eob_run > 0 {
     while k <= self.se {
       let pos = zig_zag_order[k]
@@ -1213,6 +1151,78 @@ fn Decoder::decode_ac_refine(
       k += 1
     }
     self.eob_run -= 1
+    return None
+  }
+  while k <= self.se {
+    let (sym, err) = self.huffman_decode(1, act)
+    if err != None {
+      return err
+    }
+    let run = (sym >> 4) & 0xF
+    let size = sym & 0xF
+    if size != 0 {
+      if size != 1 {
+        return Some(@io.IOError("bad AC refinement size"))
+      }
+      let (bit, err2) = self.read_bit()
+      if err2 != None {
+        return err2
+      }
+      let val = if bit != 0 { 1 << self.al } else { -(1 << self.al) }
+      let mut r = run
+      while k <= self.se {
+        let pos = zig_zag_order[k]
+        if block[pos] != 0 {
+          let err_refine = self.refine(block, pos)
+          if err_refine != None {
+            return err_refine
+          }
+        } else {
+          if r == 0 {
+            block[pos] = val
+            break
+          }
+          r -= 1
+        }
+        k += 1
+      }
+    } else {
+      if run != 0xF {
+        self.eob_run = 1 << run
+        if run > 0 {
+          let (bits, err2) = self.read_bits(run)
+          if err2 != None {
+            return err2
+          }
+          self.eob_run += bits
+        }
+        break
+      }
+      let mut r = 16
+      while k <= self.se && r > 0 {
+        let pos = zig_zag_order[k]
+        if block[pos] != 0 {
+          let err_refine = self.refine(block, pos)
+          if err_refine != None {
+            return err_refine
+          }
+        } else {
+          r -= 1
+        }
+        k += 1
+      }
+    }
+    k += 1
+  }
+  while k <= self.se {
+    let pos = zig_zag_order[k]
+    if block[pos] != 0 {
+      let err_refine = self.refine(block, pos)
+      if err_refine != None {
+        return err_refine
+      }
+    }
+    k += 1
   }
   None
 }
@@ -1260,14 +1270,13 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
                   self.decode_dc_refine(block)
                 }
               } else if self.ah == 0 {
-                self.decode_ac_initial(block, i)
+                self.decode_ac_initial(i, block)
               } else {
-                self.decode_ac_refine(block, i)
+                self.decode_ac_refine(i, block)
               }
               if err != None {
                 if self.marker != -1 {
-                  // We'll pick up the marker in the next mx/my iteration
-                  continue
+                  return None
                 }
                 return err
               }
@@ -1289,8 +1298,8 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
           if self.marker >= 0xD0 && self.marker <= 0xD7 {
             self.marker = -1
             if self.ss == 0 {
-              for i in 0..<self.prev_dc.length() {
-                self.prev_dc[i] = 0
+              for j in 0..<self.prev_dc.length() {
+                self.prev_dc[j] = 0
               }
             }
             continue
@@ -1305,13 +1314,13 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
             self.decode_dc_refine(block)
           }
         } else if self.ah == 0 {
-          self.decode_ac_initial(block, i)
+          self.decode_ac_initial(i, block)
         } else {
-          self.decode_ac_refine(block, i)
+          self.decode_ac_refine(i, block)
         }
         if err != None {
           if self.marker != -1 {
-            continue
+            return None
           }
           return err
         }
