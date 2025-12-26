@@ -3,6 +3,7 @@
   "import": [
     "gmlewis/image",
     "gmlewis/image/jpeg",
+    "gmlewis/image/png",
     {
       "path": "gmlewis/io",
       "alias": "gmlewisio"
