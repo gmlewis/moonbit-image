@@ -450,6 +450,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   if ncomp != 1 && ncomp != 3 {
     return Some(@io.IOError("unsupported number of components"))
   }
+  println("SOF: \{width}x\{height} ncomp=\{ncomp}")
   self.height = height
   self.width = width
   self.progressive = progressive
@@ -463,7 +464,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   self.comp = Array::new()
   let mut max_h = 0
   let mut max_v = 0
-  for _ in 0..<ncomp {
+  for i in 0..<ncomp {
     let (c, err) = self.read_byte()
     if err != None {
       return err
@@ -484,6 +485,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
     if err != None {
       return err
     }
+    println("Component \{i}: id=\{c} h=\{h} v=\{v} tq=\{tq}")
     self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
   }
   self.max_h = max_h
@@ -537,9 +539,6 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
       self.qtab.push(Array::new())
     }
     self.qtab[tq] = table
-    if tq == 0 {
-       println("Q-table 0: \{table[0]} \{table[1]} \{table[2]} ...")
-    }
   }
   None
 }
@@ -834,12 +833,12 @@ fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
   for y in 0..<8 {
     for x in 0..<8 {
       let mut s = 0L
-      for u in 0..<8 {
-        for v in 0..<8 {
-          let cu = idct_matrix[u * 8 + x].to_int64()
-          let cv = idct_matrix[v * 8 + y].to_int64()
-          let coeff = blk[u * 8 + v].to_int64()
-          s = s + cu * cv * coeff
+      for v_freq in 0..<8 {
+        for h_freq in 0..<8 {
+          let cv = idct_matrix[v_freq * 8 + y].to_int64()
+          let ch = idct_matrix[h_freq * 8 + x].to_int64()
+          let coeff = blk[v_freq * 8 + h_freq].to_int64()
+          s = s + cv * ch * coeff
         }
       }
       let val = ((s + round_val) >> shift).to_int()
@@ -910,9 +909,6 @@ fn Decoder::emit_block_pixels(
         cbv.to_byte(),
         crv.to_byte(),
       )
-      if self.mcu_x == 0 && self.mcu_y == 0 && x == 0 && y == 0 {
-        // println("Pixel (0,0) YCbCr: \{yv} \{cbv} \{crv} -> RGB: \{r} \{g} \{b}")
-      }
       let px = self.mcu_x + x
       let py = self.mcu_y + y
       if px < self.width && py < self.height {
@@ -931,32 +927,30 @@ fn Decoder::emit_block_pixels(
 
 ///|
 fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
-  if self.comp.length() == 0 {
-    return Some(@io.IOError("no components"))
+  if self.sos_comp_indices.length() == 0 {
+    return Some(@io.IOError("no components in scan"))
   }
-  let n = self.comp.length()
-  let blocks : Array[Array[Array[Int]]] = Array::new(capacity=n)
-  for i in 0..<n {
-    let comp = self.comp[i]
+  let n = self.sos_comp_indices.length()
+  let blocks : Array[Array[Array[Int]]] = Array::new(capacity=self.comp.length())
+  for _ in 0..<self.comp.length() {
+    blocks.push(Array::new())
+  }
+  for idx in self.sos_comp_indices {
+    let comp = self.comp[idx]
     let nblocks = comp.h * comp.v
-    let comp_blocks = Array::new(capacity=nblocks)
     for _ in 0..<nblocks {
       let block = Array::make(64, 0)
-      let err = self.decode_block(i, block)
+      let err = self.decode_block(idx, block)
       if err != None {
         return err
-      }
-      if self.mcu_x == 0 && self.mcu_y == 0 && i == 0 && blocks.length() == 0 {
-        println("First block DC coefficient (raw): \{block[0]}")
       }
       let tq = comp.tq
       let (dq, err2) = self.dequantize(block, tq)
       if err2 != None {
         return err2
       }
-      comp_blocks.push(dq)
+      blocks[idx].push(dq)
     }
-    blocks.push(comp_blocks)
   }
   self.emit_block_pixels(blocks)
 }
