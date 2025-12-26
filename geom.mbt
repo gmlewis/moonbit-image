@@ -365,14 +365,11 @@ pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
   if x < 0 || y < 0 || z < 0 {
     return -1
   }
-  let v = BigInt::from_int(x) * BigInt::from_int(y) * BigInt::from_int(z)
-  if v > BigInt::from_int(@int.max_value) {
+  let v = x.to_int64() * y.to_int64() * z.to_int64()
+  if v > @int.max_value.to_int64() || v < 0 {
     return -1
   }
-  let s = v.to_string()
-  @strconv.parse_int(s) catch {
-    _ => return -1
-  }
+  v.to_int()
 }
 
 ///|
