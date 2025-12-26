@@ -136,7 +136,10 @@ struct Decoder {
   htab : Array[HuffmanTable] // huffman tables
   mut restart_interval : Int
   mut progressive : Bool
+  mut bit_curr : Int
+  mut bits_left : Int
   img : &@image.Image
+  mut marker : Int
 }
 
 // Component info
@@ -147,6 +150,8 @@ struct Component {
   v : Int // vertical sampling factor
   c : Int // component identifier
   tq : Int // quantization table destination selector
+  mut dctbl : Int
+  mut actbl : Int
 } derive(Default)
 
 // Huffman table
@@ -157,6 +162,10 @@ struct HuffmanTable {
   id : Int
   lengths : Array[Int]
   symbols : Array[Int]
+  // runtime lookup tables built from lengths+symbols
+  lut : Array[Array[Int]]
+  min_len : Int
+  max_len : Int
 }
 
 ///|
@@ -172,7 +181,10 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     htab: Array::new(),
     restart_interval: 0,
     progressive: false,
+    bit_curr: 0,
+    bits_left: 0,
     img: &@image.Image::new_empty(),
+    marker: -1,
   }
 }
 
@@ -259,7 +271,7 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
   }
   let ncomp = ncomp_byte + 0
   // Read component selectors
-  for _ in 0..=ncomp {
+  for _ in 0..<(ncomp + 0) {
     let (c, err) = self.read_byte()
     if err != None {
       return err
@@ -269,6 +281,16 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
       return err
     }
     // sel: upper 4 bits = DC table selector, lower 4 bits = AC table selector
+    let dct = (sel >> 4) & 0xF
+    let act = sel & 0xF
+    // find matching component and set table selectors
+    for i in 0..<self.comp.length() {
+      if self.comp[i].c == c {
+        self.comp[i].dctbl = dct + 0
+        self.comp[i].actbl = act + 0
+        break
+      }
+    }
   }
   // Ss, Se, AhAl
   let (_, err1) = self.read_byte()
@@ -391,7 +413,7 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
       return err
     }
     let tq = tq_byte + 0
-    self.comp.push(Component::{ h, v, c, tq })
+    self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
   }
   None
 }
@@ -478,10 +500,79 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
       symbols.push(s + 0)
       remaining = remaining - 1
     }
-    let table = HuffmanTable::{ class: tc, id: th, lengths, symbols }
+    // Build runtime LUT (Array of arrays indexed by bit-length)
+    let lut = Array::new()
+    let mut code = 0
+    let mut idx = 0
+    let mut min_len = 0
+    let mut max_len = 0
+    for bits = 1; bits <= 16; bits = bits + 1 {
+      let cnt = lengths[bits - 1]
+      if cnt != 0 && min_len == 0 {
+        min_len = bits
+      }
+      if cnt != 0 {
+        max_len = bits
+      }
+      let size = 1 << bits
+      let arr = Array::make(size, -1)
+      for i = 0; i < cnt; i = i + 1 {
+        if idx >= symbols.length() {
+          return Some(@io.IOError("malformed DHT: symbols shorter than counts"))
+        }
+        let sym = symbols[idx]
+        idx += 1
+        arr[code] = sym
+        code += 1
+      }
+      code = code << 1
+      lut.push(arr)
+    }
+    let table = HuffmanTable::{
+      class: tc,
+      id: th,
+      lengths,
+      symbols,
+      lut,
+      min_len,
+      max_len,
+    }
     self.htab.push(table)
   }
   None
+}
+
+///|
+// Huffman decode: read bits and lookup symbol using built LUTs
+fn Decoder::huffman_decode(
+  self : Decoder,
+  class : Int,
+  id : Int,
+) -> (Int, @io.IOError?) {
+  for table in self.htab {
+    if table.class != class || table.id != id {
+      continue
+    }
+    let mut code = 0
+    for len = 1; len <= table.max_len; len = len + 1 {
+      let (b, err) = self.read_bit()
+      if err != None {
+        return (0, err)
+      }
+      code = (code << 1) | b
+      if len - 1 < table.lut.length() {
+        let arr = table.lut[len - 1]
+        if code < arr.length() {
+          let sym = arr[code]
+          if sym != -1 {
+            return (sym, None)
+          }
+        }
+      }
+    }
+    return (0, Some(@io.IOError("huffman decode failed")))
+  }
+  (0, Some(@io.IOError("missing huffman table")))
 }
 
 ///|
@@ -502,39 +593,58 @@ fn Decoder::parse_dri(self : Decoder) -> @io.IOError? {
 }
 
 ///|
-fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
-  while true {
+// Bit-level reader on Decoder handles byte-stuffing.
+fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
+  if self.bits_left == 0 {
     let (b, err) = self.read_byte()
     if err != None {
-      return err
+      return (0, err)
     }
-    if b != 0xFF {
-      continue
+    if b == 0xFF {
+      // Need to inspect the stuffed/marker byte
+      let (nb, err2) = self.read_byte()
+      if err2 != None {
+        return (0, err2)
+      }
+      if nb == 0x00 {
+        self.bit_curr = 0xFF
+        self.bits_left = 8
+      } else {
+        // It's a marker; save it in Decoder and signal upward by returning an IOError
+        self.marker = nb
+        return (0, Some(@io.IOError("marker")))
+      }
+    } else {
+      self.bit_curr = b
+      self.bits_left = 8
     }
-    // Found marker prefix. Read next byte.
-    let (mb, err) = self.read_byte()
-    if err != None {
-      return err
-    }
-    if mb == 0x00 {
-      // Byte-stuffed 0xFF data byte
-      continue
-    }
-    // Handle markers
-    if mb == EOI {
+  }
+  let bit = (self.bit_curr >> (self.bits_left - 1)) & 1
+  self.bits_left = self.bits_left - 1
+  (bit, None)
+}
+
+// Consume entropy-coded data until a marker is observed; placeholder for real decoding.
+
+///|
+fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
+  if self.comp.length() == 0 {
+    return None
+  }
+  let dc_tbl = self.comp[0].dctbl
+  // Decode a single symbol for now
+  let (sym, err) = self.huffman_decode(0, dc_tbl)
+  if err != None {
+    if self.marker != -1 {
       return None
     }
-    if mb >= RST0 && mb <= RST7 {
-      // restart marker -- nothing to do here
-      continue
-    }
-    // Other marker: skip its payload
-    let skip_err = self.skip_marker()
-    if skip_err != None {
-      return skip_err
-    }
-    continue
-  } else {
-    None
+    return err
   }
+  let _ = sym
+  None
+}
+
+///|
+fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
+  None
 }
