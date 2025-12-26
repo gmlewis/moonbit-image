@@ -19,7 +19,7 @@ const SOI : Int = 0xD8 // Start of Image
 const SOF0 : Int = 0xC0 // Start of Frame (baseline DCT)
 
 ///|
-const SOF1 : Int = 0xC1 // Start of Frame (extended sequential DCT)
+// TODO: const SOF1 : Int = 0xC1 // Start of Frame (extended sequential DCT)
 
 ///|
 const SOF2 : Int = 0xC2 // Start of Frame (progressive DCT)
@@ -28,7 +28,7 @@ const SOF2 : Int = 0xC2 // Start of Frame (progressive DCT)
 const DHT : Int = 0xC4 // Define Huffman Table
 
 ///|
-const SOF3 : Int = 0xC3 // Start of Frame (lossless)
+// TODO: const SOF3 : Int = 0xC3 // Start of Frame (lossless)
 
 ///|
 const DQT : Int = 0xDB // Define Quantization Table
@@ -40,79 +40,79 @@ const DRI : Int = 0xDD // Define Restart Interval
 const SOS : Int = 0xDA // Start of Scan
 
 ///|
-const RST0 : Int = 0xD0 // Restart 0
+// TODO: const RST0 : Int = 0xD0 // Restart 0
 
 ///|
-const RST1 : Int = 0xD1 // Restart 1
+// TODO: const RST1 : Int = 0xD1 // Restart 1
 
 ///|
-const RST2 : Int = 0xD2 // Restart 2
+// TODO: const RST2 : Int = 0xD2 // Restart 2
 
 ///|
-const RST3 : Int = 0xD3 // Restart 3
+// TODO: const RST3 : Int = 0xD3 // Restart 3
 
 ///|
-const RST4 : Int = 0xD4 // Restart 4
+// TODO: const RST4 : Int = 0xD4 // Restart 4
 
 ///|
-const RST5 : Int = 0xD5 // Restart 5
+// TODO: const RST5 : Int = 0xD5 // Restart 5
 
 ///|
-const RST6 : Int = 0xD6 // Restart 6
+// TODO: const RST6 : Int = 0xD6 // Restart 6
 
 ///|
-const RST7 : Int = 0xD7 // Restart 7
+// TODO: const RST7 : Int = 0xD7 // Restart 7
 
 ///|
-const APP0 : Int = 0xE0 // Application 0 (JFIF)
+// TODO: const APP0 : Int = 0xE0 // Application 0 (JFIF)
 
 ///|
-const APP1 : Int = 0xE1 // Application 1 (EXIF)
+// TODO: const APP1 : Int = 0xE1 // Application 1 (EXIF)
 
 ///|
-const APP2 : Int = 0xE2 // Application 2
+// TODO: const APP2 : Int = 0xE2 // Application 2
 
 ///|
-const APP3 : Int = 0xE3 // Application 3
+// TODO: const APP3 : Int = 0xE3 // Application 3
 
 ///|
-const APP4 : Int = 0xE4 // Application 4
+// TODO: const APP4 : Int = 0xE4 // Application 4
 
 ///|
-const APP5 : Int = 0xE5 // Application 5
+// TODO: const APP5 : Int = 0xE5 // Application 5
 
 ///|
-const APP6 : Int = 0xE6 // Application 6
+// TODO: const APP6 : Int = 0xE6 // Application 6
 
 ///|
-const APP7 : Int = 0xE7 // Application 7
+// TODO: const APP7 : Int = 0xE7 // Application 7
 
 ///|
-const APP8 : Int = 0xE8 // Application 8
+// TODO: const APP8 : Int = 0xE8 // Application 8
 
 ///|
-const APP9 : Int = 0xE9 // Application 9
+// TODO: const APP9 : Int = 0xE9 // Application 9
 
 ///|
-const APPA : Int = 0xEA // Application 10
+// TODO: const APPA : Int = 0xEA // Application 10
 
 ///|
-const APPB : Int = 0xEB // Application 11
+// TODO: const APPB : Int = 0xEB // Application 11
 
 ///|
-const APPC : Int = 0xEC // Application 12
+// TODO: const APPC : Int = 0xEC // Application 12
 
 ///|
-const APPD : Int = 0xED // Application 13
+// TODO: const APPD : Int = 0xED // Application 13
 
 ///|
-const APPE : Int = 0xEE // Application 14
+// TODO: const APPE : Int = 0xEE // Application 14
 
 ///|
-const APPF : Int = 0xEF // Application 15
+// TODO: const APPF : Int = 0xEF // Application 15
 
 ///|
-const COM : Int = 0xFE // Comment
+// TODO: const COM : Int = 0xFE // Comment
 
 ///|
 const EOI : Int = 0xD9 // End of Image
@@ -658,7 +658,7 @@ fn Decoder::parse_dri(self : Decoder) -> @io.IOError? {
   if length != 4 {
     return Some(@io.IOError("bad DRI length"))
   }
-  let (ri, err) = self.read_u16be()
+  let (_ri, err) = self.read_u16be()
   if err != None {
     return err
   }
