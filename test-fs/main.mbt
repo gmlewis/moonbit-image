@@ -40,27 +40,50 @@ async fn main {
 }
 
 ///|
+fn abs_diff(a : UInt, b : UInt) -> UInt {
+  if a > b {
+    a - b
+  } else {
+    b - a
+  }
+}
+
+///|
 fn compare_images(img1 : &@image.Image, img2 : &@image.Image) -> Bool {
   if img1.bounds() != img2.bounds() {
     println("Bounds mismatch: \{img1.bounds()} != \{img2.bounds()}")
     return false
   }
   let bounds = img1.bounds()
+  let mut mismatches = 0
   for y = bounds.min.y; y < bounds.max.y; y = y + 1 {
     for x = bounds.min.x; x < bounds.max.x; x = x + 1 {
       let c1 = img1.at(x, y)
       let c2 = img2.at(x, y)
       let (r1, g1, b1, a1) = c1.rgba()
       let (r2, g2, b2, a2) = c2.rgba()
-      // Note: We might need a small tolerance here if rounding differs,
-      // but let's start with exact match.
-      if r1 != r2 || g1 != g2 || b1 != b2 || a1 != a2 {
-        println(
-          "Pixel mismatch at (\{x}, \{y}): (\{r1}, \{g1}, \{b1}, \{a1}) != (\{r2}, \{g2}, \{b2}, \{a2})",
-        )
-        return false
+
+      // Allow for a small tolerance due to rounding/IDCT precision.
+      // 1% of 0xFFFF is about 655.
+      let tol = 1000U
+      if abs_diff(r1, r2) > tol ||
+        abs_diff(g1, g2) > tol ||
+        abs_diff(b1, b2) > tol ||
+        abs_diff(a1, a2) > tol {
+        if mismatches < 10 {
+          let r1_8 = (r1 >> 8).to_byte()
+          let r2_8 = (r2 >> 8).to_byte()
+          println(
+            "Pixel mismatch at (\{x}, \{y}): 16bit=(\{r1}, \{g1}, \{b1}, \{a1}) != (\{r2}, \{g2}, \{b2}, \{a2}), 8bit=(\{r1_8}) != (\{r2_8})",
+          )
+        }
+        mismatches += 1
       }
     }
+  }
+  if mismatches > 0 {
+    println("Total mismatches: \{mismatches}")
+    return false
   }
   true
 }

@@ -537,6 +537,9 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
       self.qtab.push(Array::new())
     }
     self.qtab[tq] = table
+    if tq == 0 {
+       println("Q-table 0: \{table[0]} \{table[1]} \{table[2]} ...")
+    }
   }
   None
 }
@@ -824,7 +827,7 @@ fn Decoder::dequantize(
 
 ///|
 fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
-  let shift = 30
+  let shift = 25
   let round_val = 1L << (shift - 1)
   let out = Array::make(64, 0)
   for y in 0..<8 {
@@ -839,9 +842,7 @@ fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
         }
       }
       let val = ((s + round_val) >> shift).to_int()
-      let pix = val + 128
-      let pix = if pix < 0 { 0 } else if pix > 255 { 255 } else { pix }
-      out[y * 8 + x] = pix
+      out[y * 8 + x] = val
     }
   }
   out
@@ -874,9 +875,9 @@ fn Decoder::emit_block_pixels(
   }
   for y in 0..<mcu_height {
     for x in 0..<mcu_width {
-      let mut yv = 128
-      let mut cbv = 128
-      let mut crv = 128
+      let mut yv = 0
+      let mut cbv = 0
+      let mut crv = 0
       for i in 0..<idct_blocks.length() {
         let comp = self.comp[i]
         let bx = x * comp.h / self.max_h / 8
@@ -886,12 +887,20 @@ fn Decoder::emit_block_pixels(
         let block_idx = by * comp.h + bx
         if block_idx < idct_blocks[i].length() {
           let val = idct_blocks[i][block_idx][py * 8 + px]
-          if i == 0 {
-            yv = val + 128
-          } else if i == 1 {
-            cbv = val + 128
-          } else if i == 2 {
-            crv = val + 128
+          let v128 = val + 128
+          let v_clamped = if v128 < 0 {
+            0
+          } else if v128 > 255 {
+            255
+          } else {
+            v128
+          }
+          if comp.c == 1 {
+            yv = v_clamped
+          } else if comp.c == 2 {
+            cbv = v_clamped
+          } else if comp.c == 3 {
+            crv = v_clamped
           }
         }
       }
@@ -900,10 +909,14 @@ fn Decoder::emit_block_pixels(
         cbv.to_byte(),
         crv.to_byte(),
       )
+      if self.mcu_x == 0 && self.mcu_y == 0 && x == 0 && y == 0 {
+        println("Pixel (0,0) YCbCr: \{yv} \{cbv} \{crv} -> RGB: \{r} \{g} \{b}")
+      }
       let px = self.mcu_x + x
       let py = self.mcu_y + y
       if px < self.width && py < self.height {
-        self.img.set(px, py, @color.RGBA::new(r, g, b, 0xff))
+        let rgba = @color.RGBA::new(r, g, b, 0xff)
+        self.img.set(px, py, rgba)
       }
     }
   }
@@ -931,6 +944,9 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
       let err = self.decode_block(i, block)
       if err != None {
         return err
+      }
+      if self.mcu_x == 0 && self.mcu_y == 0 && i == 0 && blocks[0].length() == 0 {
+        println("First block DC coefficient (raw): \{block[0]}")
       }
       let tq = comp.tq
       let (dq, err2) = self.dequantize(block, tq)
