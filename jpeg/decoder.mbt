@@ -231,7 +231,7 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
     return (self.img, Some(@io.IOError("missing SOI")))
   }
   //
-  // Parse markers until SOS
+  // Parse markers
   let mut done = false
   while !done {
     let (marker, err) = self.read_marker()
@@ -274,7 +274,10 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
                 None => ()
               }
             } else {
-              done = true
+              match self.decode_scan() {
+                Some(err) => return (self.img, Some(err))
+                None => ()
+              }
             }
         }
       EOI => done = true
@@ -288,11 +291,6 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
   //
   if self.progressive {
     match self.emit_progressive_pixels() {
-      Some(err) => return (self.img, Some(err))
-      None => ()
-    }
-  } else {
-    match self.decode_scan() {
       Some(err) => return (self.img, Some(err))
       None => ()
     }
@@ -311,6 +309,7 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
     return err
   }
   let ncomp = ncomp_byte
+  println("SOS: ncomp=\{ncomp}")
   self.sos_comp_indices = Array::new(capacity=ncomp)
   for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
@@ -930,7 +929,6 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.sos_comp_indices.length() == 0 {
     return Some(@io.IOError("no components in scan"))
   }
-  let n = self.sos_comp_indices.length()
   let blocks : Array[Array[Array[Int]]] = Array::new(capacity=self.comp.length())
   for _ in 0..<self.comp.length() {
     blocks.push(Array::new())
@@ -957,6 +955,9 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
 
 ///|
 fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
+  for i in 0..<self.prev_dc.length() {
+    self.prev_dc[i] = 0
+  }
   while self.mcu_y < self.height {
     if self.marker != -1 {
       break
