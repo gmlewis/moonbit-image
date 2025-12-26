@@ -13,24 +13,22 @@
 
 ///|
 // JPEG markers
-
-///|
 const SOI : Int = 0xD8 // Start of Image
 
 ///|
 const SOF0 : Int = 0xC0 // Start of Frame (baseline DCT)
 
 ///|
-const SOF1 : Int = 0xC1 // Start of Frame (extended sequential DCT)
+// const SOF1 : Int = 0xC1 // Start of Frame (extended sequential DCT)
 
 ///|
-const SOF2 : Int = 0xC2 // Start of Frame (progressive DCT)
+// const SOF2 : Int = 0xC2 // Start of Frame (progressive DCT)
 
 ///|
 const DHT : Int = 0xC4 // Define Huffman Table
 
 ///|
-const SOF3 : Int = 0xC3 // Start of Frame (lossless)
+// const SOF3 : Int = 0xC3 // Start of Frame (lossless)
 
 ///|
 const DQT : Int = 0xDB // Define Quantization Table
@@ -42,79 +40,35 @@ const DRI : Int = 0xDD // Define Restart Interval
 const SOS : Int = 0xDA // Start of Scan
 
 ///|
-const RST0 : Int = 0xD0 // Restart 0
+// const RST0 : Int = 0xD0 // Restart 0
+// const RST1 : Int = 0xD1 // Restart 1
+// const RST2 : Int = 0xD2 // Restart 2
+// const RST3 : Int = 0xD3 // Restart 3
+// const RST4 : Int = 0xD4 // Restart 4
+// const RST5 : Int = 0xD5 // Restart 5
+// const RST6 : Int = 0xD6 // Restart 6
+// const RST7 : Int = 0xD7 // Restart 7
 
 ///|
-const RST1 : Int = 0xD1 // Restart 1
+// const APP0 : Int = 0xE0 // Application 0 (JFIF)
+// const APP1 : Int = 0xE1 // Application 1 (EXIF)
+// const APP2 : Int = 0xE2 // Application 2
+// const APP3 : Int = 0xE3 // Application 3
+// const APP4 : Int = 0xE4 // Application 4
+// const APP5 : Int = 0xE5 // Application 5
+// const APP6 : Int = 0xE6 // Application 6
+// const APP7 : Int = 0xE7 // Application 7
+// const APP8 : Int = 0xE8 // Application 8
+// const APP9 : Int = 0xE9 // Application 9
+// const APPA : Int = 0xEA // Application 10
+// const APPB : Int = 0xEB // Application 11
+// const APPC : Int = 0xEC // Application 12
+// const APPD : Int = 0xED // Application 13
+// const APPE : Int = 0xEE // Application 14
+// const APPF : Int = 0xEF // Application 15
 
 ///|
-const RST2 : Int = 0xD2 // Restart 2
-
-///|
-const RST3 : Int = 0xD3 // Restart 3
-
-///|
-const RST4 : Int = 0xD4 // Restart 4
-
-///|
-const RST5 : Int = 0xD5 // Restart 5
-
-///|
-const RST6 : Int = 0xD6 // Restart 6
-
-///|
-const RST7 : Int = 0xD7 // Restart 7
-
-///|
-const APP0 : Int = 0xE0 // Application 0 (JFIF)
-
-///|
-const APP1 : Int = 0xE1 // Application 1 (EXIF)
-
-///|
-const APP2 : Int = 0xE2 // Application 2
-
-///|
-const APP3 : Int = 0xE3 // Application 3
-
-///|
-const APP4 : Int = 0xE4 // Application 4
-
-///|
-const APP5 : Int = 0xE5 // Application 5
-
-///|
-const APP6 : Int = 0xE6 // Application 6
-
-///|
-const APP7 : Int = 0xE7 // Application 7
-
-///|
-const APP8 : Int = 0xE8 // Application 8
-
-///|
-const APP9 : Int = 0xE9 // Application 9
-
-///|
-const APPA : Int = 0xEA // Application 10
-
-///|
-const APPB : Int = 0xEB // Application 11
-
-///|
-const APPC : Int = 0xEC // Application 12
-
-///|
-const APPD : Int = 0xED // Application 13
-
-///|
-const APPE : Int = 0xEE // Application 14
-
-///|
-const APPF : Int = 0xEF // Application 15
-
-///|
-const COM : Int = 0xFE // Comment
+// const COM : Int = 0xFE // Comment
 
 ///|
 const EOI : Int = 0xD9 // End of Image
@@ -122,52 +76,60 @@ const EOI : Int = 0xD9 // End of Image
 ///|
 using @io {type Slice}
 
-// Decoder struct
+///|
+// const ZIG_ZAG_LENGTH = 64
 
 ///|
-struct Decoder {
+let zig_zag_order : Array[Int] = [
+  0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48,
+  41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15,
+  23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62,
+  63,
+]
+
+///|
+let idct_matrix : Array[Int] = [
+  11585, 11585, 11585, 11585, 11585, 11585, 11585, 11585, 16069, 13623, 9102, 3196,
+  -3196, -9102, -13623, -16069, 15137, 6270, -6270, -15137, -15137, -6270, 6270,
+  15137, 13623, -3196, -16069, -9102, 9102, 16069, 3196, -13623, 11585, -11585, -11585,
+  11585, 11585, -11585, -11585, 11585, 9102, -16069, 3196, 13623, -13623, -3196,
+  16069, -9102, 6270, -15137, 15137, -6270, -6270, 15137, -15137, 6270, 3196, -9102,
+  13623, -16069, 16069, -13623, 9102, -3196,
+]
+
+///|
+priv struct Decoder {
   r : &@io.Reader
   mut width : Int
   mut height : Int
-  mut bits : Int // bits per component
-  mut ncomp : Int // number of components
   mut comp : Array[Component] // component info
   mut prev_dc : Array[Int]
   qtab : Array[Array[Int]] // quantization tables
   htab : Array[HuffmanTable] // huffman tables
-  mut restart_interval : Int
-  mut progressive : Bool
   mut bit_curr : Int
   mut bits_left : Int
-  img : &@image.Image
+  mut img : &@image.Image
   mut marker : Int
   mut mcu_x : Int
   mut mcu_y : Int
+  tmp : Slice[Byte]
 }
-
-// Component info
 
 ///|
 struct Component {
-  h : Int // horizontal sampling factor
-  v : Int // vertical sampling factor
+  _h : Int // horizontal sampling factor
+  _v : Int // vertical sampling factor
   c : Int // component identifier
   tq : Int // quantization table destination selector
   mut dctbl : Int
   mut actbl : Int
 } derive(Default)
 
-// Huffman table
-
 ///|
-struct HuffmanTable {
+priv struct HuffmanTable {
   class : Int
   id : Int
-  lengths : Array[Int]
-  symbols : Array[Int]
-  // runtime lookup tables built from lengths+symbols
   lut : Array[Array[Int]]
-  min_len : Int
   max_len : Int
 }
 
@@ -177,20 +139,17 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     r,
     width: 0,
     height: 0,
-    bits: 0,
-    ncomp: 0,
     comp: Array::new(),
     prev_dc: Array::new(),
     qtab: Array::new(),
     htab: Array::new(),
-    restart_interval: 0,
-    progressive: false,
     bit_curr: 0,
     bits_left: 0,
     img: &@image.Image::new_empty(),
     marker: -1,
     mcu_x: 0,
     mcu_y: 0,
+    tmp: Slice::new(Array::make(1, b'\x00')),
   }
 }
 
@@ -207,19 +166,17 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
   if err != None {
     return (self.img, err)
   }
-  let marker = marker_byte
-  if marker != SOI {
+  if marker_byte != SOI {
     return (self.img, Some(@io.IOError("missing SOI")))
   }
-
+  //
   // Parse markers until SOS
   let mut done = false
   while !done {
-    let (marker_byte, err) = self.read_marker()
+    let (marker, err) = self.read_marker()
     if err != None {
       return (self.img, err)
     }
-    let marker = marker_byte
     match marker {
       SOF0 =>
         match self.parse_sof0() {
@@ -242,21 +199,19 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
           None => ()
         }
       SOS =>
-        // Parse Start Of Scan header then decode the entropy-coded data
         match self.parse_sos() {
           Some(err) => return (self.img, Some(err))
           None => done = true
         }
       EOI => return (self.img, Some(@io.IOError("unexpected EOI")))
       _ =>
-        // Skip other markers
         match self.skip_marker() {
           Some(err) => return (self.img, Some(err))
           None => ()
         }
     }
   }
-
+  //
   // Decode scan header and entropy-coded data
   match self.decode_scan() {
     Some(err) => return (self.img, Some(err))
@@ -267,7 +222,7 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
 
 ///|
 fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
-  let (length, err) = self.read_u16be()
+  let (_, err) = self.read_u16be()
   if err != None {
     return err
   }
@@ -275,9 +230,9 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
   if err != None {
     return err
   }
-  let ncomp = ncomp_byte + 0
+  let ncomp = ncomp_byte
   // Read component selectors
-  for _ in 0..<(ncomp + 0) {
+  for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
     if err != None {
       return err
@@ -292,24 +247,18 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
     // find matching component and set table selectors
     for i in 0..<self.comp.length() {
       if self.comp[i].c == c {
-        self.comp[i].dctbl = dct + 0
-        self.comp[i].actbl = act + 0
+        self.comp[i].dctbl = dct
+        self.comp[i].actbl = act
         break
       }
     }
   }
   // Ss, Se, AhAl
-  let (_, err1) = self.read_byte()
-  if err1 != None {
-    return err1
-  }
-  let (_, err2) = self.read_byte()
-  if err2 != None {
-    return err2
-  }
-  let (_, err3) = self.read_byte()
-  if err3 != None {
-    return err3
+  for _ in 0..<3 {
+    let (_, err) = self.read_byte()
+    if err != None {
+      return err
+    }
   }
   None
 }
@@ -328,13 +277,11 @@ fn Decoder::read_marker(self : Decoder) -> (Int, @io.IOError?) {
 
 ///|
 fn Decoder::read_byte(self : Decoder) -> (Int, @io.IOError?) {
-  // Read a single byte using io.read_full so this works with plain io.Reader
-  let b = Slice::new(Array::make(1, b'\x00'))
-  let (_, err) = @io.read_full(self.r, b)
+  let (_, err) = @io.read_full(self.r, self.tmp)
   if err != None {
     (0, err)
   } else {
-    (b[0].to_int(), None)
+    (self.tmp[0].to_int(), None)
   }
 }
 
@@ -348,7 +295,7 @@ fn Decoder::read_u16be(self : Decoder) -> (Int, @io.IOError?) {
   if err2 != None {
     return (0, err2)
   }
-  (((b1 + 0) << 8) | (b2 + 0), None)
+  ((b1 << 8) | b2, None)
 }
 
 ///|
@@ -369,15 +316,14 @@ fn Decoder::skip_marker(self : Decoder) -> @io.IOError? {
 
 ///|
 fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
-  let (length, err) = self.read_u16be()
+  let (_, err) = self.read_u16be()
   if err != None {
     return err
   }
-  let (precision_byte, err) = self.read_byte()
+  let (precision, err) = self.read_byte()
   if err != None {
     return err
   }
-  let precision = precision_byte + 0
   if precision != 8 {
     return Some(@io.IOError("unsupported precision"))
   }
@@ -389,41 +335,45 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
   if err != None {
     return err
   }
-  let (ncomp_byte, err) = self.read_byte()
+  let (ncomp, err) = self.read_byte()
   if err != None {
     return err
   }
-  let ncomp = ncomp_byte + 0
   if ncomp != 1 && ncomp != 3 {
     return Some(@io.IOError("unsupported number of components"))
   }
-  self.bits = precision
   self.height = height
   self.width = width
-  self.ncomp = ncomp + 0
+  // Initialize image
+  let r = @image.rect(0, 0, width, height)
+  try {
+    let rgba = @image.RGBA::new(r)
+    self.img = rgba
+  } catch {
+    err => return Some(@io.IOError("failed to create image: \{err}"))
+  }
+  //
   self.comp = Array::new()
-  for i in 0..<(ncomp + 0) {
-    let (c_byte, err) = self.read_byte()
+  for _ in 0..<ncomp {
+    let (c, err) = self.read_byte()
     if err != None {
       return err
     }
-    let c = c_byte + 0
     let (hv, err) = self.read_byte()
     if err != None {
       return err
     }
     let h = (hv >> 4) & 0xF
     let v = hv & 0xF
-    let (tq_byte, err) = self.read_byte()
+    let (tq, err) = self.read_byte()
     if err != None {
       return err
     }
-    let tq = tq_byte + 0
-    self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
+    self.comp.push(Component::{ _h: h, _v: v, c, tq, dctbl: 0, actbl: 0 })
   }
   // Initialize per-component DC predictors to zero
   self.prev_dc = Array::new()
-  for i in 0..<(ncomp + 0) {
+  for _ in 0..<ncomp {
     self.prev_dc.push(0)
   }
   // Reset MCU coords
@@ -439,7 +389,6 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
     return err
   }
   let mut remaining = length - 2
-
   // DQT may contain multiple tables in one segment
   while remaining > 0 {
     let (info, err) = self.read_byte()
@@ -454,15 +403,14 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
       return Some(@io.IOError("unsupported DQT precision"))
     }
     let table = Array::new()
-    for _ in 0..=64 {
+    for _ in 0..<64 {
       let (v, err) = self.read_byte()
       if err != None {
         return err
       }
-      table.push(v + 0)
+      table.push(v)
       remaining = remaining - 1
     }
-
     // Ensure qtab is large enough and store by table id
     while self.qtab.length() <= tq {
       self.qtab.push(Array::new())
@@ -479,7 +427,6 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
     return err
   }
   let mut remaining = length - 2
-
   // DHT may contain multiple tables
   while remaining > 0 {
     let (info, err) = self.read_byte()
@@ -489,42 +436,35 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
     remaining = remaining - 1
     let tc = (info >> 4) & 0xF // table class: 0=DC,1=AC
     let th = info & 0xF // table id
-
     // Read 16 counts of codes for lengths 1..16
     let lengths = Array::new()
     let mut total = 0
-    for _ in 0..=16 {
-      let (count_b, err) = self.read_byte()
+    for _ in 0..<16 {
+      let (count, err) = self.read_byte()
       if err != None {
         return err
       }
-      let count = count_b + 0
       lengths.push(count)
       total += count
       remaining = remaining - 1
     }
-
     // Read 'total' symbols
     let symbols = Array::new()
-    for _ in 0..=total {
+    for _ in 0..<total {
       let (s, err) = self.read_byte()
       if err != None {
         return err
       }
-      symbols.push(s + 0)
+      symbols.push(s)
       remaining = remaining - 1
     }
-    // Build runtime LUT (Array of arrays indexed by bit-length)
+    // Build runtime LUT
     let lut = Array::new()
     let mut code = 0
     let mut idx = 0
-    let mut min_len = 0
     let mut max_len = 0
     for bits = 1; bits <= 16; bits = bits + 1 {
       let cnt = lengths[bits - 1]
-      if cnt != 0 && min_len == 0 {
-        min_len = bits
-      }
       if cnt != 0 {
         max_len = bits
       }
@@ -536,99 +476,21 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
         }
         let sym = symbols[idx]
         idx += 1
-        arr[code] = sym
+        if code < size {
+          arr[code] = sym
+        }
         code += 1
       }
       code = code << 1
       lut.push(arr)
     }
-    let table = HuffmanTable::{
-      class: tc,
-      id: th,
-      lengths,
-      symbols,
-      lut,
-      min_len,
-      max_len,
-    }
+    let table = HuffmanTable::{ class: tc, id: th, lut, max_len }
     self.htab.push(table)
   }
   None
 }
 
 ///|
-fn zig_zag() -> Array[Int] {
-  let a = Array::new()
-  // Standard JPEG zig-zag order (index -> linear pos)
-  a.push(0)
-  a.push(1)
-  a.push(8)
-  a.push(16)
-  a.push(9)
-  a.push(2)
-  a.push(3)
-  a.push(10)
-  a.push(17)
-  a.push(24)
-  a.push(32)
-  a.push(25)
-  a.push(18)
-  a.push(11)
-  a.push(4)
-  a.push(5)
-  a.push(12)
-  a.push(19)
-  a.push(26)
-  a.push(33)
-  a.push(40)
-  a.push(48)
-  a.push(41)
-  a.push(34)
-  a.push(27)
-  a.push(20)
-  a.push(13)
-  a.push(6)
-  a.push(7)
-  a.push(14)
-  a.push(21)
-  a.push(28)
-  a.push(35)
-  a.push(42)
-  a.push(49)
-  a.push(56)
-  a.push(57)
-  a.push(50)
-  a.push(43)
-  a.push(36)
-  a.push(29)
-  a.push(22)
-  a.push(15)
-  a.push(23)
-  a.push(30)
-  a.push(37)
-  a.push(44)
-  a.push(51)
-  a.push(58)
-  a.push(59)
-  a.push(52)
-  a.push(45)
-  a.push(38)
-  a.push(31)
-  a.push(39)
-  a.push(46)
-  a.push(53)
-  a.push(60)
-  a.push(61)
-  a.push(54)
-  a.push(47)
-  a.push(55)
-  a.push(62)
-  a.push(63)
-  a
-}
-
-///|
-// Huffman decode: read bits and lookup symbol using built LUTs
 fn Decoder::huffman_decode(
   self : Decoder,
   class : Int,
@@ -669,24 +531,25 @@ fn Decoder::parse_dri(self : Decoder) -> @io.IOError? {
   if length != 4 {
     return Some(@io.IOError("bad DRI length"))
   }
-  let (ri, err) = self.read_u16be()
+  let (_, err) = self.read_u16be()
+  // ri is currently unused
   if err != None {
     return err
   }
-  self.restart_interval = ri + 0
   None
 }
 
 ///|
-// Bit-level reader on Decoder handles byte-stuffing.
 fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
   if self.bits_left == 0 {
+    if self.marker != -1 {
+      return (0, Some(@io.IOError("marker")))
+    }
     let (b, err) = self.read_byte()
     if err != None {
       return (0, err)
     }
     if b == 0xFF {
-      // Need to inspect the stuffed/marker byte
       let (nb, err2) = self.read_byte()
       if err2 != None {
         return (0, err2)
@@ -695,7 +558,6 @@ fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
         self.bit_curr = 0xFF
         self.bits_left = 8
       } else {
-        // It's a marker; save it in Decoder and signal upward by returning an IOError
         self.marker = nb
         return (0, Some(@io.IOError("marker")))
       }
@@ -709,15 +571,13 @@ fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
   (bit, None)
 }
 
-// Consume entropy-coded data until a marker is observed; placeholder for real decoding.
-
 ///|
 fn Decoder::read_bits(self : Decoder, n : Int) -> (Int, @io.IOError?) {
-  if n == 0 {
+  if n <= 0 {
     return (0, None)
   }
   let mut v = 0
-  for _ in 0..=n {
+  for _ in 0..<n {
     let (b, err) = self.read_bit()
     if err != None {
       return (0, err)
@@ -728,8 +588,8 @@ fn Decoder::read_bits(self : Decoder, n : Int) -> (Int, @io.IOError?) {
 }
 
 ///|
-fn Decoder::extend_sign(self : Decoder, v : Int, n : Int) -> Int {
-  if n == 0 {
+fn Decoder::extend_sign(v : Int, n : Int) -> Int {
+  if n <= 0 {
     return 0
   }
   let half = 1 << (n - 1)
@@ -753,7 +613,7 @@ fn Decoder::decode_dc(self : Decoder, comp_idx : Int) -> (Int, @io.IOError?) {
     if err2 != None {
       return (0, err2)
     }
-    diff = self.extend_sign(bits, sym)
+    diff = Decoder::extend_sign(bits, sym)
   }
   let prev = self.prev_dc[comp_idx]
   let val = prev + diff
@@ -767,22 +627,17 @@ fn Decoder::decode_ac(
   comp_idx : Int,
   block : Array[Int],
 ) -> (Array[Int], @io.IOError?) {
-  // Fill AC coefficients into 'block' using zig-zag order
   let act = self.comp[comp_idx].actbl
   let mut k = 1
-  let zz = zig_zag()
-  let b = block
   while k <= 63 {
     let (sym, err) = self.huffman_decode(1, act)
     if err != None {
       return (Array::new(), err)
     }
     if sym == 0 {
-      // EOB: rest are zeros
       break
     }
     if sym == 0xF0 {
-      // ZRL: skip 16 zeros
       k = k + 16
       continue
     }
@@ -797,13 +652,13 @@ fn Decoder::decode_ac(
       if err2 != None {
         return (Array::new(), err2)
       }
-      let val = self.extend_sign(bits, size)
-      let pos = zz[k]
-      b[pos] = val
+      let val = Decoder::extend_sign(bits, size)
+      let pos = zig_zag_order[k]
+      block[pos] = val
     }
     k = k + 1
   }
-  (b, None)
+  (block, None)
 }
 
 ///|
@@ -817,11 +672,11 @@ fn Decoder::decode_block(
     return (Array::new(), err)
   }
   block[0] = dc
-  let (b2, err2) = self.decode_ac(comp_idx, block)
+  let (_, err2) = self.decode_ac(comp_idx, block)
   if err2 != None {
     return (Array::new(), err2)
   }
-  (b2, None)
+  (block, None)
 }
 
 ///|
@@ -845,35 +700,61 @@ fn Decoder::dequantize(
 }
 
 ///|
+fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
+  let shift = 30 // 2 * 14 + 2
+  let round_val = 1L << (shift - 1)
+  let out = Array::make(64, 0)
+  for y in 0..<8 {
+    for x in 0..<8 {
+      let mut s = 0L
+      for u in 0..<8 {
+        for v in 0..<8 {
+          let cu = idct_matrix[u * 8 + x].to_int64()
+          let cv = idct_matrix[v * 8 + y].to_int64()
+          let coeff = blk[u * 8 + v].to_int64()
+          s = s + cu * cv * coeff
+        }
+      }
+      let val = ((s + round_val) >> shift).to_int()
+      let pix = val + 128
+      let pix = if pix < 0 { 0 } else if pix > 255 { 255 } else { pix }
+      out[y * 8 + x] = pix
+    }
+  }
+  out
+}
+
+///|
 fn Decoder::emit_block_pixels(
   self : Decoder,
   blocks : Array[Array[Int]],
 ) -> @io.IOError? {
-  // For now, simple DC-only approximate reconstruction: fill 8x8 with DC/8 + 128
-  let mut yblock = Array::make(64, 0)
-  let mut cbblock = Array::make(64, 0)
-  let mut crblock = Array::make(64, 0)
-  if blocks.length() == 1 {
-    yblock = blocks[0]
-  } else if blocks.length() >= 3 {
-    yblock = blocks[0]
-    cbblock = blocks[1]
-    crblock = blocks[2]
+  if blocks.length() == 0 {
+    // Advance anyway to avoid infinite loop
+    self.mcu_x = self.mcu_x + 8
+    if self.mcu_x >= self.width {
+      self.mcu_x = 0
+      self.mcu_y = self.mcu_y + 8
+    }
+    return None
   }
-  for yy in 0..=8 {
-    for xx in 0..=8 {
-      let base = yy * 8 + xx
-      let yv = if yblock.length() > 0 { (yblock[0] + 4) / 8 + 128 } else { 128 }
-      let cbv = if cbblock.length() > 0 {
-        (cbblock[0] + 4) / 8 + 128
-      } else {
-        128
-      }
-      let crv = if crblock.length() > 0 {
-        (crblock[0] + 4) / 8 + 128
-      } else {
-        128
-      }
+  let yout = Decoder::idct_block(blocks[0])
+  let cbout : Array[Int] = if blocks.length() >= 2 {
+    Decoder::idct_block(blocks[1])
+  } else {
+    Array::new()
+  }
+  let crout : Array[Int] = if blocks.length() >= 3 {
+    Decoder::idct_block(blocks[2])
+  } else {
+    Array::new()
+  }
+  for yy in 0..<8 {
+    for xx in 0..<8 {
+      let idx = yy * 8 + xx
+      let yv = if yout.length() > 0 { yout[idx] } else { 128 }
+      let cbv = if cbout.length() > 0 { cbout[idx] } else { 128 }
+      let crv = if crout.length() > 0 { crout[idx] } else { 128 }
       let (r, g, b) = @color.y_cb_cr_to_rgb(
         yv.to_byte(),
         cbv.to_byte(),
@@ -881,7 +762,7 @@ fn Decoder::emit_block_pixels(
       )
       let px = self.mcu_x + xx
       let py = self.mcu_y + yy
-      if px >= 0 && px < self.width && py >= 0 && py < self.height {
+      if px < self.width && py < self.height {
         self.img.set(px, py, @color.RGBA::new(r, g, b, 0xff))
       }
     }
@@ -892,29 +773,22 @@ fn Decoder::emit_block_pixels(
     self.mcu_x = 0
     self.mcu_y = self.mcu_y + 8
   }
-  if self.mcu_y >= self.height {
-    // finished image
-    return None
-  }
   None
 }
 
 ///|
 fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.comp.length() == 0 {
-    return None
+    return Some(@io.IOError("no components"))
   }
   let n = self.comp.length()
   let blocks = Array::new()
-  for i in 0..<(n + 0) {
+  for i in 0..<n {
     let (block, err) = self.decode_block(i)
     if err != None {
-      if self.marker != -1 {
-        return None
-      }
+      // If we found a marker, we return the error to let decode_scan handle it.
       return err
     }
-    // Dequantize block using component's quant table
     let tq = self.comp[i].tq
     let (dq, err2) = self.dequantize(block, tq)
     if err2 != None {
@@ -922,22 +796,31 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
     }
     blocks.push(dq)
   }
-  // Emit pixels for this MCU (using simplified DC-based recon)
-  let err3 = self.emit_block_pixels(blocks)
-  if err3 != None {
-    return err3
-  }
-  None
+  self.emit_block_pixels(blocks)
 }
 
 ///|
 fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
-  let err2 = self.decode_entropy()
-  if err2 != None {
+  while self.mcu_y < self.height {
     if self.marker != -1 {
-      return None
+      break
     }
-    return err2
+    let old_x = self.mcu_x
+    let old_y = self.mcu_y
+    let err = self.decode_entropy()
+    if err != None {
+      if self.marker != -1 {
+        return None
+      }
+      return err
+    }
+    if self.mcu_x == old_x && self.mcu_y == old_y {
+      return Some(
+        @io.IOError(
+          "decoder stuck: x=\{self.mcu_x} y=\{self.mcu_y} width=\{self.width} height=\{self.height}",
+        ),
+      )
+    }
   }
   None
 }

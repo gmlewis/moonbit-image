@@ -15,10 +15,6 @@ pub fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
 type Component
 pub impl Default for Component
 
-type Decoder
-
-type HuffmanTable
-
 // Type aliases
 
 // Traits
