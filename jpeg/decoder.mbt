@@ -164,6 +164,7 @@ priv struct Decoder {
   mut eob_run : Int
   mut sos_comp_indices : Array[Int] // Indices of components in current SOS
   tmp : Slice[Byte]
+  mut ri : Int // restart interval
 }
 
 ///|
@@ -211,6 +212,7 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     eob_run: 0,
     sos_comp_indices: Array::new(),
     tmp: Slice::new(Array::make(1, b'\x00')),
+    ri: 0,
   }
 }
 
@@ -449,7 +451,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   if ncomp != 1 && ncomp != 3 {
     return Some(@io.IOError("unsupported number of components"))
   }
-  println("SOF: \{width}x\{height} ncomp=\{ncomp}")
+  println("SOF: \{width}x\{height} ncomp=\{ncomp} progressive=\{progressive}")
   self.height = height
   self.width = width
   self.progressive = progressive
@@ -494,9 +496,13 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
     self.prev_dc.push(0)
   }
   if progressive {
-    let nblocks_h = (width + 8 * max_h - 1) / (8 * max_h) * max_h
-    let nblocks_v = (height + 8 * max_v - 1) / (8 * max_v) * max_v
-    let total_blocks = nblocks_h * nblocks_v * ncomp
+    let mut total_blocks = 0
+    for i in 0..<ncomp {
+      let comp = self.comp[i]
+      let nblocks_h = (width + 8 * max_h - 1) / (8 * max_h) * comp.h
+      let nblocks_v = (height + 8 * max_v - 1) / (8 * max_v) * comp.v
+      total_blocks += nblocks_h * nblocks_v
+    }
     self.prog_coeffs = Array::new(capacity=total_blocks)
     for _ in 0..<total_blocks {
       self.prog_coeffs.push(Array::make(64, 0))
@@ -659,10 +665,11 @@ fn Decoder::parse_dri(self : Decoder) -> @io.IOError? {
   if length != 4 {
     return Some(@io.IOError("bad DRI length"))
   }
-  let (_ri, err) = self.read_u16be()
+  let (ri, err) = self.read_u16be()
   if err != None {
     return err
   }
+  self.ri = ri
   None
 }
 
@@ -960,6 +967,14 @@ fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
   }
   while self.mcu_y < self.height {
     if self.marker != -1 {
+      if self.marker >= 0xD0 && self.marker <= 0xD7 {
+        // Handle restart marker
+        self.marker = -1
+        for i in 0..<self.prev_dc.length() {
+          self.prev_dc[i] = 0
+        }
+        continue
+      }
       break
     }
     let old_x = self.mcu_x
@@ -967,7 +982,8 @@ fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
     let err = self.decode_entropy()
     if err != None {
       if self.marker != -1 {
-        return None
+        // If we hit a marker, we'll pick it up in the next iteration
+        continue
       }
       return err
     }
@@ -1216,6 +1232,18 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
   if self.sos_comp_indices.length() > 1 {
     for my in 0..<mcus_per_col {
       for mx in 0..<mcus_per_row {
+        if self.marker != -1 {
+          if self.marker >= 0xD0 && self.marker <= 0xD7 {
+            self.marker = -1
+            if self.ss == 0 {
+              for i in 0..<self.prev_dc.length() {
+                self.prev_dc[i] = 0
+              }
+            }
+            continue
+          }
+          return None
+        }
         for i in self.sos_comp_indices {
           let comp = self.comp[i]
           for v in 0..<comp.v {
@@ -1238,7 +1266,8 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
               }
               if err != None {
                 if self.marker != -1 {
-                  return None
+                  // We'll pick up the marker in the next mx/my iteration
+                  continue
                 }
                 return err
               }
@@ -1257,6 +1286,15 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
     for by in 0..<nblocks_v {
       for bx in 0..<nblocks_h {
         if self.marker != -1 {
+          if self.marker >= 0xD0 && self.marker <= 0xD7 {
+            self.marker = -1
+            if self.ss == 0 {
+              for i in 0..<self.prev_dc.length() {
+                self.prev_dc[i] = 0
+              }
+            }
+            continue
+          }
           return None
         }
         let block = self.get_prog_block(i, bx, by)
@@ -1273,7 +1311,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
         }
         if err != None {
           if self.marker != -1 {
-            return None
+            continue
           }
           return err
         }
