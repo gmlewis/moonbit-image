@@ -141,6 +141,8 @@ struct Decoder {
   mut bits_left : Int
   img : &@image.Image
   mut marker : Int
+  mut mcu_x : Int
+  mut mcu_y : Int
 }
 
 // Component info
@@ -187,6 +189,8 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     bits_left: 0,
     img: &@image.Image::new_empty(),
     marker: -1,
+    mcu_x: 0,
+    mcu_y: 0,
   }
 }
 
@@ -422,6 +426,9 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
   for i in 0..<(ncomp + 0) {
     self.prev_dc.push(0)
   }
+  // Reset MCU coords
+  self.mcu_x = 0
+  self.mcu_y = 0
   None
 }
 
@@ -547,6 +554,77 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
     self.htab.push(table)
   }
   None
+}
+
+///|
+fn zig_zag() -> Array[Int] {
+  let a = Array::new()
+  // Standard JPEG zig-zag order (index -> linear pos)
+  a.push(0)
+  a.push(1)
+  a.push(8)
+  a.push(16)
+  a.push(9)
+  a.push(2)
+  a.push(3)
+  a.push(10)
+  a.push(17)
+  a.push(24)
+  a.push(32)
+  a.push(25)
+  a.push(18)
+  a.push(11)
+  a.push(4)
+  a.push(5)
+  a.push(12)
+  a.push(19)
+  a.push(26)
+  a.push(33)
+  a.push(40)
+  a.push(48)
+  a.push(41)
+  a.push(34)
+  a.push(27)
+  a.push(20)
+  a.push(13)
+  a.push(6)
+  a.push(7)
+  a.push(14)
+  a.push(21)
+  a.push(28)
+  a.push(35)
+  a.push(42)
+  a.push(49)
+  a.push(56)
+  a.push(57)
+  a.push(50)
+  a.push(43)
+  a.push(36)
+  a.push(29)
+  a.push(22)
+  a.push(15)
+  a.push(23)
+  a.push(30)
+  a.push(37)
+  a.push(44)
+  a.push(51)
+  a.push(58)
+  a.push(59)
+  a.push(52)
+  a.push(45)
+  a.push(38)
+  a.push(31)
+  a.push(39)
+  a.push(46)
+  a.push(53)
+  a.push(60)
+  a.push(61)
+  a.push(54)
+  a.push(47)
+  a.push(55)
+  a.push(62)
+  a.push(63)
+  a
 }
 
 ///|
@@ -684,21 +762,170 @@ fn Decoder::decode_dc(self : Decoder, comp_idx : Int) -> (Int, @io.IOError?) {
 }
 
 ///|
+fn Decoder::decode_ac(
+  self : Decoder,
+  comp_idx : Int,
+  block : Array[Int],
+) -> (Array[Int], @io.IOError?) {
+  // Fill AC coefficients into 'block' using zig-zag order
+  let act = self.comp[comp_idx].actbl
+  let mut k = 1
+  let zz = zig_zag()
+  let b = block
+  while k <= 63 {
+    let (sym, err) = self.huffman_decode(1, act)
+    if err != None {
+      return (Array::new(), err)
+    }
+    if sym == 0 {
+      // EOB: rest are zeros
+      break
+    }
+    if sym == 0xF0 {
+      // ZRL: skip 16 zeros
+      k = k + 16
+      continue
+    }
+    let run = (sym >> 4) & 0xF
+    let size = sym & 0xF
+    k = k + run
+    if k > 63 {
+      return (Array::new(), Some(@io.IOError("bad AC run overflow")))
+    }
+    if size != 0 {
+      let (bits, err2) = self.read_bits(size)
+      if err2 != None {
+        return (Array::new(), err2)
+      }
+      let val = self.extend_sign(bits, size)
+      let pos = zz[k]
+      b[pos] = val
+    }
+    k = k + 1
+  }
+  (b, None)
+}
+
+///|
+fn Decoder::decode_block(
+  self : Decoder,
+  comp_idx : Int,
+) -> (Array[Int], @io.IOError?) {
+  let block = Array::make(64, 0)
+  let (dc, err) = self.decode_dc(comp_idx)
+  if err != None {
+    return (Array::new(), err)
+  }
+  block[0] = dc
+  let (b2, err2) = self.decode_ac(comp_idx, block)
+  if err2 != None {
+    return (Array::new(), err2)
+  }
+  (b2, None)
+}
+
+///|
+fn Decoder::dequantize(
+  self : Decoder,
+  block : Array[Int],
+  tq : Int,
+) -> (Array[Int], @io.IOError?) {
+  if tq >= self.qtab.length() {
+    return (Array::new(), Some(@io.IOError("missing qtable")))
+  }
+  let q = self.qtab[tq]
+  if q.length() < 64 {
+    return (Array::new(), Some(@io.IOError("short qtable")))
+  }
+  let out = Array::make(64, 0)
+  for i in 0..<64 {
+    out[i] = block[i] * q[i]
+  }
+  (out, None)
+}
+
+///|
+fn Decoder::emit_block_pixels(
+  self : Decoder,
+  blocks : Array[Array[Int]],
+) -> @io.IOError? {
+  // For now, simple DC-only approximate reconstruction: fill 8x8 with DC/8 + 128
+  let mut yblock = Array::make(64, 0)
+  let mut cbblock = Array::make(64, 0)
+  let mut crblock = Array::make(64, 0)
+  if blocks.length() == 1 {
+    yblock = blocks[0]
+  } else if blocks.length() >= 3 {
+    yblock = blocks[0]
+    cbblock = blocks[1]
+    crblock = blocks[2]
+  }
+  for yy in 0..=8 {
+    for xx in 0..=8 {
+      let base = yy * 8 + xx
+      let yv = if yblock.length() > 0 { (yblock[0] + 4) / 8 + 128 } else { 128 }
+      let cbv = if cbblock.length() > 0 {
+        (cbblock[0] + 4) / 8 + 128
+      } else {
+        128
+      }
+      let crv = if crblock.length() > 0 {
+        (crblock[0] + 4) / 8 + 128
+      } else {
+        128
+      }
+      let (r, g, b) = @color.y_cb_cr_to_rgb(
+        yv.to_byte(),
+        cbv.to_byte(),
+        crv.to_byte(),
+      )
+      let px = self.mcu_x + xx
+      let py = self.mcu_y + yy
+      if px >= 0 && px < self.width && py >= 0 && py < self.height {
+        self.img.set(px, py, @color.RGBA::new(r, g, b, 0xff))
+      }
+    }
+  }
+  // Advance MCU position
+  self.mcu_x = self.mcu_x + 8
+  if self.mcu_x >= self.width {
+    self.mcu_x = 0
+    self.mcu_y = self.mcu_y + 8
+  }
+  if self.mcu_y >= self.height {
+    // finished image
+    return None
+  }
+  None
+}
+
+///|
 fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.comp.length() == 0 {
     return None
   }
   let n = self.comp.length()
+  let blocks = Array::new()
   for i in 0..<(n + 0) {
-    let (val, err) = self.decode_dc(i)
+    let (block, err) = self.decode_block(i)
     if err != None {
       if self.marker != -1 {
         return None
       }
       return err
     }
-    let _ = val
-
+    // Dequantize block using component's quant table
+    let tq = self.comp[i].tq
+    let (dq, err2) = self.dequantize(block, tq)
+    if err2 != None {
+      return err2
+    }
+    blocks.push(dq)
+  }
+  // Emit pixels for this MCU (using simplified DC-based recon)
+  let err3 = self.emit_block_pixels(blocks)
+  if err3 != None {
+    return err3
   }
   None
 }
