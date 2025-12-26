@@ -1,0 +1,14 @@
+{
+  "is-main": true,
+  "import": [
+    "gmlewis/image",
+    "gmlewis/image/jpeg",
+    {
+      "path": "gmlewis/io",
+      "alias": "gmlewisio"
+    },
+    "moonbitlang/async",
+    "moonbitlang/async/fs",
+    "moonbitlang/async/io"
+  ]
+}

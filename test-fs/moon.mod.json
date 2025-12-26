@@ -1,0 +1,12 @@
+{
+  "name": "test-fs",
+  "version": "0.1.0",
+  "deps": {
+    "gmlewis/image": {
+      "path": ".."
+    },
+    "moonbitlang/async": "0.15.0",
+    "gmlewis/io": "0.22.18"
+  },
+  "preferred-target": "native"
+}
