@@ -820,14 +820,15 @@ fn Decoder::dequantize(
   }
   let out = Array::make(64, 0)
   for i in 0..<64 {
-    out[i] = block[i] * q[i]
+    let pos = zig_zag_order[i]
+    out[pos] = block[pos] * q[i]
   }
   (out, None)
 }
 
 ///|
 fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
-  let shift = 25
+  let shift = 30
   let round_val = 1L << (shift - 1)
   let out = Array::make(64, 0)
   for y in 0..<8 {
@@ -876,8 +877,8 @@ fn Decoder::emit_block_pixels(
   for y in 0..<mcu_height {
     for x in 0..<mcu_width {
       let mut yv = 0
-      let mut cbv = 0
-      let mut crv = 0
+      let mut cbv = 128
+      let mut crv = 128
       for i in 0..<idct_blocks.length() {
         let comp = self.comp[i]
         let bx = x * comp.h / self.max_h / 8
@@ -895,11 +896,11 @@ fn Decoder::emit_block_pixels(
           } else {
             v128
           }
-          if comp.c == 1 {
+          if comp.c == 1 || comp.c == b'Y'.to_int() {
             yv = v_clamped
-          } else if comp.c == 2 {
+          } else if comp.c == 2 || comp.c == b'C'.to_int() {
             cbv = v_clamped
-          } else if comp.c == 3 {
+          } else if comp.c == 3 || comp.c == b'R'.to_int() {
             crv = v_clamped
           }
         }
@@ -910,7 +911,7 @@ fn Decoder::emit_block_pixels(
         crv.to_byte(),
       )
       if self.mcu_x == 0 && self.mcu_y == 0 && x == 0 && y == 0 {
-        println("Pixel (0,0) YCbCr: \{yv} \{cbv} \{crv} -> RGB: \{r} \{g} \{b}")
+        // println("Pixel (0,0) YCbCr: \{yv} \{cbv} \{crv} -> RGB: \{r} \{g} \{b}")
       }
       let px = self.mcu_x + x
       let py = self.mcu_y + y
@@ -945,7 +946,7 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
       if err != None {
         return err
       }
-      if self.mcu_x == 0 && self.mcu_y == 0 && i == 0 && blocks[0].length() == 0 {
+      if self.mcu_x == 0 && self.mcu_y == 0 && i == 0 && blocks.length() == 0 {
         println("First block DC coefficient (raw): \{block[0]}")
       }
       let tq = comp.tq
