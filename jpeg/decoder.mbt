@@ -202,7 +202,23 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
             }
         }
       EOI => done = true
-      0xE0 | 0xE1 | 0xE2 | 0xE3 | 0xE4 | 0xE5 | 0xE6 | 0xE7 | 0xE8 | 0xE9 | 0xEA | 0xEB | 0xEC | 0xED | 0xEE | 0xEF | 0xFE =>
+      0xE0
+      | 0xE1
+      | 0xE2
+      | 0xE3
+      | 0xE4
+      | 0xE5
+      | 0xE6
+      | 0xE7
+      | 0xE8
+      | 0xE9
+      | 0xEA
+      | 0xEB
+      | 0xEC
+      | 0xED
+      | 0xEE
+      | 0xEF
+      | 0xFE =>
         match self.skip_marker() {
           Some(err) => return (self.img, Some(err))
           None => ()
@@ -872,7 +888,9 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.sos_comp_indices.length() == 0 {
     return Some(@io.IOError("no components in scan"))
   }
-  let blocks : Array[Array[Array[Int]]] = Array::new(capacity=self.comp.length())
+  let blocks : Array[Array[Array[Int]]] = Array::new(
+    capacity=self.comp.length(),
+  )
   for _ in 0..<self.comp.length() {
     blocks.push(Array::new())
   }
@@ -926,20 +944,20 @@ fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
       return err
     }
     mcu_count += 1
-    if self.ri > 0 && mcu_count >= self.ri && (self.mcu_y < self.height) {
-       // Expect a restart marker
-       let (m, err_m) = self.read_marker()
-       if err_m == None {
-         if m >= 0xD0 && m <= 0xD7 {
-           self.bits_left = 0
-           for i in 0..<self.prev_dc.length() {
-             self.prev_dc[i] = 0
-           }
-           mcu_count = 0
-         } else {
-           self.marker = m
-         }
-       }
+    if self.ri > 0 && mcu_count >= self.ri && self.mcu_y < self.height {
+      // Expect a restart marker
+      let (m, err_m) = self.read_marker()
+      if err_m == None {
+        if m >= 0xD0 && m <= 0xD7 {
+          self.bits_left = 0
+          for i in 0..<self.prev_dc.length() {
+            self.prev_dc[i] = 0
+          }
+          mcu_count = 0
+        } else {
+          self.marker = m
+        }
+      }
     }
     if self.mcu_x == old_x && self.mcu_y == old_y {
       return Some(
@@ -1238,28 +1256,30 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
         }
         mcu_count += 1
         if self.ri > 0 && mcu_count >= self.ri {
-           let (m, err_m) = self.read_marker()
-           if err_m == None {
-             if m >= 0xD0 && m <= 0xD7 {
-               self.bits_left = 0
-               if self.ss == 0 {
-                 for j in 0..<self.prev_dc.length() {
-                   self.prev_dc[j] = 0
-                 }
-               }
-               mcu_count = 0
-             } else {
-               self.marker = m
-             }
-           }
+          let (m, err_m) = self.read_marker()
+          if err_m == None {
+            if m >= 0xD0 && m <= 0xD7 {
+              self.bits_left = 0
+              if self.ss == 0 {
+                for j in 0..<self.prev_dc.length() {
+                  self.prev_dc[j] = 0
+                }
+              }
+              mcu_count = 0
+            } else {
+              self.marker = m
+            }
+          }
         }
       }
     }
   } else {
     let i = self.sos_comp_indices[0]
     let comp = self.comp[i]
-    let nblocks_h = (self.width * comp.h + 8 * self.max_h - 1) / (8 * self.max_h)
-    let nblocks_v = (self.height * comp.v + 8 * self.max_v - 1) / (8 * self.max_v)
+    let nblocks_h = (self.width * comp.h + 8 * self.max_h - 1) /
+      (8 * self.max_h)
+    let nblocks_v = (self.height * comp.v + 8 * self.max_v - 1) /
+      (8 * self.max_v)
     for by in 0..<nblocks_v {
       for bx in 0..<nblocks_h {
         if self.marker != -1 {
@@ -1296,20 +1316,20 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
         }
         mcu_count += 1
         if self.ri > 0 && mcu_count >= self.ri {
-           let (m, err_m) = self.read_marker()
-           if err_m == None {
-             if m >= 0xD0 && m <= 0xD7 {
-               self.bits_left = 0
-               if self.ss == 0 {
-                 for j in 0..<self.prev_dc.length() {
-                   self.prev_dc[j] = 0
-                 }
-               }
-               mcu_count = 0
-             } else {
-               self.marker = m
-             }
-           }
+          let (m, err_m) = self.read_marker()
+          if err_m == None {
+            if m >= 0xD0 && m <= 0xD7 {
+              self.bits_left = 0
+              if self.ss == 0 {
+                for j in 0..<self.prev_dc.length() {
+                  self.prev_dc[j] = 0
+                }
+              }
+              mcu_count = 0
+            } else {
+              self.marker = m
+            }
+          }
         }
       }
     }
@@ -1327,7 +1347,9 @@ fn Decoder::emit_progressive_pixels(self : Decoder) -> @io.IOError? {
   let mcus_per_col = (self.height + mcu_height - 1) / mcu_height
   for my in 0..<mcus_per_col {
     for mx in 0..<mcus_per_row {
-      let blocks : Array[Array[Array[Int]]] = Array::new(capacity=self.comp.length())
+      let blocks : Array[Array[Array[Int]]] = Array::new(
+        capacity=self.comp.length(),
+      )
       for i in 0..<self.comp.length() {
         let comp = self.comp[i]
         let comp_blocks = Array::new(capacity=comp.h * comp.v)
