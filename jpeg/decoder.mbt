@@ -19,16 +19,10 @@ const SOI : Int = 0xD8 // Start of Image
 const SOF0 : Int = 0xC0 // Start of Frame (baseline DCT)
 
 ///|
-// TODO: const SOF1 : Int = 0xC1 // Start of Frame (extended sequential DCT)
-
-///|
 const SOF2 : Int = 0xC2 // Start of Frame (progressive DCT)
 
 ///|
 const DHT : Int = 0xC4 // Define Huffman Table
-
-///|
-// TODO: const SOF3 : Int = 0xC3 // Start of Frame (lossless)
 
 ///|
 const DQT : Int = 0xDB // Define Quantization Table
@@ -38,81 +32,6 @@ const DRI : Int = 0xDD // Define Restart Interval
 
 ///|
 const SOS : Int = 0xDA // Start of Scan
-
-///|
-// TODO: const RST0 : Int = 0xD0 // Restart 0
-
-///|
-// TODO: const RST1 : Int = 0xD1 // Restart 1
-
-///|
-// TODO: const RST2 : Int = 0xD2 // Restart 2
-
-///|
-// TODO: const RST3 : Int = 0xD3 // Restart 3
-
-///|
-// TODO: const RST4 : Int = 0xD4 // Restart 4
-
-///|
-// TODO: const RST5 : Int = 0xD5 // Restart 5
-
-///|
-// TODO: const RST6 : Int = 0xD6 // Restart 6
-
-///|
-// TODO: const RST7 : Int = 0xD7 // Restart 7
-
-///|
-// TODO: const APP0 : Int = 0xE0 // Application 0 (JFIF)
-
-///|
-// TODO: const APP1 : Int = 0xE1 // Application 1 (EXIF)
-
-///|
-// TODO: const APP2 : Int = 0xE2 // Application 2
-
-///|
-// TODO: const APP3 : Int = 0xE3 // Application 3
-
-///|
-// TODO: const APP4 : Int = 0xE4 // Application 4
-
-///|
-// TODO: const APP5 : Int = 0xE5 // Application 5
-
-///|
-// TODO: const APP6 : Int = 0xE6 // Application 6
-
-///|
-// TODO: const APP7 : Int = 0xE7 // Application 7
-
-///|
-// TODO: const APP8 : Int = 0xE8 // Application 8
-
-///|
-// TODO: const APP9 : Int = 0xE9 // Application 9
-
-///|
-// TODO: const APPA : Int = 0xEA // Application 10
-
-///|
-// TODO: const APPB : Int = 0xEB // Application 11
-
-///|
-// TODO: const APPC : Int = 0xEC // Application 12
-
-///|
-// TODO: const APPD : Int = 0xED // Application 13
-
-///|
-// TODO: const APPE : Int = 0xEE // Application 14
-
-///|
-// TODO: const APPF : Int = 0xEF // Application 15
-
-///|
-// TODO: const COM : Int = 0xFE // Comment
 
 ///|
 const EOI : Int = 0xD9 // End of Image
@@ -283,11 +202,12 @@ fn Decoder::decode(self : Decoder) -> (&@image.Image, @io.IOError?) {
             }
         }
       EOI => done = true
-      _ =>
+      0xE0 | 0xE1 | 0xE2 | 0xE3 | 0xE4 | 0xE5 | 0xE6 | 0xE7 | 0xE8 | 0xE9 | 0xEA | 0xEB | 0xEC | 0xED | 0xEE | 0xEF | 0xFE =>
         match self.skip_marker() {
           Some(err) => return (self.img, Some(err))
           None => ()
         }
+      _ => ()
     }
   }
   //
@@ -311,7 +231,6 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
     return err
   }
   let ncomp = ncomp_byte
-  println("SOS: ncomp=\{ncomp}")
   self.sos_comp_indices = Array::new(capacity=ncomp)
   for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
@@ -361,28 +280,37 @@ fn Decoder::read_marker(self : Decoder) -> (Int, @io.IOError?) {
     return (m, None)
   }
   self.bits_left = 0
-  let (b1, err1) = self.read_byte()
-  if err1 != None {
-    return (0, err1)
+  let (b_res, err_res) = self.read_byte()
+  if err_res != None {
+    return (0, err_res)
   }
-  let mut b = b1
-  while b != 0xFF {
-    let (nb, nerr) = self.read_byte()
-    if nerr != None {
-      // If we hit EOF while skipping, return the first byte we saw
-      // This allows "missing SOI" test to pass if it's the first call.
-      return (b1, None)
+  let mut b = b_res
+  while true {
+    if b == 0xFF {
+      let (nb_res, nerr_res) = self.read_byte()
+      if nerr_res != None {
+        return (0, nerr_res)
+      }
+      let mut nb = nb_res
+      while nb == 0xFF {
+        let (nb2, nerr2) = self.read_byte()
+        if nerr2 != None {
+          return (0, nerr2)
+        }
+        nb = nb2
+      }
+      if nb != 0 {
+        return (nb, None)
+      }
     }
-    b = nb
-  }
-  while b == 0xFF {
-    let (nb, nerr) = self.read_byte()
-    if nerr != None {
-      return (0, nerr)
+    let (nb_res, nerr_res) = self.read_byte()
+    if nerr_res != None {
+      return (0, nerr_res)
     }
-    b = nb
+    b = nb_res
+  } else {
+    (0, None)
   }
-  (b, None)
 }
 
 ///|
@@ -451,7 +379,6 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   if ncomp != 1 && ncomp != 3 {
     return Some(@io.IOError("unsupported number of components"))
   }
-  println("SOF: \{width}x\{height} ncomp=\{ncomp} progressive=\{progressive}")
   self.height = height
   self.width = width
   self.progressive = progressive
@@ -465,7 +392,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   self.comp = Array::new()
   let mut max_h = 0
   let mut max_v = 0
-  for i in 0..<ncomp {
+  for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
     if err != None {
       return err
@@ -486,7 +413,6 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
     if err != None {
       return err
     }
-    println("Component \{i}: id=\{c} h=\{h} v=\{v} tq=\{tq}")
     self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
   }
   self.max_h = max_h
@@ -497,11 +423,11 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   }
   if progressive {
     let mut total_blocks = 0
+    let mcus_per_row = (width + 8 * max_h - 1) / (8 * max_h)
+    let mcus_per_col = (height + 8 * max_v - 1) / (8 * max_v)
     for i in 0..<ncomp {
       let comp = self.comp[i]
-      let nblocks_h = (width + 8 * max_h - 1) / (8 * max_h) * comp.h
-      let nblocks_v = (height + 8 * max_v - 1) / (8 * max_v) * comp.v
-      total_blocks += nblocks_h * nblocks_v
+      total_blocks += mcus_per_row * comp.h * mcus_per_col * comp.v
     }
     self.prog_coeffs = Array::new(capacity=total_blocks)
     for _ in 0..<total_blocks {
@@ -679,25 +605,35 @@ fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
     if self.marker != -1 {
       return (0, Some(@io.IOError("marker")))
     }
-    let (b, err) = self.read_byte()
-    if err != None {
-      return (0, err)
-    }
-    if b == 0xFF {
-      let (nb, err2) = self.read_byte()
+    while true {
+      let (b_res, err_res) = self.read_byte()
+      if err_res != None {
+        return (0, err_res)
+      }
+      if b_res != 0xFF {
+        self.bit_curr = b_res
+        self.bits_left = 8
+        break
+      }
+      let (nb_res, err2) = self.read_byte()
       if err2 != None {
         return (0, err2)
+      }
+      let mut nb = nb_res
+      while nb == 0xFF {
+        let (nb2, err3) = self.read_byte()
+        if err3 != None {
+          return (0, err3)
+        }
+        nb = nb2
       }
       if nb == 0x00 {
         self.bit_curr = 0xFF
         self.bits_left = 8
-      } else {
-        self.marker = nb
-        return (0, Some(@io.IOError("marker")))
+        break
       }
-    } else {
-      self.bit_curr = b
-      self.bits_left = 8
+      self.marker = nb
+      return (0, Some(@io.IOError("marker")))
     }
   }
   let bit = (self.bit_curr >> (self.bits_left - 1)) & 1
@@ -870,9 +806,9 @@ fn Decoder::emit_block_pixels(
   let mcu_width = self.max_h * 8
   let mcu_height = self.max_v * 8
   let idct_blocks : Array[Array[Array[Int]]] = Array::new(
-    capacity=blocks.length(),
+    capacity=self.comp.length(),
   )
-  for i in 0..<blocks.length() {
+  for i in 0..<self.comp.length() {
     let comp_blocks = Array::new(capacity=blocks[i].length())
     for j in 0..<blocks[i].length() {
       comp_blocks.push(Decoder::idct_block(blocks[i][j]))
@@ -982,8 +918,7 @@ fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
     let err = self.decode_entropy()
     if err != None {
       if self.marker != -1 {
-        // If we hit a marker, we'll pick it up in the next iteration
-        continue
+        break
       }
       return err
     }
@@ -1006,16 +941,14 @@ fn Decoder::get_prog_block(
   by : Int,
 ) -> Array[Int] {
   let mut comp_offset = 0
+  let mcus_per_row = (self.width + 8 * self.max_h - 1) / (8 * self.max_h)
+  let mcus_per_col = (self.height + 8 * self.max_v - 1) / (8 * self.max_v)
   for i in 0..<comp_idx {
     let c = self.comp[i]
-    let nb_h = (self.width + 8 * self.max_h - 1) / (8 * self.max_h) * c.h
-    let nb_v = (self.height + 8 * self.max_v - 1) / (8 * self.max_v) * c.v
-    comp_offset += nb_h * nb_v
+    comp_offset += mcus_per_row * c.h * mcus_per_col * c.v
   }
   let comp = self.comp[comp_idx]
-  let component_nblocks_h = (self.width + 8 * self.max_h - 1) /
-    (8 * self.max_h) *
-    comp.h
+  let component_nblocks_h = mcus_per_row * comp.h
   let idx = comp_offset + by * component_nblocks_h + bx
   if idx < self.prog_coeffs.length() {
     self.prog_coeffs[idx]
@@ -1043,8 +976,8 @@ fn Decoder::refine(self : Decoder, block : Array[Int], i : Int) -> @io.IOError? 
 ///|
 fn Decoder::decode_dc_initial(
   self : Decoder,
-  block : Array[Int],
   comp_idx : Int,
+  block : Array[Int],
 ) -> @io.IOError? {
   let dct = self.comp[comp_idx].dctbl
   let (sym, err) = self.huffman_decode(0, dct)
@@ -1230,10 +1163,8 @@ fn Decoder::decode_ac_refine(
 ///|
 fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
   self.eob_run = 0
-  if self.ss == 0 {
-    for i in 0..<self.prev_dc.length() {
-      self.prev_dc[i] = 0
-    }
+  for i in 0..<self.prev_dc.length() {
+    self.prev_dc[i] = 0
   }
   let mcu_width = self.max_h * 8
   let mcu_height = self.max_v * 8
@@ -1265,7 +1196,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
               )
               let err = if self.ss == 0 {
                 if self.ah == 0 {
-                  self.decode_dc_initial(block, i)
+                  self.decode_dc_initial(i, block)
                 } else {
                   self.decode_dc_refine(block)
                 }
@@ -1276,7 +1207,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
               }
               if err != None {
                 if self.marker != -1 {
-                  return None
+                  continue
                 }
                 return err
               }
@@ -1288,10 +1219,8 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
   } else {
     let i = self.sos_comp_indices[0]
     let comp = self.comp[i]
-    let nblocks_h = (self.width * comp.h + self.max_h - 1) / self.max_h
-    let nblocks_h = (nblocks_h + 7) / 8
-    let nblocks_v = (self.height * comp.v + self.max_v - 1) / self.max_v
-    let nblocks_v = (nblocks_v + 7) / 8
+    let nblocks_h = (self.width * comp.h + 8 * self.max_h - 1) / (8 * self.max_h)
+    let nblocks_v = (self.height * comp.v + 8 * self.max_v - 1) / (8 * self.max_v)
     for by in 0..<nblocks_v {
       for bx in 0..<nblocks_h {
         if self.marker != -1 {
@@ -1309,7 +1238,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
         let block = self.get_prog_block(i, bx, by)
         let err = if self.ss == 0 {
           if self.ah == 0 {
-            self.decode_dc_initial(block, i)
+            self.decode_dc_initial(i, block)
           } else {
             self.decode_dc_refine(block)
           }
@@ -1320,7 +1249,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
         }
         if err != None {
           if self.marker != -1 {
-            return None
+            continue
           }
           return err
         }
