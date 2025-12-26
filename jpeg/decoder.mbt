@@ -132,6 +132,7 @@ struct Decoder {
   mut bits : Int // bits per component
   mut ncomp : Int // number of components
   mut comp : Array[Component] // component info
+  mut prev_dc : Array[Int]
   qtab : Array[Array[Int]] // quantization tables
   htab : Array[HuffmanTable] // huffman tables
   mut restart_interval : Int
@@ -177,6 +178,7 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     bits: 0,
     ncomp: 0,
     comp: Array::new(),
+    prev_dc: Array::new(),
     qtab: Array::new(),
     htab: Array::new(),
     restart_interval: 0,
@@ -415,6 +417,11 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
     let tq = tq_byte + 0
     self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
   }
+  // Initialize per-component DC predictors to zero
+  self.prev_dc = Array::new()
+  for i in 0..<(ncomp + 0) {
+    self.prev_dc.push(0)
+  }
   None
 }
 
@@ -627,24 +634,83 @@ fn Decoder::read_bit(self : Decoder) -> (Int, @io.IOError?) {
 // Consume entropy-coded data until a marker is observed; placeholder for real decoding.
 
 ///|
+fn Decoder::read_bits(self : Decoder, n : Int) -> (Int, @io.IOError?) {
+  if n == 0 {
+    return (0, None)
+  }
+  let mut v = 0
+  for _ in 0..=n {
+    let (b, err) = self.read_bit()
+    if err != None {
+      return (0, err)
+    }
+    v = (v << 1) | b
+  }
+  (v, None)
+}
+
+///|
+fn Decoder::extend_sign(self : Decoder, v : Int, n : Int) -> Int {
+  if n == 0 {
+    return 0
+  }
+  let half = 1 << (n - 1)
+  if v < half {
+    v - ((1 << n) - 1)
+  } else {
+    v
+  }
+}
+
+///|
+fn Decoder::decode_dc(self : Decoder, comp_idx : Int) -> (Int, @io.IOError?) {
+  let dct = self.comp[comp_idx].dctbl
+  let (sym, err) = self.huffman_decode(0, dct)
+  if err != None {
+    return (0, err)
+  }
+  let mut diff = 0
+  if sym != 0 {
+    let (bits, err2) = self.read_bits(sym)
+    if err2 != None {
+      return (0, err2)
+    }
+    diff = self.extend_sign(bits, sym)
+  }
+  let prev = self.prev_dc[comp_idx]
+  let val = prev + diff
+  self.prev_dc[comp_idx] = val
+  (val, None)
+}
+
+///|
 fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.comp.length() == 0 {
     return None
   }
-  let dc_tbl = self.comp[0].dctbl
-  // Decode a single symbol for now
-  let (sym, err) = self.huffman_decode(0, dc_tbl)
-  if err != None {
-    if self.marker != -1 {
-      return None
+  let n = self.comp.length()
+  for i in 0..<(n + 0) {
+    let (val, err) = self.decode_dc(i)
+    if err != None {
+      if self.marker != -1 {
+        return None
+      }
+      return err
     }
-    return err
+    let _ = val
+
   }
-  let _ = sym
   None
 }
 
 ///|
 fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
+  let err2 = self.decode_entropy()
+  if err2 != None {
+    if self.marker != -1 {
+      return None
+    }
+    return err2
+  }
   None
 }
