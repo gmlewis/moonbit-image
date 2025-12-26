@@ -77,9 +77,6 @@ const EOI : Int = 0xD9 // End of Image
 using @io {type Slice}
 
 ///|
-// const ZIG_ZAG_LENGTH = 64
-
-///|
 let zig_zag_order : Array[Int] = [
   0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48,
   41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15,
@@ -112,13 +109,15 @@ priv struct Decoder {
   mut marker : Int
   mut mcu_x : Int
   mut mcu_y : Int
+  mut max_h : Int
+  mut max_v : Int
   tmp : Slice[Byte]
 }
 
 ///|
 struct Component {
-  _h : Int // horizontal sampling factor
-  _v : Int // vertical sampling factor
+  h : Int // horizontal sampling factor
+  v : Int // vertical sampling factor
   c : Int // component identifier
   tq : Int // quantization table destination selector
   mut dctbl : Int
@@ -149,6 +148,8 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     marker: -1,
     mcu_x: 0,
     mcu_y: 0,
+    max_h: 0,
+    max_v: 0,
     tmp: Slice::new(Array::make(1, b'\x00')),
   }
 }
@@ -354,6 +355,8 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
   }
   //
   self.comp = Array::new()
+  let mut max_h = 0
+  let mut max_v = 0
   for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
     if err != None {
@@ -365,12 +368,20 @@ fn Decoder::parse_sof0(self : Decoder) -> @io.IOError? {
     }
     let h = (hv >> 4) & 0xF
     let v = hv & 0xF
+    if h > max_h {
+      max_h = h
+    }
+    if v > max_v {
+      max_v = v
+    }
     let (tq, err) = self.read_byte()
     if err != None {
       return err
     }
-    self.comp.push(Component::{ _h: h, _v: v, c, tq, dctbl: 0, actbl: 0 })
+    self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
   }
+  self.max_h = max_h
+  self.max_v = max_v
   // Initialize per-component DC predictors to zero
   self.prev_dc = Array::new()
   for _ in 0..<ncomp {
@@ -727,51 +738,79 @@ fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
 ///|
 fn Decoder::emit_block_pixels(
   self : Decoder,
-  blocks : Array[Array[Int]],
+  blocks : Array[Array[Array[Int]]],
 ) -> @io.IOError? {
   if blocks.length() == 0 {
     // Advance anyway to avoid infinite loop
-    self.mcu_x = self.mcu_x + 8
+    self.mcu_x = self.mcu_x + self.max_h * 8
     if self.mcu_x >= self.width {
       self.mcu_x = 0
-      self.mcu_y = self.mcu_y + 8
+      self.mcu_y = self.mcu_y + self.max_v * 8
     }
     return None
   }
-  let yout = Decoder::idct_block(blocks[0])
-  let cbout : Array[Int] = if blocks.length() >= 2 {
-    Decoder::idct_block(blocks[1])
-  } else {
-    Array::new()
+  //
+  let mcu_width = self.max_h * 8
+  let mcu_height = self.max_v * 8
+  //
+  // IDCT all blocks
+  let idct_blocks : Array[Array[Array[Int]]] = Array::new(
+    capacity=blocks.length(),
+  )
+  for i in 0..<blocks.length() {
+    let comp_blocks = Array::new(capacity=blocks[i].length())
+    for j in 0..<blocks[i].length() {
+      comp_blocks.push(Decoder::idct_block(blocks[i][j]))
+    }
+    idct_blocks.push(comp_blocks)
   }
-  let crout : Array[Int] = if blocks.length() >= 3 {
-    Decoder::idct_block(blocks[2])
-  } else {
-    Array::new()
-  }
-  for yy in 0..<8 {
-    for xx in 0..<8 {
-      let idx = yy * 8 + xx
-      let yv = if yout.length() > 0 { yout[idx] } else { 128 }
-      let cbv = if cbout.length() > 0 { cbout[idx] } else { 128 }
-      let crv = if crout.length() > 0 { crout[idx] } else { 128 }
+  //
+  for y in 0..<mcu_height {
+    for x in 0..<mcu_width {
+      let mut yv = 128
+      let mut cbv = 128
+      let mut crv = 128
+      //
+      // For each component, find the pixel value
+      for i in 0..<idct_blocks.length() {
+        let comp = self.comp[i]
+        // block coordinates within this component
+        let bx = x * comp.h / self.max_h / 8
+        let by = y * comp.v / self.max_v / 8
+        // pixel coordinates within that block
+        let px = x * comp.h / self.max_h % 8
+        let py = y * comp.v / self.max_v % 8
+        let block_idx = by * comp.h + bx
+        if block_idx < idct_blocks[i].length() {
+          let val = idct_blocks[i][block_idx][py * 8 + px]
+          if i == 0 {
+            yv = val
+          } else if i == 1 {
+            cbv = val
+          } else if i == 2 {
+            crv = val
+          }
+        }
+      }
+      //
       let (r, g, b) = @color.y_cb_cr_to_rgb(
         yv.to_byte(),
         cbv.to_byte(),
         crv.to_byte(),
       )
-      let px = self.mcu_x + xx
-      let py = self.mcu_y + yy
+      let px = self.mcu_x + x
+      let py = self.mcu_y + y
       if px < self.width && py < self.height {
         self.img.set(px, py, @color.RGBA::new(r, g, b, 0xff))
       }
     }
   }
+  //
   // Advance MCU position
-  self.mcu_x = self.mcu_x + 8
+  self.mcu_x = self.mcu_x + mcu_width
   if self.mcu_x >= self.width {
     self.mcu_x = 0
-    self.mcu_y = self.mcu_y + 8
+    self.mcu_y = self.mcu_y + mcu_height
   }
   None
 }
@@ -782,19 +821,24 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
     return Some(@io.IOError("no components"))
   }
   let n = self.comp.length()
-  let blocks = Array::new()
+  let blocks : Array[Array[Array[Int]]] = Array::new(capacity=n)
   for i in 0..<n {
-    let (block, err) = self.decode_block(i)
-    if err != None {
-      // If we found a marker, we return the error to let decode_scan handle it.
-      return err
+    let comp = self.comp[i]
+    let nblocks = comp.h * comp.v
+    let comp_blocks = Array::new(capacity=nblocks)
+    for _ in 0..<nblocks {
+      let (block, err) = self.decode_block(i)
+      if err != None {
+        return err
+      }
+      let tq = comp.tq
+      let (dq, err2) = self.dequantize(block, tq)
+      if err2 != None {
+        return err2
+      }
+      comp_blocks.push(dq)
     }
-    let tq = self.comp[i].tq
-    let (dq, err2) = self.dequantize(block, tq)
-    if err2 != None {
-      return err2
-    }
-    blocks.push(dq)
+    blocks.push(comp_blocks)
   }
   self.emit_block_pixels(blocks)
 }
