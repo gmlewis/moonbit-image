@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "gmlewis/image/jpeg"
+
+import(
+  "gmlewis/image"
+  "gmlewis/io"
+)
+
+// Values
+pub fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
+
+// Errors
+
+// Types and methods
+type Component
+pub impl Default for Component
+
+type Decoder
+
+type HuffmanTable
+
+// Type aliases
+
+// Traits
+
