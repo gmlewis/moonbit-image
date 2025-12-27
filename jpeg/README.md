@@ -3,14 +3,13 @@
 Package `jpeg` implements a JPEG image decoder for MoonBit.
 
 This package supports:
-- Baseline (SOF0) Huffman-coded JPEGs.
+- Baseline (SOF0) and Progressive (SOF2) Huffman-coded JPEGs.
 - 8 bits per component.
 - Common chroma subsampling (4:4:4, 4:2:2, 4:2:0, 4:4:0).
-- Baseline DCT.
+- Baseline and Progressive DCT.
 - YCbCr to RGBA conversion.
 
 It does NOT currently support:
-- Progressive JPEGs.
 - Arithmetic-coded JPEGs.
 - Exotic color spaces (CMYK/Adobe).
 - Extensive metadata (EXIF parsing).

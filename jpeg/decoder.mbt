@@ -48,15 +48,6 @@ let zig_zag_order : Array[Int] = [
 ]
 
 ///|
-let idct_matrix : Array[Int] = [
-  11585, 11585, 11585, 11585, 11585, 11585, 11585, 11585, 16069, 13623, 9102, 3196,
-  -3196, -9102, -13623, -16069, 15137, 6270, -6270, -15137, -15137, -6270, 6270,
-  15137, 13623, -3196, -16069, -9102, 9102, 16069, 3196, -13623, 11585, -11585, -11585,
-  11585, 11585, -11585, -11585, 11585, 9102, -16069, 3196, 13623, -13623, -3196,
-  16069, -9102, 6270, -15137, 15137, -6270, -6270, 15137, -15137, 6270, 3196, -9102,
-  13623, -16069, 16069, -13623, 9102, -3196,
-]
-
 ///|
 priv struct Decoder {
   r : &@io.Reader
@@ -577,12 +568,14 @@ fn Decoder::huffman_decode(
       continue
     }
     let mut code = 0
+    let mut bits_read = Array::new()
     for len = 1; len <= table.max_len; len = len + 1 {
       let (b, err) = self.read_bit()
       if err != None {
         return (0, err)
       }
       code = (code << 1) | b
+      bits_read.push(b)
       if len - 1 < table.lut.length() {
         let arr = table.lut[len - 1]
         if code < arr.length() {
@@ -784,29 +777,6 @@ fn Decoder::dequantize(
 }
 
 ///|
-fn Decoder::idct_block(blk : Array[Int]) -> Array[Int] {
-  let shift = 30
-  let round_val = 1L << (shift - 1)
-  let out = Array::make(64, 0)
-  for y in 0..<8 {
-    for x in 0..<8 {
-      let mut s = 0L
-      for v_freq in 0..<8 {
-        for h_freq in 0..<8 {
-          let cv = idct_matrix[v_freq * 8 + y].to_int64()
-          let ch = idct_matrix[h_freq * 8 + x].to_int64()
-          let coeff = blk[v_freq * 8 + h_freq].to_int64()
-          s = s + cv * ch * coeff
-        }
-      }
-      let val = ((s + round_val) >> shift).to_int()
-      out[y * 8 + x] = val
-    }
-  }
-  out
-}
-
-///|
 fn Decoder::emit_block_pixels(
   self : Decoder,
   blocks : Array[Array[Array[Int]]],
@@ -827,7 +797,7 @@ fn Decoder::emit_block_pixels(
   for i in 0..<self.comp.length() {
     let comp_blocks = Array::new(capacity=blocks[i].length())
     for j in 0..<blocks[i].length() {
-      comp_blocks.push(Decoder::idct_block(blocks[i][j]))
+      comp_blocks.push(idct_block_2pass(blocks[i][j]))
     }
     idct_blocks.push(comp_blocks)
   }
@@ -967,6 +937,7 @@ fn Decoder::decode_scan(self : Decoder) -> @io.IOError? {
       )
     }
   }
+  self.bits_left = 0
   None
 }
 
@@ -1168,8 +1139,8 @@ fn Decoder::decode_ac_refine(
         }
         break
       }
-      let mut r = 16
-      while k <= self.se && r > 0 {
+      let mut r = 15
+      while k <= self.se {
         let pos = zig_zag_order[k]
         if block[pos] != 0 {
           let err_refine = self.refine(block, pos)
@@ -1177,6 +1148,9 @@ fn Decoder::decode_ac_refine(
             return err_refine
           }
         } else {
+          if r == 0 {
+            break
+          }
           r -= 1
         }
         k += 1
@@ -1193,6 +1167,9 @@ fn Decoder::decode_ac_refine(
       }
     }
     k += 1
+  }
+  if self.eob_run > 0 {
+    self.eob_run -= 1
   }
   None
 }
@@ -1229,6 +1206,8 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
           let comp = self.comp[i]
           for v in 0..<comp.v {
             for h in 0..<comp.h {
+              self.mcu_x = mx * mcu_width + h * 8
+              self.mcu_y = my * mcu_height + v * 8
               let block = self.get_prog_block(
                 i,
                 mx * comp.h + h,
@@ -1282,6 +1261,8 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
       (8 * self.max_v)
     for by in 0..<nblocks_v {
       for bx in 0..<nblocks_h {
+        self.mcu_x = bx * 8
+        self.mcu_y = by * 8
         if self.marker != -1 {
           if self.marker >= 0xD0 && self.marker <= 0xD7 {
             self.marker = -1
@@ -1334,6 +1315,7 @@ fn Decoder::decode_progressive_scan(self : Decoder) -> @io.IOError? {
       }
     }
   }
+  self.bits_left = 0
   None
 }
 
