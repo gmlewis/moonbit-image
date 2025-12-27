@@ -79,7 +79,7 @@ fn compare_images(img1 : &@image.Image, img2 : &@image.Image) -> Bool {
       // Allow for a tolerance due to rounding/IDCT precision.
       // Production JPEGs can have small differences.
       // 2% of 0xFFFF is about 1310.
-      let tol = 2000U
+      let tol = 256U
       if abs_diff(r1, r2) > tol ||
         abs_diff(g1, g2) > tol ||
         abs_diff(b1, b2) > tol ||
@@ -100,9 +100,11 @@ fn compare_images(img1 : &@image.Image, img2 : &@image.Image) -> Bool {
     // If more than 50% pixels mismatch even with tolerance, it's a real failure
     let total_pixels = bounds.dx() * bounds.dy()
     if mismatches > total_pixels / 2 {
-       return false
+      return false
     }
-    println("Warning: \{mismatches} pixels differ but within acceptable error for naive IDCT")
+    println(
+      "Warning: \{mismatches} pixels differ but within acceptable error for naive IDCT",
+    )
   }
   true
 }

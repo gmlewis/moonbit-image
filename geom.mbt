@@ -136,6 +136,11 @@ pub impl Image for Rectangle with pix_offset(_self, _x, _y) {
 }
 
 ///|
+pub impl Image for Rectangle with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// copy makes a copy of the provided rectangle without changing it.
 pub fn Rectangle::copy(self : Rectangle) -> Rectangle {
   { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }

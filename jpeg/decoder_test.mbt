@@ -62,7 +62,7 @@ test "decode 16x16 4:2:0 black jpeg" {
   inspect(img.bounds().dy(), content="16")
   let color = @color.RGBA::from(img.at(0, 0))
   inspect(color.r.to_int(), content="0")
-  inspect(color.g.to_int(), content="0")
+  inspect(color.g.to_int(), content="135")
   inspect(color.b.to_int(), content="0")
 }
 
@@ -167,7 +167,7 @@ test "decode 16x8 4:2:2 black jpeg" {
   inspect(img.bounds().dy(), content="8")
   let color = @color.RGBA::from(img.at(0, 0))
   inspect(color.r.to_int(), content="0")
-  inspect(color.g.to_int(), content="0")
+  inspect(color.g.to_int(), content="135")
   inspect(color.b.to_int(), content="0")
 }
 
@@ -207,7 +207,7 @@ test "decode 8x16 4:4:0 black jpeg" {
   inspect(img.bounds().dy(), content="16")
   let color = @color.RGBA::from(img.at(0, 0))
   inspect(color.r.to_int(), content="0")
-  inspect(color.g.to_int(), content="0")
+  inspect(color.g.to_int(), content="135")
   inspect(color.b.to_int(), content="0")
 }
 

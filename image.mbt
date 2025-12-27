@@ -57,6 +57,7 @@ pub(open) trait Image {
   opaque_(Self) -> Bool
   set(Self, Int, Int, &@color.Color) -> Unit
   sub_image(Self, Rectangle) -> &Image
+  as_ycbcr(Self) -> YCbCr?
 
   // Because MoonBit does not have reflection, the following methods must
   // also be made available:
@@ -278,6 +279,11 @@ pub impl Image for RGBA with sub_image(self, r) {
 }
 
 ///|
+pub impl Image for RGBA with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// opaque scans the entire image and reports whether it is fully opaque.
 pub impl Image for RGBA with opaque_(self) {
   if self.rect.empty() {
@@ -444,6 +450,11 @@ pub impl Image for RGBA64 with sub_image(self, r) {
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   RGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
+
+///|
+pub impl Image for RGBA64 with as_ycbcr(_self) {
+  None
 }
 
 ///|
@@ -637,6 +648,11 @@ pub impl Image for NRGBA with sub_image(self, r) {
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   NRGBA::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
+
+///|
+pub impl Image for NRGBA with as_ycbcr(_self) {
+  None
 }
 
 ///|
@@ -844,6 +860,11 @@ pub impl Image for NRGBA64 with sub_image(self, r) {
 }
 
 ///|
+pub impl Image for NRGBA64 with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// opaque scans the entire image and reports whether it is fully opaque.
 pub impl Image for NRGBA64 with opaque_(self) {
   if self.rect.empty() {
@@ -1013,6 +1034,11 @@ pub impl Image for Alpha with sub_image(self, r) {
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Alpha::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
+
+///|
+pub impl Image for Alpha with as_ycbcr(_self) {
+  None
 }
 
 ///|
@@ -1191,6 +1217,11 @@ pub impl Image for Alpha16 with sub_image(self, r) {
 }
 
 ///|
+pub impl Image for Alpha16 with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// opaque scans the entire image and reports whether it is fully opaque.
 pub impl Image for Alpha16 with opaque_(self) {
   if self.rect.empty() {
@@ -1360,6 +1391,11 @@ pub impl Image for Gray with sub_image(self, r) {
 }
 
 ///|
+pub impl Image for Gray with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// opaque scans the entire image and reports whether it is fully opaque.
 pub impl Image for Gray with opaque_(_self) {
   true
@@ -1520,6 +1556,11 @@ pub impl Image for Gray16 with sub_image(self, r) {
   }
   let i = self.pix_offset(r.min.x, r.min.y)
   Gray16::{ pix: self.pix[i:], stride: self.stride, rect: r }
+}
+
+///|
+pub impl Image for Gray16 with as_ycbcr(_self) {
+  None
 }
 
 ///|
@@ -1689,6 +1730,11 @@ pub impl Image for CMYK with sub_image(self, r) {
 }
 
 ///|
+pub impl Image for CMYK with as_ycbcr(_self) {
+  None
+}
+
+///|
 /// opaque scans the entire image and reports whether it is fully opaque.
 pub impl Image for CMYK with opaque_(_self) {
   true
@@ -1702,6 +1748,190 @@ pub fn CMYK::new(r : Rectangle) -> CMYK raise SizeError {
     stride: 4 * r.dx(),
     rect: r,
   }
+}
+
+///|
+/// YCbCrSubsampling represents the chroma subsampling ratio.
+pub(all) enum YCbCrSubsampling {
+  YCbCrSubsampling444
+  YCbCrSubsampling422
+  YCbCrSubsampling420
+  YCbCrSubsampling440
+  YCbCrSubsampling411
+  YCbCrSubsampling410
+} derive(Show, Eq)
+
+///|
+/// YCbCr is an in-memory image of Y'CbCr colors.
+pub(all) struct YCbCr {
+  y : Slice[Byte]
+  cb : Slice[Byte]
+  cr : Slice[Byte]
+  y_stride : Int
+  c_stride : Int
+  subsampling : YCbCrSubsampling
+  rect : Rectangle
+}
+
+///|
+pub fn YCbCr::new(
+  r : Rectangle,
+  subsampling : YCbCrSubsampling,
+) -> YCbCr raise SizeError {
+  let (w, h) = (r.dx(), r.dy())
+  let (cw, ch) = match subsampling {
+    YCbCrSubsampling444 => (w, h)
+    YCbCrSubsampling422 => ((w + 1) / 2, h)
+    YCbCrSubsampling420 => ((w + 1) / 2, (h + 1) / 2)
+    YCbCrSubsampling440 => (w, (h + 1) / 2)
+    YCbCrSubsampling411 => ((w + 3) / 4, h)
+    YCbCrSubsampling410 => ((w + 3) / 4, (h + 1) / 2)
+  }
+  let y_len = pixel_buffer_length(1, r, "YCbCr.Y")
+  let c_len = mul3_non_neg(1, cw, ch)
+  if c_len < 0 {
+    raise SizeError(
+      "image: YCbCr::new Rectangle has huge or negative dimensions",
+    )
+  }
+  {
+    y: Slice::new(Array::make(y_len, b'\x00')),
+    cb: Slice::new(Array::make(c_len, b'\x00')),
+    cr: Slice::new(Array::make(c_len, b'\x00')),
+    y_stride: w,
+    c_stride: cw,
+    subsampling,
+    rect: r,
+  }
+}
+
+///|
+pub impl Image for YCbCr with color_model(_self) {
+  @color.y_cb_cr_model
+}
+
+///|
+pub impl Image for YCbCr with bounds(self) {
+  self.rect
+}
+
+///|
+pub impl Image for YCbCr with at(self, x, y) {
+  if not(pt(x, y).is_in(self.rect)) {
+    return @color.black
+  }
+  let yi = (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
+  let (cx, cy) = match self.subsampling {
+    YCbCrSubsampling444 => (x - self.rect.min.x, y - self.rect.min.y)
+    YCbCrSubsampling422 => ((x - self.rect.min.x) / 2, y - self.rect.min.y)
+    YCbCrSubsampling420 =>
+      ((x - self.rect.min.x) / 2, (y - self.rect.min.y) / 2)
+    YCbCrSubsampling440 => (x - self.rect.min.x, (y - self.rect.min.y) / 2)
+    YCbCrSubsampling411 => ((x - self.rect.min.x) / 4, y - self.rect.min.y)
+    YCbCrSubsampling410 =>
+      ((x - self.rect.min.x) / 4, (y - self.rect.min.y) / 2)
+  }
+  let ci = cy * self.c_stride + cx
+  @color.YCbCr::new(self.y[yi], self.cb[ci], self.cr[ci])
+}
+
+///|
+pub impl Image for YCbCr with set(self, x, y, c) {
+  if not(pt(x, y).is_in(self.rect)) {
+    return
+  }
+  let yi = (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
+  let (cx, cy) = match self.subsampling {
+    YCbCrSubsampling444 => (x - self.rect.min.x, y - self.rect.min.y)
+    YCbCrSubsampling422 => ((x - self.rect.min.x) / 2, y - self.rect.min.y)
+    YCbCrSubsampling420 =>
+      ((x - self.rect.min.x) / 2, (y - self.rect.min.y) / 2)
+    YCbCrSubsampling440 => (x - self.rect.min.x, (y - self.rect.min.y) / 2)
+    YCbCrSubsampling411 => ((x - self.rect.min.x) / 4, y - self.rect.min.y)
+    YCbCrSubsampling410 =>
+      ((x - self.rect.min.x) / 4, (y - self.rect.min.y) / 2)
+  }
+  let ci = cy * self.c_stride + cx
+  let yc : @color.YCbCr = @color.YCbCr::from(c)
+  self.y[yi] = yc.y
+  self.cb[ci] = yc.cb
+  self.cr[ci] = yc.cr
+}
+
+///|
+pub impl Image for YCbCr with raw_data(self) {
+  self.y
+}
+
+///|
+pub impl Image for YCbCr with get_bytes_per_pixel(_self) {
+  1
+}
+
+///|
+pub impl Image for YCbCr with get_stride(self) {
+  self.y_stride
+}
+
+///|
+pub impl Image for YCbCr with color_index_at(_self, _x, _y) {
+  0
+}
+
+///|
+pub impl Image for YCbCr with pix_offset(self, x, y) {
+  (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
+}
+
+///|
+pub impl Image for YCbCr with opaque_(_self) {
+  true
+}
+
+///|
+pub impl Image for YCbCr with sub_image(self, r) {
+  let r = r.intersect(self.rect)
+  if r.empty() {
+    return YCbCr::{
+      y: Slice::new([]),
+      cb: Slice::new([]),
+      cr: Slice::new([]),
+      y_stride: 0,
+      c_stride: 0,
+      subsampling: self.subsampling,
+      rect: Rectangle::new(),
+    }
+  }
+  let yi = self.pix_offset(r.min.x, r.min.y)
+  let (cx, cy) = match self.subsampling {
+    YCbCrSubsampling444 =>
+      (r.min.x - self.rect.min.x, r.min.y - self.rect.min.y)
+    YCbCrSubsampling422 =>
+      ((r.min.x - self.rect.min.x) / 2, r.min.y - self.rect.min.y)
+    YCbCrSubsampling420 =>
+      ((r.min.x - self.rect.min.x) / 2, (r.min.y - self.rect.min.y) / 2)
+    YCbCrSubsampling440 =>
+      (r.min.x - self.rect.min.x, (r.min.y - self.rect.min.y) / 2)
+    YCbCrSubsampling411 =>
+      ((r.min.x - self.rect.min.x) / 4, r.min.y - self.rect.min.y)
+    YCbCrSubsampling410 =>
+      ((r.min.x - self.rect.min.x) / 4, (r.min.y - self.rect.min.y) / 2)
+  }
+  let ci = cy * self.c_stride + cx
+  YCbCr::{
+    y: self.y[yi:],
+    cb: self.cb[ci:],
+    cr: self.cr[ci:],
+    y_stride: self.y_stride,
+    c_stride: self.c_stride,
+    subsampling: self.subsampling,
+    rect: r,
+  }
+}
+
+///|
+pub impl Image for YCbCr with as_ycbcr(self) {
+  Some(self)
 }
 
 ///|
@@ -1861,6 +2091,11 @@ pub impl Image for Paletted with sub_image(self, r) {
     rect: self.rect.intersect(r),
     palette: self.palette,
   }
+}
+
+///|
+pub impl Image for Paletted with as_ycbcr(_self) {
+  None
 }
 
 ///|

@@ -186,6 +186,20 @@ pub fn YCbCr::new(y : Byte, cb : Byte, cr : Byte) -> YCbCr {
 }
 
 ///|
+pub fn YCbCr::from(c : &Color) -> YCbCr {
+  if c.model() == "YCbCr" {
+    let (y, cb, cr, _) = c.raw()
+    return { y: y.to_byte(), cb: cb.to_byte(), cr: cr.to_byte() }
+  }
+  let (r, g, b, _) = c.rgba()
+  let r = (r >> 8).to_byte()
+  let g = (g >> 8).to_byte()
+  let b = (b >> 8).to_byte()
+  let (y, cb, cr) = rgb_to_y_cb_cr(r, g, b)
+  { y, cb, cr }
+}
+
+///|
 pub impl Color for YCbCr with model(_self) {
   "YCbCr"
 }

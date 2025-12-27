@@ -177,6 +177,7 @@ pub(all) struct YCbCr {
   cb : Byte
   cr : Byte
 }
+pub fn YCbCr::from(&Color) -> Self
 pub fn YCbCr::new(Byte, Byte, Byte) -> Self
 pub impl Color for YCbCr
 pub impl Eq for YCbCr

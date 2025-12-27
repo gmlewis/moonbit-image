@@ -213,6 +213,29 @@ pub impl Image for Rectangle
 pub impl Eq for Rectangle
 pub impl Show for Rectangle
 
+pub(all) struct YCbCr {
+  y : @io.Slice[Byte]
+  cb : @io.Slice[Byte]
+  cr : @io.Slice[Byte]
+  y_stride : Int
+  c_stride : Int
+  subsampling : YCbCrSubsampling
+  rect : Rectangle
+}
+pub fn YCbCr::new(Rectangle, YCbCrSubsampling) -> Self raise SizeError
+pub impl Image for YCbCr
+
+pub(all) enum YCbCrSubsampling {
+  YCbCrSubsampling444
+  YCbCrSubsampling422
+  YCbCrSubsampling420
+  YCbCrSubsampling440
+  YCbCrSubsampling411
+  YCbCrSubsampling410
+}
+pub impl Eq for YCbCrSubsampling
+pub impl Show for YCbCrSubsampling
+
 // Type aliases
 
 // Traits
@@ -223,6 +246,7 @@ pub(open) trait Image {
   opaque_(Self) -> Bool
   set(Self, Int, Int, &@color.Color) -> Unit
   sub_image(Self, Rectangle) -> &Image
+  as_ycbcr(Self) -> YCbCr?
   raw_data(Self) -> @io.Slice[Byte]
   get_bytes_per_pixel(Self) -> Int
   get_stride(Self) -> Int

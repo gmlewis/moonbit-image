@@ -48,6 +48,7 @@ let zig_zag_order : Array[Int] = [
 ]
 
 ///|
+
 ///|
 priv struct Decoder {
   r : &@io.Reader
@@ -390,11 +391,22 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   self.width = width
   self.progressive = progressive
   let r = @image.rect(0, 0, width, height)
-  try {
-    let rgba = @image.RGBA::new(r)
-    self.img = rgba
-  } catch {
-    err => return Some(@io.IOError("failed to create image: \{err}"))
+  if ncomp == 3 {
+    // Determine subsampling from components later.
+    // For now, assume 4:4:4 and update it after reading component info.
+    try {
+      let ycbcr = @image.YCbCr::new(r, YCbCrSubsampling444)
+      self.img = ycbcr
+    } catch {
+      err => return Some(@io.IOError("failed to create image: \{err}"))
+    }
+  } else {
+    try {
+      let gray = @image.Gray::new(r)
+      self.img = gray
+    } catch {
+      err => return Some(@io.IOError("failed to create image: \{err}"))
+    }
   }
   self.comp = Array::new()
   let mut max_h = 0
@@ -424,14 +436,51 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
   }
   self.max_h = max_h
   self.max_v = max_v
+  if ncomp == 3 {
+    let subsampling = match (max_h, max_v) {
+      (1, 1) => @image.YCbCrSubsampling444
+      (2, 1) =>
+        if self.comp[1].h == 1 && self.comp[1].v == 1 {
+          @image.YCbCrSubsampling422
+        } else {
+          @image.YCbCrSubsampling444
+        }
+      (2, 2) =>
+        if self.comp[1].h == 1 && self.comp[1].v == 1 {
+          @image.YCbCrSubsampling420
+        } else {
+          @image.YCbCrSubsampling444
+        }
+      (1, 2) =>
+        if self.comp[1].h == 1 && self.comp[1].v == 1 {
+          @image.YCbCrSubsampling440
+        } else {
+          @image.YCbCrSubsampling444
+        }
+      (4, 1) => @image.YCbCrSubsampling411
+      (4, 2) => @image.YCbCrSubsampling410
+      _ => @image.YCbCrSubsampling444
+    }
+    match self.img.as_ycbcr() {
+      Some(_) =>
+        if subsampling != YCbCrSubsampling444 {
+          try {
+            self.img = @image.YCbCr::new(self.img.bounds(), subsampling)
+          } catch {
+            _ => ()
+          }
+        }
+      None => ()
+    }
+  }
   self.prev_dc = Array::new()
   for _ in 0..<ncomp {
     self.prev_dc.push(0)
   }
   if progressive {
     let mut total_blocks = 0
-    let mcus_per_row = (width + 8 * max_h - 1) / (8 * max_h)
-    let mcus_per_col = (height + 8 * max_v - 1) / (8 * max_v)
+    let mcus_per_row = (self.width + 8 * max_h - 1) / (8 * max_h)
+    let mcus_per_col = (self.height + 8 * max_v - 1) / (8 * max_v)
     for i in 0..<ncomp {
       let comp = self.comp[i]
       total_blocks += mcus_per_row * comp.h * mcus_per_col * comp.v
@@ -568,7 +617,7 @@ fn Decoder::huffman_decode(
       continue
     }
     let mut code = 0
-    let mut bits_read = Array::new()
+    let bits_read = Array::new()
     for len = 1; len <= table.max_len; len = len + 1 {
       let (b, err) = self.read_bit()
       if err != None {
@@ -789,32 +838,19 @@ fn Decoder::emit_block_pixels(
     }
     return None
   }
-  let mcu_width = self.max_h * 8
-  let mcu_height = self.max_v * 8
-  let idct_blocks : Array[Array[Array[Int]]] = Array::new(
-    capacity=self.comp.length(),
-  )
   for i in 0..<self.comp.length() {
-    let comp_blocks = Array::new(capacity=blocks[i].length())
+    let comp = self.comp[i]
     for j in 0..<blocks[i].length() {
-      comp_blocks.push(idct_block_2pass(blocks[i][j]))
-    }
-    idct_blocks.push(comp_blocks)
-  }
-  for y in 0..<mcu_height {
-    for x in 0..<mcu_width {
-      let mut yv = 0
-      let mut cbv = 128
-      let mut crv = 128
-      for i in 0..<idct_blocks.length() {
-        let comp = self.comp[i]
-        let bx = x * comp.h / self.max_h / 8
-        let by = y * comp.v / self.max_v / 8
-        let px = x * comp.h / self.max_h % 8
-        let py = y * comp.v / self.max_v % 8
-        let block_idx = by * comp.h + bx
-        if block_idx < idct_blocks[i].length() {
-          let val = idct_blocks[i][block_idx][py * 8 + px]
+      let idct_block = idct_block_2pass(blocks[i][j])
+      let bx = j % comp.h
+      let by = j / comp.h
+      let base_x = self.mcu_x * comp.h / self.max_h + bx * 8
+      let base_y = self.mcu_y * comp.v / self.max_v + by * 8
+      for y in 0..<8 {
+        for x in 0..<8 {
+          let px = base_x + x
+          let py = base_y + y
+          let val = idct_block[y * 8 + x]
           let v128 = val + 128
           let v_clamped = if v128 < 0 {
             0
@@ -823,32 +859,35 @@ fn Decoder::emit_block_pixels(
           } else {
             v128
           }
-          if comp.c == 1 || comp.c == b'Y'.to_int() {
-            yv = v_clamped
-          } else if comp.c == 2 || comp.c == b'C'.to_int() {
-            cbv = v_clamped
-          } else if comp.c == 3 || comp.c == b'R'.to_int() {
-            crv = v_clamped
+          let c = @color.Gray::new(v_clamped.to_byte())
+          match self.img.as_ycbcr() {
+            Some(ycbcr) =>
+              if i == 0 {
+                let yi = py * ycbcr.y_stride + px
+                if px < ycbcr.y_stride && yi < ycbcr.y.length() {
+                  ycbcr.y[yi] = v_clamped.to_byte()
+                }
+              } else if i == 1 {
+                let ci = py * ycbcr.c_stride + px
+                if px < ycbcr.c_stride && ci < ycbcr.cb.length() {
+                  ycbcr.cb[ci] = v_clamped.to_byte()
+                }
+              } else if i == 2 {
+                let ci = py * ycbcr.c_stride + px
+                if px < ycbcr.c_stride && ci < ycbcr.cr.length() {
+                  ycbcr.cr[ci] = v_clamped.to_byte()
+                }
+              }
+            None => self.img.set(px, py, c)
           }
         }
       }
-      let (r, g, b) = @color.y_cb_cr_to_rgb(
-        yv.to_byte(),
-        cbv.to_byte(),
-        crv.to_byte(),
-      )
-      let px = self.mcu_x + x
-      let py = self.mcu_y + y
-      if px < self.width && py < self.height {
-        let rgba = @color.RGBA::new(r, g, b, 0xff)
-        self.img.set(px, py, rgba)
-      }
     }
   }
-  self.mcu_x = self.mcu_x + mcu_width
+  self.mcu_x = self.mcu_x + self.max_h * 8
   if self.mcu_x >= self.width {
     self.mcu_x = 0
-    self.mcu_y = self.mcu_y + mcu_height
+    self.mcu_y = self.mcu_y + self.max_v * 8
   }
   None
 }
