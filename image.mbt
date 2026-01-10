@@ -96,7 +96,9 @@ pub(open) trait RGBA64Image {
 }
 
 ///|
-suberror SizeError String derive(Show, Eq)
+suberror SizeError {
+  SizeError(String)
+} derive(Show, Eq)
 
 ///|
 // pixel_buffer_length returns the length of the Slice[Byte] typed pix slice field

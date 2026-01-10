@@ -11,7 +11,9 @@
 using @io {type Slice}
 
 ///|
-suberror TestError String derive(Show)
+suberror TestError {
+  TestError(String)
+} derive(Show)
 
 ///|
 // header copied here to enable black-box testing.
