@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "gmlewis/image"
 
-import(
-  "gmlewis/image/color"
-  "gmlewis/io"
-)
+import {
+  "gmlewis/image/color",
+  "gmlewis/io",
+}
 
 // Values
 pub fn add2_non_neg(Int, Int) -> Int
