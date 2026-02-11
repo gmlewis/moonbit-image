@@ -320,5 +320,4 @@ test "decode missing quantization table" {
   // In the current implementation, if an error occurs during scan and a marker is hit, it may return None.
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, _) = decode(buf)
-
 }

@@ -22,39 +22,39 @@ struct TestT {
 let test_images : Array[TestT] = [
   {
     name: "rgba",
-    image: fn() { @image.RGBA::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.RGBA::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "rgba64",
-    image: fn() { @image.RGBA64::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.RGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "nrgba",
-    image: fn() { @image.NRGBA::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.NRGBA::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "nrgba64",
-    image: fn() { @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "alpha",
-    image: fn() { @image.Alpha::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.Alpha::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "alpha16",
-    image: fn() { @image.Alpha16::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.Alpha16::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "gray",
-    image: fn() { @image.Gray::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.Gray::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "gray16",
-    image: fn() { @image.Gray16::new(@image.rect(0, 0, 10, 10)) as &Image },
+    image: () => @image.Gray16::new(@image.rect(0, 0, 10, 10)) as &Image,
   },
   {
     name: "paletted",
-    image: fn() {
+    image: () => {
       @image.Paletted::new(
         @image.rect(0, 0, 10, 10),
         @color.Palette::from([@color.transparent, @color.opaque_]),
@@ -128,7 +128,6 @@ test "image" {
     let _ = m.sub_image(@image.rect(10, 0, 10, 0))
     let _ = m.sub_image(@image.rect(0, 10, 0, 10))
     let _ = m.sub_image(@image.rect(10, 10, 10, 10))
-
   }
 }
 
@@ -148,7 +147,6 @@ fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
   // }()
   try {
     let _ = f(r)
-
   } catch {
     _ => return false
   }
@@ -158,18 +156,18 @@ fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
 ///|
 test "new xxx bad rectangle" {
   let test_cases = [
-    { name: "RGBA", f: fn(r) { @image.RGBA::new(r) as &Image } },
-    { name: "RGBA64", f: fn(r) { @image.RGBA64::new(r) as &Image } },
-    { name: "NRGBA", f: fn(r) { @image.NRGBA::new(r) as &Image } },
-    { name: "NRGBA64", f: fn(r) { @image.NRGBA64::new(r) as &Image } },
-    { name: "Alpha", f: fn(r) { @image.Alpha::new(r) as &Image } },
-    { name: "Alpha16", f: fn(r) { @image.Alpha16::new(r) as &Image } },
-    { name: "Gray", f: fn(r) { @image.Gray::new(r) as &Image } },
-    { name: "Gray16", f: fn(r) { @image.Gray16::new(r) as &Image } },
-    { name: "CMYK", f: fn(r) { @image.CMYK::new(r) as &Image } },
+    { name: "RGBA", f: r => @image.RGBA::new(r) as &Image },
+    { name: "RGBA64", f: r => @image.RGBA64::new(r) as &Image },
+    { name: "NRGBA", f: r => @image.NRGBA::new(r) as &Image },
+    { name: "NRGBA64", f: r => @image.NRGBA64::new(r) as &Image },
+    { name: "Alpha", f: r => @image.Alpha::new(r) as &Image },
+    { name: "Alpha16", f: r => @image.Alpha16::new(r) as &Image },
+    { name: "Gray", f: r => @image.Gray::new(r) as &Image },
+    { name: "Gray16", f: r => @image.Gray16::new(r) as &Image },
+    { name: "CMYK", f: r => @image.CMYK::new(r) as &Image },
     {
       name: "Paletted",
-      f: fn(r) {
+      f: r => {
         @image.Paletted::new(
           r,
           @color.Palette::from([@color.black, @color.white]),

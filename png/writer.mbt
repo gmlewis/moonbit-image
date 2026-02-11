@@ -344,7 +344,6 @@ fn Encoder::write_image(
         if is_gray {
           let offset = (y - b.min.y) * stride
           let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx()])
-
         } else {
           for x = b.min.x; x < b.max.x; x = x + 1 {
             let c = @color.Gray::from(m.at(x, y))
@@ -378,7 +377,6 @@ fn Encoder::write_image(
         if is_paletted {
           let offset = (y - b.min.y) * stride
           let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx()])
-
         }
       CB_P4 | CB_P2 | CB_P1 =>
         if is_paletted {
@@ -407,7 +405,6 @@ fn Encoder::write_image(
         if is_nrgba {
           let offset = (y - b.min.y) * stride
           let _ = slice_copy(cr[0][1:], pix[offset:offset + b.dx() * 4])
-
         } else if is_rgba {
           let mut d = cr[0][1:]
           let mut s = pix[m.pix_offset(b.min.x, y):m.pix_offset(b.max.x, y)]
@@ -419,7 +416,6 @@ fn Encoder::write_image(
               d[3] = 0
             } else if s[3] == 0xff {
               let _ = slice_copy(d[:], s[:])
-
             } else {
               // This code does the same as color.NRGBAModel.Convert(
               // rgba.At(x, y)) but with no extra memory

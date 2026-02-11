@@ -316,7 +316,7 @@ fn Decoder::read_marker(self : Decoder) -> (Int, @io.IOError?) {
       return (0, nerr_res)
     }
     b = nb_res
-  } else {
+  } nobreak {
     (0, None)
   }
 }
@@ -1384,7 +1384,6 @@ fn Decoder::emit_progressive_pixels(self : Decoder) -> @io.IOError? {
         blocks.push(comp_blocks)
       }
       let _ = self.emit_block_pixels(blocks)
-
     }
   }
   None
