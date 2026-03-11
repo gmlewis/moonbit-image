@@ -582,7 +582,7 @@ let _trait : &Model = Palette::new(0)
 /// Palette::new makes a new palette with `n` colors (initially all black).
 pub fn Palette::new(n : Int) -> Palette {
   let arr : Array[&Color] = Array::new(capacity=n)
-  for i in 0..<n {
+  for _ in 0..<n {
     arr.push(black)
   }
   Slice::new(arr)
