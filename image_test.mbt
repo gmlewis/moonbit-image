@@ -68,20 +68,20 @@ let test_images : Array[TestT] = [
 test "image" {
   for tc in test_images {
     let m = (tc.image)()
-    if not(@image.rect(0, 0, 10, 10) == m.bounds()) {
+    if !(@image.rect(0, 0, 10, 10) == m.bounds()) {
       raise TestError(
         "\{tc.name}: want bounds \{@image.rect(0,0,10,10)}, got \{m.bounds()}",
       )
       continue
     }
-    if not(cmp(m.color_model(), @color.transparent, m.at(6, 3))) {
+    if !cmp(m.color_model(), @color.transparent, m.at(6, 3)) {
       raise TestError(
         "\{tc.name}: at (6, 3), want a zero color, got \{m.at(6, 3)}",
       )
       continue
     }
     m.set(6, 3, @color.opaque_)
-    if not(cmp(m.color_model(), @color.opaque_, m.at(6, 3))) {
+    if !cmp(m.color_model(), @color.opaque_, m.at(6, 3)) {
       // Note that this test passes for targets `js` and `wasm-gc` but fails for `native`:
       let cm = m.color_model()
       let c0 = @color.opaque_
@@ -93,31 +93,31 @@ test "image" {
       )
       continue
     }
-    if not(m.sub_image(@image.rect(6, 3, 7, 4)).opaque_()) {
+    if !m.sub_image(@image.rect(6, 3, 7, 4)).opaque_() {
       raise TestError("\{tc.name}: at (6, 3) was not opaque")
       continue
     }
     let m = m.sub_image(@image.rect(3, 2, 9, 8))
-    if not(@image.rect(3, 2, 9, 8) == m.bounds()) {
+    if !(@image.rect(3, 2, 9, 8) == m.bounds()) {
       raise TestError(
         "\{tc.name}: sub-image want bounds \{@image.rect(3, 2, 9, 8)}, got \{m.bounds()}",
       )
       continue
     }
-    if not(cmp(m.color_model(), @color.opaque_, m.at(6, 3))) {
+    if !cmp(m.color_model(), @color.opaque_, m.at(6, 3)) {
       raise TestError(
         "\{tc.name}: sub-image at (6, 3), want a non-zero color, got \{m.at(6, 3)}",
       )
       continue
     }
-    if not(cmp(m.color_model(), @color.transparent, m.at(3, 3))) {
+    if !cmp(m.color_model(), @color.transparent, m.at(3, 3)) {
       raise TestError(
         "\{tc.name}: sub-image at (3, 3), want a zero color, got \{m.at(6, 3)}",
       )
       continue
     }
     m.set(3, 3, @color.opaque_)
-    if not(cmp(m.color_model(), @color.opaque_, m.at(3, 3))) {
+    if !cmp(m.color_model(), @color.opaque_, m.at(3, 3)) {
       raise TestError(
         "\{tc.name}: sub-image at (3, 3), want a non-zero color, got \{m.at(6, 3)}",
       )
@@ -191,7 +191,7 @@ test "new xxx bad rectangle" {
           r.max.y = 27
         }
         let got = call(tc.f, r)
-        let want = not(neg_dx) && not(neg_dy)
+        let want = !neg_dx && !neg_dy
         if got != want {
           raise TestError(
             "\{tc.name}::new: neg_dx=\{neg_dx}, neg_dy=\{neg_dy}: got \{got}, want \{want}",
@@ -204,7 +204,7 @@ test "new xxx bad rectangle" {
     // (panic), due to overflow.
     let got = call(tc.f, Rectangle::{
       min: @image.pt(0, 0),
-      max: @image.pt(@int.max_value, @int.max_value),
+      max: @image.pt(@int.MAX_VALUE, @int.MAX_VALUE),
     })
     if got {
       raise TestError("\{tc.name}::new: overflow: got ok, want !ok")
@@ -313,7 +313,7 @@ test "16 bits per color channel" {
 
 // 		// Check that RGBA64At(x, y) is equivalent to At(x, y).rgba().
 // 		rgba64Image, ok := tc.(RGBA64Image)
-// 		if not(ok ) {
+// 		if !(ok ) {
 // 			raise TestError("%T is not an RGBA64Image", tc)
 // 			continue
 // 		}

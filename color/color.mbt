@@ -651,7 +651,7 @@ pub fn Palette::index(self : Palette, c : &Color) -> Int {
 
   let (cr, cg, cb, ca) = c.rgba()
   let mut ret = 0
-  let mut best_sum = @uint.max_value
+  let mut best_sum = @uint.MAX_VALUE
   for i, v in self.0 {
     let (vr, vg, vb, va) = v.rgba()
     let sum = sq_diff(cr, vr) +

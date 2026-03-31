@@ -334,7 +334,7 @@ test "dimension overflow" {
         None =>
           raise TestError("i=\{i}: decode_config: got nil error, want non-nil")
         Some(e) =>
-          if not(e.to_string().contains("unsupported")) {
+          if !e.to_string().contains("unsupported") {
             raise TestError(
               "decode: got \{err}, want non-nil unsupported error",
             )

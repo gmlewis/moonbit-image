@@ -522,7 +522,7 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
         let _ = r.close()
         return (img, err)
       }
-      if not(image_pass.empty()) {
+      if !image_pass.empty() {
         merge_pass_into(img, image_pass, pass)
       }
     }
@@ -586,7 +586,7 @@ fn Decoder::read_image_pass(
   //
   let mut width = self.width
   let mut height = self.height
-  if self.interlace == IT_ADAM7.to_int() && not(allocate_only) {
+  if self.interlace == IT_ADAM7.to_int() && !allocate_only {
     let p = interlacing[pass]
     // Add the multiplication factor and subtract one, effectively rounding up.
     width = (width - p.x_offset + p.x_factor - 1) / p.x_factor

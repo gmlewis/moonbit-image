@@ -37,7 +37,7 @@ async fn main {
     }
 
     // Compare
-    if not(compare_images(jpeg_img, png_img)) {
+    if !compare_images(jpeg_img, png_img) {
       println("Comparison failed for \{jpeg_path}")
       total_failed += 1
     } else {

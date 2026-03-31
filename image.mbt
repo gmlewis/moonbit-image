@@ -182,7 +182,7 @@ pub impl Image for RGBA with at(self, x, y) {
 
 ///|
 pub fn RGBA::rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -199,7 +199,7 @@ pub fn RGBA::rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn RGBA::rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.RGBA::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -225,7 +225,7 @@ pub fn RGBA::op_set(self : RGBA, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for RGBA with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -243,7 +243,7 @@ pub fn RGBA::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -255,7 +255,7 @@ pub fn RGBA::set_rgba64(
 
 ///|
 pub fn RGBA::set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -378,7 +378,7 @@ pub impl Image for RGBA64 with at(self, x, y) {
 
 ///|
 pub fn RGBA64::rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -403,7 +403,7 @@ pub fn RGBA64::op_set(self : RGBA64, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for RGBA64 with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -425,7 +425,7 @@ pub fn RGBA64::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -558,7 +558,7 @@ pub fn NRGBA::rgba64_at(self : NRGBA, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn NRGBA::nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.NRGBA::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -584,7 +584,7 @@ pub fn NRGBA::op_set(self : NRGBA, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for NRGBA with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -602,7 +602,7 @@ pub fn NRGBA::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let mut r = c.r
@@ -627,7 +627,7 @@ pub fn NRGBA::set_nrgba(
   y : Int,
   c : @color.NRGBA,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -756,7 +756,7 @@ pub fn NRGBA64::rgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn NRGBA64::nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.NRGBA64::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -781,7 +781,7 @@ pub fn NRGBA64::op_set(self : NRGBA64, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for NRGBA64 with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -803,7 +803,7 @@ pub fn NRGBA64::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let mut r = c.r
@@ -832,7 +832,7 @@ pub fn NRGBA64::set_nrgba64(
   y : Int,
   c : @color.NRGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -966,7 +966,7 @@ pub fn Alpha::rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn Alpha::alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.Alpha::new(0)
   }
   let i = self.pix_offset(x, y)
@@ -987,7 +987,7 @@ pub fn Alpha::op_set(self : Alpha, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for Alpha with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1002,7 +1002,7 @@ pub fn Alpha::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1016,7 +1016,7 @@ pub fn Alpha::set_alpha(
   y : Int,
   c : @color.Alpha,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1142,7 +1142,7 @@ pub fn Alpha16::rgba64_at(self : Alpha16, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn Alpha16::alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.Alpha16::new(0)
   }
   let i = self.pix_offset(x, y)
@@ -1164,7 +1164,7 @@ pub fn Alpha16::op_set(self : Alpha16, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for Alpha16 with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1180,7 +1180,7 @@ pub fn Alpha16::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1195,7 +1195,7 @@ pub fn Alpha16::set_alpha16(
   y : Int,
   c : @color.Alpha16,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1323,7 +1323,7 @@ pub fn Gray::rgba64_at(self : Gray, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn Gray::gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.Gray::new(0)
   }
   let i = self.pix_offset(x, y)
@@ -1344,7 +1344,7 @@ pub fn Gray::op_set(self : Gray, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for Gray with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1359,7 +1359,7 @@ pub fn Gray::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   // This formula is the same as in color.grayModel.
@@ -1370,7 +1370,7 @@ pub fn Gray::set_rgba64(
 
 ///|
 pub fn Gray::set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1482,7 +1482,7 @@ pub fn Gray16::rgba64_at(self : Gray16, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn Gray16::gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.Gray16::new(0)
   }
   let i = self.pix_offset(x, y)
@@ -1504,7 +1504,7 @@ pub fn Gray16::op_set(self : Gray16, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for Gray16 with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1520,7 +1520,7 @@ pub fn Gray16::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   // This formula is the same as in color.gray16Model.
@@ -1537,7 +1537,7 @@ pub fn Gray16::set_gray16(
   y : Int,
   c : @color.Gray16,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1650,7 +1650,7 @@ pub fn CMYK::rgba64_at(self : CMYK, x : Int, y : Int) -> @color.RGBA64 {
 
 ///|
 pub fn CMYK::cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.CMYK::new(0, 0, 0, 0)
   }
   let i = self.pix_offset(x, y)
@@ -1671,7 +1671,7 @@ pub impl Image for CMYK with pix_offset(self, x, y) {
 
 ///|
 pub impl Image for CMYK with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1689,7 +1689,7 @@ pub fn CMYK::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let (cc, mm, yy, kk) = @color.rgb_to_cmyk(
@@ -1706,7 +1706,7 @@ pub fn CMYK::set_rgba64(
 
 ///|
 pub fn CMYK::set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -1819,7 +1819,7 @@ pub impl Image for YCbCr with bounds(self) {
 
 ///|
 pub impl Image for YCbCr with at(self, x, y) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return @color.black
   }
   let yi = (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
@@ -1839,7 +1839,7 @@ pub impl Image for YCbCr with at(self, x, y) {
 
 ///|
 pub impl Image for YCbCr with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let yi = (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
@@ -1989,7 +1989,7 @@ pub impl Image for Paletted with at(self, x, y) {
   if self.palette.0.length() == 0 {
     return @color.black // nil
   }
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return self.palette.0[0]
   }
   let i = self.pix_offset(x, y)
@@ -2002,7 +2002,7 @@ pub fn Paletted::rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
   let mut c : &@color.Color = @color.black
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     c = self.palette.0[0]
   } else {
     let i = self.pix_offset(x, y)
@@ -2026,7 +2026,7 @@ pub fn Paletted::op_set(self : Paletted, p : Point, c : &@color.Color) -> Unit {
 
 ///|
 pub impl Image for Paletted with set(self, x, y, c) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -2040,7 +2040,7 @@ pub fn Paletted::set_rgba64(
   y : Int,
   c : @color.RGBA64,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -2049,7 +2049,7 @@ pub fn Paletted::set_rgba64(
 
 ///|
 pub impl Image for Paletted with color_index_at(self, x, y) {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return 0
   }
   let i = self.pix_offset(x, y)
@@ -2063,7 +2063,7 @@ pub fn Paletted::set_color_index(
   y : Int,
   index : Byte,
 ) -> Unit {
-  if not(pt(x, y).is_in(self.rect)) {
+  if !pt(x, y).is_in(self.rect) {
     return
   }
   let i = self.pix_offset(x, y)
@@ -2114,7 +2114,7 @@ pub impl Image for Paletted with opaque_(self) {
     i1 += self.stride
   }
   for i, c in self.palette.0 {
-    if not(present[i]) {
+    if !present[i] {
       continue
     }
     let (_, _, _, a) = c.rgba()

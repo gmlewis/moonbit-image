@@ -11,7 +11,7 @@ using @io {type IOError}
 ///|
 fn diff(m0 : &@image.Image, m1 : &@image.Image) -> TestError? {
   let (b0, b1) = (m0.bounds(), m1.bounds())
-  if not(b0.size() == b1.size()) {
+  if !(b0.size() == b1.size()) {
     return Some(TestError("dimensions differ: \{b0} vs \{b1}"))
   }
   let dx = b1.min.x - b0.min.x

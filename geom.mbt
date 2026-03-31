@@ -279,8 +279,8 @@ pub impl Eq for Rectangle with equal(self, s) {
 ///|
 /// overlaps reports whether r and s have a non-empty intersection.
 pub fn Rectangle::overlaps(self : Rectangle, s : Rectangle) -> Bool {
-  not(self.empty()) &&
-  not(s.empty()) &&
+  !self.empty() &&
+  !s.empty() &&
   self.min.x < s.max.x &&
   s.min.x < self.max.x &&
   self.min.y < s.max.y &&
@@ -371,7 +371,7 @@ pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
     return -1
   }
   let v = x.to_int64() * y.to_int64() * z.to_int64()
-  if v > @int.max_value.to_int64() || v < 0 {
+  if v > @int.MAX_VALUE.to_int64() || v < 0 {
     return -1
   }
   v.to_int()
