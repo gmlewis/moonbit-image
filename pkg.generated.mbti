@@ -16,7 +16,8 @@ pub fn pt(Int, Int) -> Point
 pub fn rect(Int, Int, Int, Int) -> Rectangle
 
 // Errors
-type SizeError derive(Eq, Show)
+type SizeError derive(Eq)
+pub impl Show for SizeError
 
 // Types and methods
 pub(all) struct Alpha {
@@ -148,13 +149,14 @@ pub impl Image for Paletted
 pub(all) struct Point {
   mut x : Int
   mut y : Int
-} derive(Eq, Show)
+} derive(Eq)
 pub fn Point::div(Self, Int) -> Self
 pub fn Point::is_in(Self, Rectangle) -> Bool
 pub fn Point::mod(Self, Rectangle) -> Self
 pub fn Point::mul(Self, Int) -> Self
 pub fn Point::to_string(Self) -> String
 pub impl Add for Point
+pub impl Show for Point
 pub impl Sub for Point
 
 pub(all) struct RGBA {
@@ -188,7 +190,7 @@ pub impl Image for RGBA64
 pub(all) struct Rectangle {
   min : Point
   max : Point
-} derive(Show)
+}
 pub fn Rectangle::add(Self, Point) -> Self
 pub fn Rectangle::canon(Self) -> Self
 pub fn Rectangle::copy(Self) -> Self
@@ -207,6 +209,7 @@ pub fn Rectangle::to_string(Self) -> String
 pub fn Rectangle::union(Self, Self) -> Self
 pub impl Image for Rectangle
 pub impl Eq for Rectangle
+pub impl Show for Rectangle
 
 pub(all) struct YCbCr {
   y : @io.Slice[Byte]
@@ -227,7 +230,7 @@ pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling440
   YCbCrSubsampling411
   YCbCrSubsampling410
-} derive(Eq, Show)
+} derive(Eq)
 
 // Type aliases
 

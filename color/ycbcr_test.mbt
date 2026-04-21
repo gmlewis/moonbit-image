@@ -16,7 +16,17 @@ fn delta(x : Byte, y : Byte) -> Byte {
 ///|
 suberror EqError {
   EqError(String)
-} derive(Show)
+}
+
+///|
+pub impl Show for EqError with output(self, logger) {
+  let EqError(err) = self
+  logger.write_string(
+    (
+      $|EqError("\{err}")
+    ),
+  )
+}
 
 ///|
 fn eq(c0 : &@color.Color, c1 : &@color.Color) -> EqError? {

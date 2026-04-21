@@ -98,7 +98,17 @@ pub(open) trait RGBA64Image {
 ///|
 suberror SizeError {
   SizeError(String)
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for SizeError with output(self, logger) {
+  let SizeError(err) = self
+  logger.write_string(
+    (
+      $|SizeError("\{err}")
+    ),
+  )
+}
 
 ///|
 // pixel_buffer_length returns the length of the Slice[Byte] typed pix slice field
@@ -1761,7 +1771,7 @@ pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling440
   YCbCrSubsampling411
   YCbCrSubsampling410
-} derive(Show, Eq)
+} derive(Eq)
 
 ///|
 /// YCbCr is an in-memory image of Y'CbCr colors.

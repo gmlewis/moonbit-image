@@ -174,7 +174,27 @@ pub(all) struct YCbCr {
   y : Byte
   cb : Byte
   cr : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for YCbCr with output(self, logger) {
+  logger.write_string(
+    (
+      $|{y: \{self.y}, cb: \{self.cb}, cr: \{self.cr}}
+    ),
+  )
+}
+
+///|
+test "YCbCr show interface" {
+  let c = YCbCr::new(1, 2, 3)
+  inspect(
+    c,
+    content=(
+      #|{y: b'\x01', cb: b'\x02', cr: b'\x03'}
+    ),
+  )
+}
 
 ///|
 /// `YCbCr` satisfies the `Color` trait.
@@ -293,7 +313,27 @@ pub(all) struct NYCbCrA {
   cb : Byte
   cr : Byte
   a : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for NYCbCrA with output(self, logger) {
+  logger.write_string(
+    (
+      $|{y: \{self.y}, cb: \{self.cb}, cr: \{self.cr}, a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "NYCbCrA show interface" {
+  let c = NYCbCrA::new(1, 2, 3, 255)
+  inspect(
+    c,
+    content=(
+      #|{y: b'\x01', cb: b'\x02', cr: b'\x03', a: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `NYCbCrA` satisfies the `Color` trait.
@@ -446,7 +486,27 @@ pub(all) struct CMYK {
   m : Byte
   y : Byte
   k : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for CMYK with output(self, logger) {
+  logger.write_string(
+    (
+      $|{c: \{self.c}, m: \{self.m}, y: \{self.y}, k: \{self.k}}
+    ),
+  )
+}
+
+///|
+test "CMYK show interface" {
+  let c = CMYK::new(1, 2, 3, 255)
+  inspect(
+    c,
+    content=(
+      #|{c: b'\x01', m: b'\x02', y: b'\x03', k: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `CMYK` satisfies the `Color` trait.

@@ -10,7 +10,28 @@
 pub(all) struct Point {
   mut x : Int
   mut y : Int
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for Point with output(self, logger) {
+  let { x, y } = self
+  logger.write_string(
+    (
+      $|{x: \{x}, y: \{y}}
+    ),
+  )
+}
+
+///|
+test "Point show interface" {
+  let p = pt(3, 4)
+  inspect(
+    p,
+    content=(
+      #|{x: 3, y: 4}
+    ),
+  )
+}
 
 ///|
 /// to_string returns a string representation of p like "(3,4)".
@@ -83,7 +104,28 @@ pub fn pt(x : Int, y : Int) -> Point {
 pub(all) struct Rectangle {
   min : Point
   max : Point
-} derive(Show)
+}
+
+///|
+pub impl Show for Rectangle with output(self, logger) {
+  let { min, max } = self
+  logger.write_string(
+    (
+      $|{min: \{min}, max: \{max}}
+    ),
+  )
+}
+
+///|
+test "Rectangle show interface" {
+  let r = rect(3, 4, 5, 6)
+  inspect(
+    r,
+    content=(
+      #|{min: {x: 3, y: 4}, max: {x: 5, y: 6}}
+    ),
+  )
+}
 
 ///|
 /// `Rectangle` satisfies the `Image` trait.

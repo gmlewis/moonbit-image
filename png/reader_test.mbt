@@ -13,7 +13,17 @@ using @io {type Slice}
 ///|
 suberror TestError {
   TestError(String)
-} derive(Show)
+}
+
+///|
+pub impl Show for TestError with output(self, logger) {
+  let TestError(err) = self
+  logger.write_string(
+    (
+      $|TestError("\{err}")
+    ),
+  )
+}
 
 ///|
 // header copied here to enable black-box testing.

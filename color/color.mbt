@@ -56,7 +56,27 @@ pub(all) struct RGBA {
   g : Byte
   b : Byte
   a : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for RGBA with output(self, logger) {
+  logger.write_string(
+    (
+      $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "RGBA show usage" {
+  let c = RGBA::new(1, 2, 3, 255)
+  inspect(
+    c,
+    content=(
+      #|{r: b'\x01', g: b'\x02', b: b'\x03', a: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `RGBA` satisfies the `Color` trait.
@@ -97,7 +117,27 @@ pub(all) struct RGBA64 {
   g : UInt // 16 bits
   b : UInt // 16 bits
   a : UInt // 16 bits
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for RGBA64 with output(self, logger) {
+  logger.write_string(
+    (
+      $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "RGBA64 show usage" {
+  let c = RGBA64::new(1, 2, 3, 65535)
+  inspect(
+    c,
+    content=(
+      #|{r: 1, g: 2, b: 3, a: 65535}
+    ),
+  )
+}
 
 ///|
 /// `RGBA64` satisfies the `Color` trait.
@@ -130,7 +170,27 @@ pub(all) struct NRGBA {
   g : Byte
   b : Byte
   a : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for NRGBA with output(self, logger) {
+  logger.write_string(
+    (
+      $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "NRGBA show usage" {
+  let c = NRGBA::new(1, 2, 3, 255)
+  inspect(
+    c,
+    content=(
+      #|{r: b'\x01', g: b'\x02', b: b'\x03', a: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `NRGBA` satisfies the `Color` trait.
@@ -175,7 +235,27 @@ pub(all) struct NRGBA64 {
   g : UInt // 16 bits
   b : UInt // 16 bits
   a : UInt // 16 bits
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for NRGBA64 with output(self, logger) {
+  logger.write_string(
+    (
+      $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "NRGBA64 show usage" {
+  let c = NRGBA64::new(1, 2, 3, 65535)
+  inspect(
+    c,
+    content=(
+      #|{r: 1, g: 2, b: 3, a: 65535}
+    ),
+  )
+}
 
 ///|
 /// `NRGBA64` satisfies the `Color` trait.
@@ -208,7 +288,27 @@ pub impl Color for NRGBA64 with rgba(self) {
 /// Alpha represents an 8-bit alpha color.
 pub(all) struct Alpha {
   a : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for Alpha with output(self, logger) {
+  logger.write_string(
+    (
+      $|{a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "Alpha show usage" {
+  let c = Alpha::new(255)
+  inspect(
+    c,
+    content=(
+      #|{a: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `Alpha` satisfies the `Color` trait.
@@ -240,7 +340,27 @@ pub impl Color for Alpha with rgba(self) {
 /// Alpha16 represents a 16-bit alpha color.
 pub(all) struct Alpha16 {
   a : UInt // 16 bits
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for Alpha16 with output(self, logger) {
+  logger.write_string(
+    (
+      $|{a: \{self.a}}
+    ),
+  )
+}
+
+///|
+test "Alpha16 show usage" {
+  let c = Alpha16::new(65535)
+  inspect(
+    c,
+    content=(
+      #|{a: 65535}
+    ),
+  )
+}
 
 ///|
 /// `Alpha16` satisfies the `Color` trait.
@@ -270,7 +390,27 @@ pub impl Color for Alpha16 with rgba(self) {
 /// Gray represents an 8-bit grayscale color.
 pub(all) struct Gray {
   y : Byte
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for Gray with output(self, logger) {
+  logger.write_string(
+    (
+      $|{y: \{self.y}}
+    ),
+  )
+}
+
+///|
+test "Gray show usage" {
+  let c = Gray::new(255)
+  inspect(
+    c,
+    content=(
+      #|{y: b'\xFF'}
+    ),
+  )
+}
 
 ///|
 /// `Gray` satisfies the `Color` trait.
@@ -302,7 +442,27 @@ pub impl Color for Gray with rgba(self) {
 /// Gray16 represents a 16-bit grayscale color.
 pub(all) struct Gray16 {
   y : UInt // 16 bits
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for Gray16 with output(self, logger) {
+  logger.write_string(
+    (
+      $|{y: \{self.y}}
+    ),
+  )
+}
+
+///|
+test "Gray16 show usage" {
+  let c = Gray16::new(65535)
+  inspect(
+    c,
+    content=(
+      #|{y: 65535}
+    ),
+  )
+}
 
 ///|
 /// `Gray16` satisfies the `Color` trait.
