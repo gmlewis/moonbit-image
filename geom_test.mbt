@@ -15,7 +15,7 @@ pub impl Show for TestError with output(self, logger) {
   let TestError(err) = self
   logger.write_string(
     (
-      $|TestError("\{err}")
+      $|TestError(\{err.escape(quote=true)})
     ),
   )
 }

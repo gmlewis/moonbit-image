@@ -105,7 +105,7 @@ pub impl Show for SizeError with output(self, logger) {
   let SizeError(err) = self
   logger.write_string(
     (
-      $|SizeError("\{err}")
+      $|SizeError(\{err.escape(quote=true)})
     ),
   )
 }

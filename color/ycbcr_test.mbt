@@ -23,7 +23,7 @@ pub impl Show for EqError with output(self, logger) {
   let EqError(err) = self
   logger.write_string(
     (
-      $|EqError("\{err}")
+      $|EqError(\{err.escape(quote=true)})
     ),
   )
 }
