@@ -68,7 +68,7 @@ test "training idat chunks" {
   //
   let (_, err) = @png.decode(data)
   if err != None {
-    raise TestError("decoding valid image: \{err}")
+    raise TestError("decoding valid image: \{err.unwrap().to_repr()}")
   }
 
   // Non-zero-length trailing IDAT chunks should be ignored (recoverable error).
@@ -82,7 +82,7 @@ test "training idat chunks" {
   guard data.write_bytes(iend) is (_, None)
   let (img, err) = @png.decode(data)
   if err != None {
-    raise TestError("trailing IDAT not ignored: \{err}")
+    raise TestError("trailing IDAT not ignored: \{err.unwrap().to_repr()}")
   }
   if img.at(0, 0) == @color.Gray::new(0) {
     raise TestError("decoded image from trailing IDAT chunk")
@@ -127,14 +127,14 @@ test "multiple rns chunks" {
     match i {
       0 => {
         if err != None {
-          raise TestError("\{i} tRNS chunks: \{err}")
+          raise TestError("\{i} tRNS chunks: \{err.unwrap().to_repr()}")
           continue
         }
         want = @color.RGBA::new(0xff, 0x00, 0x00, 0xff)
       }
       1 => {
         if err != None {
-          raise TestError("\{i} tRNS chunks: \{err}")
+          raise TestError("\{i} tRNS chunks: \{err.unwrap().to_repr()}")
           continue
         }
         want = @color.NRGBA::new(0xff, 0x00, 0x00, 0x7f)
@@ -200,7 +200,7 @@ test "gray 8 transparent" {
   guard b.write_bytes(Bytes::from_array(data)) is (_, None)
   let (m, err) = @png.decode(b)
   if err != None {
-    raise TestError("decode: \{err}")
+    raise TestError("decode: \{err.unwrap().to_repr()}")
   }
   let hex = "0123456789abcdef"
   let got = StringBuilder::new()
@@ -345,14 +345,12 @@ test "dimension overflow" {
           raise TestError("i=\{i}: decode_config: got nil error, want non-nil")
         Some(e) =>
           if !e.to_string().contains("unsupported") {
-            raise TestError(
-              "decode: got \{err}, want non-nil unsupported error",
-            )
+            raise TestError("decode: got \{e}, want non-nil unsupported error")
           }
       }
       continue
     } else if err != None {
-      raise TestError("i=\{i}: decode_config: \{err}")
+      raise TestError("i=\{i}: decode_config: \{err.unwrap().to_repr()}")
       continue
     } else if cfg.width != tc.width {
       raise TestError("i=\{i}: width: got \{cfg.width}, want \{tc.width}")
@@ -444,7 +442,7 @@ test "decode paletted with transparency" {
     is (_, None)
   let (cfg, err) = @png.decode_config(buf)
   if err != None {
-    raise TestError("decode_config: \{err}")
+    raise TestError("decode_config: \{err.unwrap().to_repr()}")
   }
   assert_eq(cfg.color_model.name(), "Paletted")
   // MoonBit has no reflection.

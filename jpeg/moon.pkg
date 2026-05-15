@@ -3,4 +3,5 @@ import {
   "gmlewis/image/color",
   "gmlewis/io",
   "moonbitlang/core/builtin",
+  "moonbitlang/core/debug",
 }

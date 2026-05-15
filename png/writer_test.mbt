@@ -118,7 +118,7 @@ test "writer paletted" {
         let (n, err) = @io.copy(@io.discard, r)
         if err != None {
           raise TestError(
-            "\{test_name}: got error while reading image data: \{err}",
+            "\{test_name}: got error while reading image data: \{err.unwrap().to_repr()}",
           )
         }
         if n != tc.datalen.to_int64() {

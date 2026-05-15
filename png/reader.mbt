@@ -542,7 +542,7 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
   }
   if err != None && err != Some(@io.eof) {
     let _ = r.close()
-    return (img, Some(format_error(err.to_string())))
+    return (img, Some(format_error(err.unwrap().to_string())))
   }
   if n != 0 || self.idat_length != 0 {
     let _ = r.close()

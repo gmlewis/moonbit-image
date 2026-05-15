@@ -16,7 +16,7 @@ test "decode 1x1 black jpeg" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (img, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="1")
   inspect(img.bounds().dy(), content="1")
   let color = @color.RGBA::from(img.at(0, 0))
@@ -57,7 +57,7 @@ test "decode 16x16 4:2:0 black jpeg" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (img, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="16")
   inspect(img.bounds().dy(), content="16")
   let color = @color.RGBA::from(img.at(0, 0))
@@ -71,7 +71,7 @@ test "decode missing SOI" {
   let jpeg_data : Array[Byte] = [0x00, 0x00]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"eof\"))")
+  @debug.debug_inspect(err, content="Some(IOError(\"eof\"))")
 }
 
 ///|
@@ -100,7 +100,7 @@ test "decode unsupported precision" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"unsupported precision\"))")
+  @debug.debug_inspect(err, content="Some(IOError(\"unsupported precision\"))")
 }
 
 ///|
@@ -122,7 +122,7 @@ test "decode 1x1 progressive black jpeg" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (img, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="1")
   inspect(img.bounds().dy(), content="1")
   let color = @color.RGBA::from(img.at(0, 0))
@@ -162,7 +162,7 @@ test "decode 16x8 4:2:2 black jpeg" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (img, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="16")
   inspect(img.bounds().dy(), content="8")
   let color = @color.RGBA::from(img.at(0, 0))
@@ -202,7 +202,7 @@ test "decode 8x16 4:4:0 black jpeg" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (img, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="8")
   inspect(img.bounds().dy(), content="16")
   let color = @color.RGBA::from(img.at(0, 0))
@@ -229,7 +229,7 @@ test "decode with DRI" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
 }
 
 ///|
@@ -237,7 +237,7 @@ test "decode bad DRI length" {
   let jpeg_data : Array[Byte] = [0xFF, 0xD8, 0xFF, 0xDD, 0x00, 0x03, 0x00]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"bad DRI length\"))")
+  @debug.debug_inspect(err, content="Some(IOError(\"bad DRI length\"))")
 }
 
 ///|
@@ -245,7 +245,10 @@ test "decode unsupported DQT precision" {
   let jpeg_data : Array[Byte] = [0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x10] // pq=1 (16-bit)
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"unsupported DQT precision\"))")
+  @debug.debug_inspect(
+    err,
+    content="Some(IOError(\"unsupported DQT precision\"))",
+  )
 }
 
 ///|
@@ -266,7 +269,7 @@ test "decode skip COM marker" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="None")
+  @debug.debug_inspect(err, content="None")
 }
 
 ///|
@@ -277,7 +280,10 @@ test "decode unsupported number of components" {
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
   let (_, err) = decode(buf)
-  inspect(err, content="Some(IOError(\"unsupported number of components\"))")
+  @debug.debug_inspect(
+    err,
+    content="Some(IOError(\"unsupported number of components\"))",
+  )
 }
 
 ///|

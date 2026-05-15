@@ -8,7 +8,7 @@
 ///|
 suberror TestError {
   TestError(String)
-} derive(Eq)
+} derive(Debug, Eq)
 
 ///|
 pub impl Show for TestError with output(self, logger) {
@@ -74,11 +74,15 @@ test "every point in f is in g" {
       let a = r.intersect(s)
       let err = test_in(a, r)
       if err != None {
-        raise TestError("Intersect: r=\{r}, s=\{s}, a\{a}, a not in r: \{err}")
+        raise TestError(
+          "Intersect: r=\{r}, s=\{s}, a\{a}, a not in r: \{err.unwrap().to_repr()}",
+        )
       }
       let err = test_in(a, s)
       if err != None {
-        raise TestError("Intersect: r=\{r}, s=\{s}, a\{a}, a not in s: \{err}")
+        raise TestError(
+          "Intersect: r=\{r}, s=\{s}, a\{a}, a not in s: \{err.unwrap().to_repr()}",
+        )
       }
       let (is_zero, overlaps) = (a == @image.Rectangle::new(), r.overlaps(s))
       if is_zero == overlaps {
@@ -112,11 +116,15 @@ test "every point in f is in g" {
       let a = r.union(s)
       let err = test_in(r, a)
       if err != None {
-        raise TestError("Union: r=\{r}, s=\{s}, a\{a}, r not in a: \{err}")
+        raise TestError(
+          "Union: r=\{r}, s=\{s}, a\{a}, r not in a: \{err.unwrap().to_repr()}",
+        )
       }
       let err = test_in(s, a)
       if err != None {
-        raise TestError("Union: r=\{r}, s=\{s}, a\{a}, s not in a: \{err}")
+        raise TestError(
+          "Union: r=\{r}, s=\{s}, a\{a}, s not in a: \{err.unwrap().to_repr()}",
+        )
       }
       if a.empty() {
         // You can't get any smaller than a.
