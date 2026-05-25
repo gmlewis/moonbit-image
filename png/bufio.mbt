@@ -109,7 +109,7 @@ fn ReaderSize::read_err(self : ReaderSize) -> IOError? {
 /// To read exactly len(p) bytes, use io.ReadFull(b, p).
 /// If the underlying [Reader] can return a non-zero count with io.EOF,
 /// then this Read method can do so as well; see the [io.Reader] docs.
-impl @flate.Reader for ReaderSize with read(self, p) {
+impl @flate.Reader for ReaderSize with fn read(self, p) {
   let mut n = p.length()
   if n == 0 {
     if self.buffered() > 0 {
@@ -159,7 +159,7 @@ impl @flate.Reader for ReaderSize with read(self, p) {
 ///|
 /// read_byte reads and returns a single byte.
 /// If no byte is available, returns an error.
-impl @flate.Reader for ReaderSize with read_byte(self) {
+impl @flate.Reader for ReaderSize with fn read_byte(self) {
   // self.lastRuneSize = -1
   while self.r == self.w {
     if self.err != None {

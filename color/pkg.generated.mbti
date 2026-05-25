@@ -174,17 +174,17 @@ pub impl Show for YCbCr
 
 // Traits
 pub(open) trait Color {
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
-  model(Self) -> String
-  raw(Self) -> (UInt, UInt, UInt, UInt)
+  fn rgba(Self) -> (UInt, UInt, UInt, UInt)
+  fn model(Self) -> String
+  fn raw(Self) -> (UInt, UInt, UInt, UInt)
 }
 pub fn &Color::to_string(Self) -> String
 pub impl Eq for &Color
 pub impl Show for &Color
 
 pub(open) trait Model {
-  convert(Self, &Color) -> &Color
-  name(Self) -> String
-  get_palette(Self) -> Palette?
+  fn convert(Self, &Color) -> &Color
+  fn name(Self) -> String
+  fn get_palette(Self) -> Palette?
 }
 

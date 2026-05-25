@@ -177,7 +177,7 @@ pub(all) struct YCbCr {
 } derive(Eq)
 
 ///|
-pub impl Show for YCbCr with output(self, logger) {
+pub impl Show for YCbCr with fn output(self, logger) {
   logger.write_string(
     (
       $|{y: \{self.y}, cb: \{self.cb}, cr: \{self.cr}}
@@ -220,17 +220,17 @@ pub fn YCbCr::from(c : &Color) -> YCbCr {
 }
 
 ///|
-pub impl Color for YCbCr with model(_self) {
+pub impl Color for YCbCr with fn model(_self) {
   "YCbCr"
 }
 
 ///|
-pub impl Color for YCbCr with raw(self) {
+pub impl Color for YCbCr with fn raw(self) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), 0)
 }
 
 ///|
-pub impl Color for YCbCr with rgba(self) {
+pub impl Color for YCbCr with fn rgba(self) {
   // This code is a copy of the y_cb_cr_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff]. There is a
   // subtle difference between doing this and having YCbCr satisfy the Color
@@ -316,7 +316,7 @@ pub(all) struct NYCbCrA {
 } derive(Eq)
 
 ///|
-pub impl Show for NYCbCrA with output(self, logger) {
+pub impl Show for NYCbCrA with fn output(self, logger) {
   logger.write_string(
     (
       $|{y: \{self.y}, cb: \{self.cb}, cr: \{self.cr}, a: \{self.a}}
@@ -345,17 +345,17 @@ pub fn NYCbCrA::new(y : Byte, cb : Byte, cr : Byte, a : Byte) -> NYCbCrA {
 }
 
 ///|
-pub impl Color for NYCbCrA with model(_self) {
+pub impl Color for NYCbCrA with fn model(_self) {
   "NYCbCrA"
 }
 
 ///|
-pub impl Color for NYCbCrA with raw(self) {
+pub impl Color for NYCbCrA with fn raw(self) {
   (self.y.to_uint(), self.cb.to_uint(), self.cr.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub impl Color for NYCbCrA with rgba(self) {
+pub impl Color for NYCbCrA with fn rgba(self) {
   // The first part of this method is the same as YCbCr.RGBA.
   let yy1 = self.y.to_int() * 0x10101
   let cb1 = self.cb.to_int() - 128
@@ -489,7 +489,7 @@ pub(all) struct CMYK {
 } derive(Eq)
 
 ///|
-pub impl Show for CMYK with output(self, logger) {
+pub impl Show for CMYK with fn output(self, logger) {
   logger.write_string(
     (
       $|{c: \{self.c}, m: \{self.m}, y: \{self.y}, k: \{self.k}}
@@ -518,17 +518,17 @@ pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
 }
 
 ///|
-pub impl Color for CMYK with model(_self) {
+pub impl Color for CMYK with fn model(_self) {
   "CMYK"
 }
 
 ///|
-pub impl Color for CMYK with raw(self) {
+pub impl Color for CMYK with fn raw(self) {
   (self.c.to_uint(), self.m.to_uint(), self.y.to_uint(), self.k.to_uint())
 }
 
 ///|
-pub impl Color for CMYK with rgba(self) {
+pub impl Color for CMYK with fn rgba(self) {
   // This code is a copy of the cmyk_to_rgb function above, except that it
   // returns values in the range [0, 0xffff] instead of [0, 0xff].
 

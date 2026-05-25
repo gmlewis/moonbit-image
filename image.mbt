@@ -44,30 +44,30 @@ pub fn Config::new_empty() -> Config {
 /// model.
 pub(open) trait Image {
   /// color_model returns the Image's color model.
-  color_model(Self) -> &@color.Model
+  fn color_model(Self) -> &@color.Model
   /// bounds returns the domain for which At can return non-zero color.
   /// The bounds do not necessarily contain the point (0, 0).
-  bounds(Self) -> Rectangle
+  fn bounds(Self) -> Rectangle
   /// At returns the color of the pixel at (x, y).
   /// at(bounds().min.x, bounds().min.y) returns the upper-left pixel of the grid.
   /// at(bounds().max.x-1, bounds().max.y-1) returns the lower-right one.
-  at(Self, Int, Int) -> &@color.Color
+  fn at(Self, Int, Int) -> &@color.Color
 
   // other available methods:
-  opaque_(Self) -> Bool
-  set(Self, Int, Int, &@color.Color) -> Unit
-  sub_image(Self, Rectangle) -> &Image
-  as_ycbcr(Self) -> YCbCr?
+  fn opaque_(Self) -> Bool
+  fn set(Self, Int, Int, &@color.Color) -> Unit
+  fn sub_image(Self, Rectangle) -> &Image
+  fn as_ycbcr(Self) -> YCbCr?
 
   // Because MoonBit does not have reflection, the following methods must
   // also be made available:
-  raw_data(Self) -> Slice[Byte]
-  get_bytes_per_pixel(Self) -> Int
-  get_stride(Self) -> Int
-  pix_offset(Self, Int, Int) -> Int
+  fn raw_data(Self) -> Slice[Byte]
+  fn get_bytes_per_pixel(Self) -> Int
+  fn get_stride(Self) -> Int
+  fn pix_offset(Self, Int, Int) -> Int
   /// color_index_at returns the palette index of the pixel at (x, y).
   /// It returns 0 for non-paletted images.
-  color_index_at(Self, Int, Int) -> Byte
+  fn color_index_at(Self, Int, Int) -> Byte
 }
 
 ///|
@@ -88,11 +88,11 @@ pub(open) trait RGBA64Image {
   /// equivalent to calling at(x, y).rgba() and converting the resulting
   /// 32-bit return values to a color.RGBA64, but it can avoid allocations
   /// from converting concrete color types to the color.Color trait type.
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
+  fn rgba64_at(Self, Int, Int) -> @color.RGBA64
   /// Image trait:
-  color_model(Self) -> &@color.Model
-  bounds(Self) -> Rectangle
-  at(Self, Int, Int) -> &@color.Color
+  fn color_model(Self) -> &@color.Model
+  fn bounds(Self) -> Rectangle
+  fn at(Self, Int, Int) -> &@color.Color
 }
 
 ///|
@@ -101,7 +101,7 @@ suberror SizeError {
 } derive(Eq)
 
 ///|
-pub impl Show for SizeError with output(self, logger) {
+pub impl Show for SizeError with fn output(self, logger) {
   let SizeError(err) = self
   logger.write_string(
     (
@@ -151,32 +151,32 @@ pub fn RGBA::new_empty() -> RGBA {
 }
 
 ///|
-pub impl Image for RGBA with raw_data(self) {
+pub impl Image for RGBA with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for RGBA with get_bytes_per_pixel(_self) {
+pub impl Image for RGBA with fn get_bytes_per_pixel(_self) {
   4
 }
 
 ///|
-pub impl Image for RGBA with get_stride(self) {
+pub impl Image for RGBA with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for RGBA with color_index_at(_self, _x, _y) {
+pub impl Image for RGBA with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for RGBA with color_model(_self) {
+pub impl Image for RGBA with fn color_model(_self) {
   @color.rgba_model
 }
 
 ///|
-pub impl Image for RGBA with bounds(self) {
+pub impl Image for RGBA with fn bounds(self) {
   self.rect
 }
 
@@ -186,7 +186,7 @@ pub fn RGBA::op_get(self : RGBA, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for RGBA with at(self, x, y) {
+pub impl Image for RGBA with fn at(self, x, y) {
   self.rgba_at(x, y)
 }
 
@@ -224,7 +224,7 @@ pub fn RGBA::rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for RGBA with pix_offset(self, x, y) {
+pub impl Image for RGBA with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
@@ -234,7 +234,7 @@ pub fn RGBA::op_set(self : RGBA, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for RGBA with set(self, x, y, c) {
+pub impl Image for RGBA with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -278,7 +278,7 @@ pub fn RGBA::set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for RGBA with sub_image(self, r) {
+pub impl Image for RGBA with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -291,13 +291,13 @@ pub impl Image for RGBA with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for RGBA with as_ycbcr(_self) {
+pub impl Image for RGBA with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for RGBA with opaque_(self) {
+pub impl Image for RGBA with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -347,32 +347,32 @@ pub fn RGBA64::new_empty() -> RGBA64 {
 }
 
 ///|
-pub impl Image for RGBA64 with raw_data(self) {
+pub impl Image for RGBA64 with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for RGBA64 with get_bytes_per_pixel(_self) {
+pub impl Image for RGBA64 with fn get_bytes_per_pixel(_self) {
   8
 }
 
 ///|
-pub impl Image for RGBA64 with get_stride(self) {
+pub impl Image for RGBA64 with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for RGBA64 with color_index_at(_self, _x, _y) {
+pub impl Image for RGBA64 with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for RGBA64 with color_model(_self) {
+pub impl Image for RGBA64 with fn color_model(_self) {
   @color.rgba64_model
 }
 
 ///|
-pub impl Image for RGBA64 with bounds(self) {
+pub impl Image for RGBA64 with fn bounds(self) {
   self.rect
 }
 
@@ -382,7 +382,7 @@ pub fn RGBA64::op_get(self : RGBA64, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for RGBA64 with at(self, x, y) {
+pub impl Image for RGBA64 with fn at(self, x, y) {
   self.rgba64_at(x, y)
 }
 
@@ -402,7 +402,7 @@ pub fn RGBA64::rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for RGBA64 with pix_offset(self, x, y) {
+pub impl Image for RGBA64 with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 8
 }
 
@@ -412,7 +412,7 @@ pub fn RGBA64::op_set(self : RGBA64, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for RGBA64 with set(self, x, y, c) {
+pub impl Image for RGBA64 with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -452,7 +452,7 @@ pub fn RGBA64::set_rgba64(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for RGBA64 with sub_image(self, r) {
+pub impl Image for RGBA64 with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -465,13 +465,13 @@ pub impl Image for RGBA64 with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for RGBA64 with as_ycbcr(_self) {
+pub impl Image for RGBA64 with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for RGBA64 with opaque_(self) {
+pub impl Image for RGBA64 with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -521,32 +521,32 @@ pub fn NRGBA::new_empty() -> NRGBA {
 }
 
 ///|
-pub impl Image for NRGBA with raw_data(self) {
+pub impl Image for NRGBA with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for NRGBA with get_bytes_per_pixel(_self) {
+pub impl Image for NRGBA with fn get_bytes_per_pixel(_self) {
   4
 }
 
 ///|
-pub impl Image for NRGBA with get_stride(self) {
+pub impl Image for NRGBA with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for NRGBA with color_index_at(_self, _x, _y) {
+pub impl Image for NRGBA with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for NRGBA with color_model(_self) {
+pub impl Image for NRGBA with fn color_model(_self) {
   @color.nrgba_model
 }
 
 ///|
-pub impl Image for NRGBA with bounds(self) {
+pub impl Image for NRGBA with fn bounds(self) {
   self.rect
 }
 
@@ -556,7 +556,7 @@ pub fn NRGBA::op_get(self : NRGBA, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for NRGBA with at(self, x, y) {
+pub impl Image for NRGBA with fn at(self, x, y) {
   self.nrgba_at(x, y)
 }
 
@@ -583,7 +583,7 @@ pub fn NRGBA::nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for NRGBA with pix_offset(self, x, y) {
+pub impl Image for NRGBA with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
@@ -593,7 +593,7 @@ pub fn NRGBA::op_set(self : NRGBA, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for NRGBA with set(self, x, y, c) {
+pub impl Image for NRGBA with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -650,7 +650,7 @@ pub fn NRGBA::set_nrgba(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for NRGBA with sub_image(self, r) {
+pub impl Image for NRGBA with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -663,13 +663,13 @@ pub impl Image for NRGBA with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for NRGBA with as_ycbcr(_self) {
+pub impl Image for NRGBA with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for NRGBA with opaque_(self) {
+pub impl Image for NRGBA with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -719,32 +719,32 @@ pub fn NRGBA64::new_empty() -> NRGBA64 {
 }
 
 ///|
-pub impl Image for NRGBA64 with raw_data(self) {
+pub impl Image for NRGBA64 with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for NRGBA64 with get_bytes_per_pixel(_self) {
+pub impl Image for NRGBA64 with fn get_bytes_per_pixel(_self) {
   8
 }
 
 ///|
-pub impl Image for NRGBA64 with get_stride(self) {
+pub impl Image for NRGBA64 with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for NRGBA64 with color_index_at(_self, _x, _y) {
+pub impl Image for NRGBA64 with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for NRGBA64 with color_model(_self) {
+pub impl Image for NRGBA64 with fn color_model(_self) {
   @color.nrgba64_model
 }
 
 ///|
-pub impl Image for NRGBA64 with bounds(self) {
+pub impl Image for NRGBA64 with fn bounds(self) {
   self.rect
 }
 
@@ -754,7 +754,7 @@ pub fn NRGBA64::op_get(self : NRGBA64, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for NRGBA64 with at(self, x, y) {
+pub impl Image for NRGBA64 with fn at(self, x, y) {
   self.nrgba64_at(x, y)
 }
 
@@ -780,7 +780,7 @@ pub fn NRGBA64::nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for NRGBA64 with pix_offset(self, x, y) {
+pub impl Image for NRGBA64 with fn pix_offset(self, x, y) {
   return (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 8
 }
 
@@ -790,7 +790,7 @@ pub fn NRGBA64::op_set(self : NRGBA64, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for NRGBA64 with set(self, x, y, c) {
+pub impl Image for NRGBA64 with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -859,7 +859,7 @@ pub fn NRGBA64::set_nrgba64(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for NRGBA64 with sub_image(self, r) {
+pub impl Image for NRGBA64 with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -872,13 +872,13 @@ pub impl Image for NRGBA64 with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for NRGBA64 with as_ycbcr(_self) {
+pub impl Image for NRGBA64 with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for NRGBA64 with opaque_(self) {
+pub impl Image for NRGBA64 with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -928,32 +928,32 @@ pub fn Alpha::new_empty() -> Alpha {
 }
 
 ///|
-pub impl Image for Alpha with raw_data(self) {
+pub impl Image for Alpha with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for Alpha with get_bytes_per_pixel(_self) {
+pub impl Image for Alpha with fn get_bytes_per_pixel(_self) {
   1
 }
 
 ///|
-pub impl Image for Alpha with get_stride(self) {
+pub impl Image for Alpha with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for Alpha with color_index_at(_self, _x, _y) {
+pub impl Image for Alpha with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Alpha with color_model(_self) {
+pub impl Image for Alpha with fn color_model(_self) {
   @color.alpha_model
 }
 
 ///|
-pub impl Image for Alpha with bounds(self) {
+pub impl Image for Alpha with fn bounds(self) {
   self.rect
 }
 
@@ -963,7 +963,7 @@ pub fn Alpha::op_get(self : Alpha, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for Alpha with at(self, x, y) {
+pub impl Image for Alpha with fn at(self, x, y) {
   self.alpha_at(x, y)
 }
 
@@ -986,7 +986,7 @@ pub fn Alpha::alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for Alpha with pix_offset(self, x, y) {
+pub impl Image for Alpha with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
@@ -996,7 +996,7 @@ pub fn Alpha::op_set(self : Alpha, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for Alpha with set(self, x, y, c) {
+pub impl Image for Alpha with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1036,7 +1036,7 @@ pub fn Alpha::set_alpha(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for Alpha with sub_image(self, r) {
+pub impl Image for Alpha with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -1049,13 +1049,13 @@ pub impl Image for Alpha with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for Alpha with as_ycbcr(_self) {
+pub impl Image for Alpha with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for Alpha with opaque_(self) {
+pub impl Image for Alpha with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -1105,32 +1105,32 @@ pub fn Alpha16::new_empty() -> Alpha16 {
 }
 
 ///|
-pub impl Image for Alpha16 with raw_data(self) {
+pub impl Image for Alpha16 with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for Alpha16 with get_bytes_per_pixel(_self) {
+pub impl Image for Alpha16 with fn get_bytes_per_pixel(_self) {
   2
 }
 
 ///|
-pub impl Image for Alpha16 with get_stride(self) {
+pub impl Image for Alpha16 with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for Alpha16 with color_index_at(_self, _x, _y) {
+pub impl Image for Alpha16 with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Alpha16 with color_model(_self) {
+pub impl Image for Alpha16 with fn color_model(_self) {
   @color.alpha16_model
 }
 
 ///|
-pub impl Image for Alpha16 with bounds(self) {
+pub impl Image for Alpha16 with fn bounds(self) {
   self.rect
 }
 
@@ -1140,7 +1140,7 @@ pub fn Alpha16::op_get(self : Alpha16, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for Alpha16 with at(self, x, y) {
+pub impl Image for Alpha16 with fn at(self, x, y) {
   self.alpha16_at(x, y)
 }
 
@@ -1163,7 +1163,7 @@ pub fn Alpha16::alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for Alpha16 with pix_offset(self, x, y) {
+pub impl Image for Alpha16 with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 2
 }
 
@@ -1173,7 +1173,7 @@ pub fn Alpha16::op_set(self : Alpha16, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for Alpha16 with set(self, x, y, c) {
+pub impl Image for Alpha16 with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1216,7 +1216,7 @@ pub fn Alpha16::set_alpha16(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for Alpha16 with sub_image(self, r) {
+pub impl Image for Alpha16 with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -1229,13 +1229,13 @@ pub impl Image for Alpha16 with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for Alpha16 with as_ycbcr(_self) {
+pub impl Image for Alpha16 with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for Alpha16 with opaque_(self) {
+pub impl Image for Alpha16 with fn opaque_(self) {
   if self.rect.empty() {
     return true
   }
@@ -1285,32 +1285,32 @@ pub fn Gray::new_empty() -> Gray {
 }
 
 ///|
-pub impl Image for Gray with raw_data(self) {
+pub impl Image for Gray with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for Gray with get_bytes_per_pixel(_self) {
+pub impl Image for Gray with fn get_bytes_per_pixel(_self) {
   1
 }
 
 ///|
-pub impl Image for Gray with get_stride(self) {
+pub impl Image for Gray with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for Gray with color_index_at(_self, _x, _y) {
+pub impl Image for Gray with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Gray with color_model(_self) {
+pub impl Image for Gray with fn color_model(_self) {
   @color.gray_model
 }
 
 ///|
-pub impl Image for Gray with bounds(self) {
+pub impl Image for Gray with fn bounds(self) {
   self.rect
 }
 
@@ -1320,7 +1320,7 @@ pub fn Gray::op_get(self : Gray, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for Gray with at(self, x, y) {
+pub impl Image for Gray with fn at(self, x, y) {
   self.gray_at(x, y)
 }
 
@@ -1343,7 +1343,7 @@ pub fn Gray::gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for Gray with pix_offset(self, x, y) {
+pub impl Image for Gray with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
@@ -1353,7 +1353,7 @@ pub fn Gray::op_set(self : Gray, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for Gray with set(self, x, y, c) {
+pub impl Image for Gray with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1390,7 +1390,7 @@ pub fn Gray::set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for Gray with sub_image(self, r) {
+pub impl Image for Gray with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -1403,13 +1403,13 @@ pub impl Image for Gray with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for Gray with as_ycbcr(_self) {
+pub impl Image for Gray with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for Gray with opaque_(_self) {
+pub impl Image for Gray with fn opaque_(_self) {
   true
 }
 
@@ -1445,32 +1445,32 @@ pub fn Gray16::new_empty() -> Gray16 {
 }
 
 ///|
-pub impl Image for Gray16 with raw_data(self) {
+pub impl Image for Gray16 with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for Gray16 with get_bytes_per_pixel(_self) {
+pub impl Image for Gray16 with fn get_bytes_per_pixel(_self) {
   2
 }
 
 ///|
-pub impl Image for Gray16 with get_stride(self) {
+pub impl Image for Gray16 with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for Gray16 with color_index_at(_self, _x, _y) {
+pub impl Image for Gray16 with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Gray16 with color_model(_self) {
+pub impl Image for Gray16 with fn color_model(_self) {
   @color.gray16_model
 }
 
 ///|
-pub impl Image for Gray16 with bounds(self) {
+pub impl Image for Gray16 with fn bounds(self) {
   self.rect
 }
 
@@ -1480,7 +1480,7 @@ pub fn Gray16::op_get(self : Gray16, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for Gray16 with at(self, x, y) {
+pub impl Image for Gray16 with fn at(self, x, y) {
   self.gray16_at(x, y)
 }
 
@@ -1503,7 +1503,7 @@ pub fn Gray16::gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for Gray16 with pix_offset(self, x, y) {
+pub impl Image for Gray16 with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 2
 }
 
@@ -1513,7 +1513,7 @@ pub fn Gray16::op_set(self : Gray16, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for Gray16 with set(self, x, y, c) {
+pub impl Image for Gray16 with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1558,7 +1558,7 @@ pub fn Gray16::set_gray16(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for Gray16 with sub_image(self, r) {
+pub impl Image for Gray16 with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -1571,13 +1571,13 @@ pub impl Image for Gray16 with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for Gray16 with as_ycbcr(_self) {
+pub impl Image for Gray16 with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for Gray16 with opaque_(_self) {
+pub impl Image for Gray16 with fn opaque_(_self) {
   true
 }
 
@@ -1613,32 +1613,32 @@ pub fn CMYK::new_empty() -> CMYK {
 }
 
 ///|
-pub impl Image for CMYK with raw_data(self) {
+pub impl Image for CMYK with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for CMYK with get_bytes_per_pixel(_self) {
+pub impl Image for CMYK with fn get_bytes_per_pixel(_self) {
   4
 }
 
 ///|
-pub impl Image for CMYK with get_stride(self) {
+pub impl Image for CMYK with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for CMYK with color_index_at(_self, _x, _y) {
+pub impl Image for CMYK with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for CMYK with color_model(_self) {
+pub impl Image for CMYK with fn color_model(_self) {
   @color.cmyk_model
 }
 
 ///|
-pub impl Image for CMYK with bounds(self) {
+pub impl Image for CMYK with fn bounds(self) {
   self.rect
 }
 
@@ -1648,7 +1648,7 @@ pub fn CMYK::op_get(self : CMYK, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for CMYK with at(self, x, y) {
+pub impl Image for CMYK with fn at(self, x, y) {
   self.cmyk_at(x, y)
 }
 
@@ -1675,12 +1675,12 @@ pub fn CMYK::cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for CMYK with pix_offset(self, x, y) {
+pub impl Image for CMYK with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 4
 }
 
 ///|
-pub impl Image for CMYK with set(self, x, y, c) {
+pub impl Image for CMYK with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1729,7 +1729,7 @@ pub fn CMYK::set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for CMYK with sub_image(self, r) {
+pub impl Image for CMYK with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -1742,13 +1742,13 @@ pub impl Image for CMYK with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for CMYK with as_ycbcr(_self) {
+pub impl Image for CMYK with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for CMYK with opaque_(_self) {
+pub impl Image for CMYK with fn opaque_(_self) {
   true
 }
 
@@ -1818,17 +1818,17 @@ pub fn YCbCr::new(
 }
 
 ///|
-pub impl Image for YCbCr with color_model(_self) {
+pub impl Image for YCbCr with fn color_model(_self) {
   @color.y_cb_cr_model
 }
 
 ///|
-pub impl Image for YCbCr with bounds(self) {
+pub impl Image for YCbCr with fn bounds(self) {
   self.rect
 }
 
 ///|
-pub impl Image for YCbCr with at(self, x, y) {
+pub impl Image for YCbCr with fn at(self, x, y) {
   if !pt(x, y).is_in(self.rect) {
     return @color.black
   }
@@ -1848,7 +1848,7 @@ pub impl Image for YCbCr with at(self, x, y) {
 }
 
 ///|
-pub impl Image for YCbCr with set(self, x, y, c) {
+pub impl Image for YCbCr with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1871,37 +1871,37 @@ pub impl Image for YCbCr with set(self, x, y, c) {
 }
 
 ///|
-pub impl Image for YCbCr with raw_data(self) {
+pub impl Image for YCbCr with fn raw_data(self) {
   self.y
 }
 
 ///|
-pub impl Image for YCbCr with get_bytes_per_pixel(_self) {
+pub impl Image for YCbCr with fn get_bytes_per_pixel(_self) {
   1
 }
 
 ///|
-pub impl Image for YCbCr with get_stride(self) {
+pub impl Image for YCbCr with fn get_stride(self) {
   self.y_stride
 }
 
 ///|
-pub impl Image for YCbCr with color_index_at(_self, _x, _y) {
+pub impl Image for YCbCr with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for YCbCr with pix_offset(self, x, y) {
+pub impl Image for YCbCr with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.y_stride + (x - self.rect.min.x)
 }
 
 ///|
-pub impl Image for YCbCr with opaque_(_self) {
+pub impl Image for YCbCr with fn opaque_(_self) {
   true
 }
 
 ///|
-pub impl Image for YCbCr with sub_image(self, r) {
+pub impl Image for YCbCr with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   if r.empty() {
     return YCbCr::{
@@ -1942,7 +1942,7 @@ pub impl Image for YCbCr with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for YCbCr with as_ycbcr(self) {
+pub impl Image for YCbCr with fn as_ycbcr(self) {
   Some(self)
 }
 
@@ -1965,27 +1965,27 @@ pub(all) struct Paletted {
 let _Paletted : &Image = Paletted::new_empty()
 
 ///|
-pub impl Image for Paletted with raw_data(self) {
+pub impl Image for Paletted with fn raw_data(self) {
   self.pix
 }
 
 ///|
-pub impl Image for Paletted with get_bytes_per_pixel(_self) {
+pub impl Image for Paletted with fn get_bytes_per_pixel(_self) {
   1
 }
 
 ///|
-pub impl Image for Paletted with get_stride(self) {
+pub impl Image for Paletted with fn get_stride(self) {
   self.stride
 }
 
 ///|
-pub impl Image for Paletted with color_model(self) {
+pub impl Image for Paletted with fn color_model(self) {
   self.palette
 }
 
 ///|
-pub impl Image for Paletted with bounds(self) {
+pub impl Image for Paletted with fn bounds(self) {
   self.rect
 }
 
@@ -1995,7 +1995,7 @@ pub fn Paletted::op_get(self : Paletted, p : Point) -> &@color.Color {
 }
 
 ///|
-pub impl Image for Paletted with at(self, x, y) {
+pub impl Image for Paletted with fn at(self, x, y) {
   if self.palette.0.length() == 0 {
     return @color.black // nil
   }
@@ -2025,7 +2025,7 @@ pub fn Paletted::rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
 ///|
 /// pix_offset returns the index of the first element of pix that corresponds to
 /// the pixel at (x, y).
-pub impl Image for Paletted with pix_offset(self, x, y) {
+pub impl Image for Paletted with fn pix_offset(self, x, y) {
   (y - self.rect.min.y) * self.stride + (x - self.rect.min.x) * 1
 }
 
@@ -2035,7 +2035,7 @@ pub fn Paletted::op_set(self : Paletted, p : Point, c : &@color.Color) -> Unit {
 }
 
 ///|
-pub impl Image for Paletted with set(self, x, y, c) {
+pub impl Image for Paletted with fn set(self, x, y, c) {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -2058,7 +2058,7 @@ pub fn Paletted::set_rgba64(
 }
 
 ///|
-pub impl Image for Paletted with color_index_at(self, x, y) {
+pub impl Image for Paletted with fn color_index_at(self, x, y) {
   if !pt(x, y).is_in(self.rect) {
     return 0
   }
@@ -2083,7 +2083,7 @@ pub fn Paletted::set_color_index(
 ///|
 /// sub_image returns an image representing the portion of the image p visible
 /// through r. The returned value shares pixels with the original image.
-pub impl Image for Paletted with sub_image(self, r) {
+pub impl Image for Paletted with fn sub_image(self, r) {
   let r = r.intersect(self.rect)
   // If r1 and r2 are Rectangles, r1.intersect(r2) is not guaranteed to be inside
   // either r1 or r2 if the intersection is empty. Without explicitly checking for
@@ -2106,13 +2106,13 @@ pub impl Image for Paletted with sub_image(self, r) {
 }
 
 ///|
-pub impl Image for Paletted with as_ycbcr(_self) {
+pub impl Image for Paletted with fn as_ycbcr(_self) {
   None
 }
 
 ///|
 /// opaque scans the entire image and reports whether it is fully opaque.
-pub impl Image for Paletted with opaque_(self) {
+pub impl Image for Paletted with fn opaque_(self) {
   let present = Array::make(256, false)
   let mut i0 = 0
   let mut i1 = self.rect.dx()

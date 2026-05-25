@@ -13,7 +13,7 @@ pub(all) struct Point {
 } derive(Eq)
 
 ///|
-pub impl Show for Point with output(self, logger) {
+pub impl Show for Point with fn output(self, logger) {
   let { x, y } = self
   logger.write_string(
     (
@@ -41,13 +41,13 @@ pub fn Point::to_string(self : Point) -> String {
 
 ///|
 /// add (+) returns the vector p+q.
-pub impl Add for Point with add(self, q) {
+pub impl Add for Point with fn add(self, q) {
   { x: self.x + q.x, y: self.y + q.y }
 }
 
 ///|
 /// sub (-) returns the vector p-q.
-pub impl Sub for Point with sub(self, q) {
+pub impl Sub for Point with fn sub(self, q) {
   { x: self.x - q.x, y: self.y - q.y }
 }
 
@@ -107,7 +107,7 @@ pub(all) struct Rectangle {
 }
 
 ///|
-pub impl Show for Rectangle with output(self, logger) {
+pub impl Show for Rectangle with fn output(self, logger) {
   let { min, max } = self
   logger.write_string(
     (
@@ -138,47 +138,47 @@ pub fn Rectangle::new() -> Rectangle {
 }
 
 ///|
-pub impl Image for Rectangle with opaque_(_self) {
+pub impl Image for Rectangle with fn opaque_(_self) {
   true
 }
 
 ///|
-pub impl Image for Rectangle with set(_self, _x, _y, _c) {
+pub impl Image for Rectangle with fn set(_self, _x, _y, _c) {
 
 }
 
 ///|
-pub impl Image for Rectangle with sub_image(self, _o) {
+pub impl Image for Rectangle with fn sub_image(self, _o) {
   self
 }
 
 ///|
-pub impl Image for Rectangle with raw_data(_self) {
+pub impl Image for Rectangle with fn raw_data(_self) {
   Slice::new([])
 }
 
 ///|
-pub impl Image for Rectangle with get_bytes_per_pixel(_self) {
+pub impl Image for Rectangle with fn get_bytes_per_pixel(_self) {
   0
 }
 
 ///|
-pub impl Image for Rectangle with get_stride(_self) {
+pub impl Image for Rectangle with fn get_stride(_self) {
   0
 }
 
 ///|
-pub impl Image for Rectangle with color_index_at(_self, _x, _y) {
+pub impl Image for Rectangle with fn color_index_at(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Rectangle with pix_offset(_self, _x, _y) {
+pub impl Image for Rectangle with fn pix_offset(_self, _x, _y) {
   0
 }
 
 ///|
-pub impl Image for Rectangle with as_ycbcr(_self) {
+pub impl Image for Rectangle with fn as_ycbcr(_self) {
   None
 }
 
@@ -314,7 +314,7 @@ pub fn Rectangle::empty(self : Rectangle) -> Bool {
 ///|
 /// equal reports whether r and s contain the same set of points. All empty
 /// rectangles are considered equal.
-pub impl Eq for Rectangle with equal(self, s) {
+pub impl Eq for Rectangle with fn equal(self, s) {
   (self.min == s.min && self.max == s.max) || (self.empty() && s.empty())
 }
 
@@ -363,7 +363,7 @@ pub fn Rectangle::canon(self : Rectangle) -> Rectangle {
 
 ///|
 /// at implements the [Image] trait.
-pub impl Image for Rectangle with at(self, x, y) {
+pub impl Image for Rectangle with fn at(self, x, y) {
   if pt(x, y).is_in(self) {
     return @color.opaque_
   }
@@ -385,13 +385,13 @@ pub fn Rectangle::rgba64_at(
 
 ///|
 /// bounds implements the [Image] trait.
-pub impl Image for Rectangle with bounds(self) {
+pub impl Image for Rectangle with fn bounds(self) {
   self
 }
 
 ///|
 /// color_model implements the [Image] trait.
-pub impl Image for Rectangle with color_model(_self) {
+pub impl Image for Rectangle with fn color_model(_self) {
   @color.alpha16_model
 }
 

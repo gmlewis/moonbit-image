@@ -457,7 +457,7 @@ fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
 /// immediately before the first Read call is that d.r is positioned between the
 /// first IDAT and xxx, and the decoder state immediately after the last Read
 /// call is that d.r is positioned between yy and crc1.
-pub impl @io.Reader for Decoder with read(self, p) {
+pub impl @io.Reader for Decoder with fn read(self, p) {
   if p.length() == 0 {
     return (0, None)
   }

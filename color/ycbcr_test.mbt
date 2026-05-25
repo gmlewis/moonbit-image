@@ -19,7 +19,7 @@ suberror EqError {
 } derive(Debug)
 
 ///|
-pub impl Show for EqError with output(self, logger) {
+pub impl Show for EqError with fn output(self, logger) {
   let EqError(err) = self
   logger.write_string(
     (

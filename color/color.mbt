@@ -18,17 +18,17 @@ pub(open) trait Color {
   //
   // An alpha-premultiplied color component c has been scaled by alpha (a),
   // so has valid values 0 <= c <= a.
-  rgba(Self) -> (UInt, UInt, UInt, UInt)
+  fn rgba(Self) -> (UInt, UInt, UInt, UInt)
   // model reports the color model of the underlying data.
   // This is needed because MoonBit does not have reflection.
-  model(Self) -> String
+  fn model(Self) -> String
   // raw is also needed due to the lack of reflection to get the underlying data.
   // Do not use this method as it is for internal use only.
-  raw(Self) -> (UInt, UInt, UInt, UInt)
+  fn raw(Self) -> (UInt, UInt, UInt, UInt)
 }
 
 ///|
-pub impl Show for &Color with output(self, logger) {
+pub impl Show for &Color with fn output(self, logger) {
   logger.write_string(self.to_string())
 }
 
@@ -39,7 +39,7 @@ pub fn &Color::to_string(self : &Color) -> String {
 }
 
 ///|
-pub impl Eq for &Color with equal(self, o) {
+pub impl Eq for &Color with fn equal(self, o) {
   let (r0, g0, b0, a0) = self.rgba()
   let (r1, g1, b1, a1) = o.rgba()
   r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
@@ -59,7 +59,7 @@ pub(all) struct RGBA {
 } derive(Eq)
 
 ///|
-pub impl Show for RGBA with output(self, logger) {
+pub impl Show for RGBA with fn output(self, logger) {
   logger.write_string(
     (
       $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
@@ -88,17 +88,17 @@ pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
 }
 
 ///|
-pub impl Color for RGBA with model(_self) {
+pub impl Color for RGBA with fn model(_self) {
   "RGBA"
 }
 
 ///|
-pub impl Color for RGBA with raw(self) {
+pub impl Color for RGBA with fn raw(self) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub impl Color for RGBA with rgba(self) {
+pub impl Color for RGBA with fn rgba(self) {
   let r = self.r.to_uint() | (self.r.to_uint() << 8)
   let g = self.g.to_uint() | (self.g.to_uint() << 8)
   let b = self.b.to_uint() | (self.b.to_uint() << 8)
@@ -120,7 +120,7 @@ pub(all) struct RGBA64 {
 } derive(Eq)
 
 ///|
-pub impl Show for RGBA64 with output(self, logger) {
+pub impl Show for RGBA64 with fn output(self, logger) {
   logger.write_string(
     (
       $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
@@ -149,17 +149,17 @@ pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
 }
 
 ///|
-pub impl Color for RGBA64 with model(_self) {
+pub impl Color for RGBA64 with fn model(_self) {
   "RGBA64"
 }
 
 ///|
-pub impl Color for RGBA64 with raw(self) {
+pub impl Color for RGBA64 with fn raw(self) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub impl Color for RGBA64 with rgba(self) {
+pub impl Color for RGBA64 with fn rgba(self) {
   (self.r, self.g, self.b, self.a)
 }
 
@@ -173,7 +173,7 @@ pub(all) struct NRGBA {
 } derive(Eq)
 
 ///|
-pub impl Show for NRGBA with output(self, logger) {
+pub impl Show for NRGBA with fn output(self, logger) {
   logger.write_string(
     (
       $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
@@ -202,17 +202,17 @@ pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
 }
 
 ///|
-pub impl Color for NRGBA with model(_self) {
+pub impl Color for NRGBA with fn model(_self) {
   "NRGBA"
 }
 
 ///|
-pub impl Color for NRGBA with raw(self) {
+pub impl Color for NRGBA with fn raw(self) {
   (self.r.to_uint(), self.g.to_uint(), self.b.to_uint(), self.a.to_uint())
 }
 
 ///|
-pub impl Color for NRGBA with rgba(self) {
+pub impl Color for NRGBA with fn rgba(self) {
   let a = self.a.to_uint()
   let mut r = self.r.to_uint() | (self.r.to_uint() << 8)
   r *= a
@@ -238,7 +238,7 @@ pub(all) struct NRGBA64 {
 } derive(Eq)
 
 ///|
-pub impl Show for NRGBA64 with output(self, logger) {
+pub impl Show for NRGBA64 with fn output(self, logger) {
   logger.write_string(
     (
       $|{r: \{self.r}, g: \{self.g}, b: \{self.b}, a: \{self.a}}
@@ -267,17 +267,17 @@ pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
 }
 
 ///|
-pub impl Color for NRGBA64 with model(_self) {
+pub impl Color for NRGBA64 with fn model(_self) {
   "NRGBA64"
 }
 
 ///|
-pub impl Color for NRGBA64 with raw(self) {
+pub impl Color for NRGBA64 with fn raw(self) {
   (self.r, self.g, self.b, self.a)
 }
 
 ///|
-pub impl Color for NRGBA64 with rgba(self) {
+pub impl Color for NRGBA64 with fn rgba(self) {
   let r = self.r * self.a / 0xffff
   let g = self.g * self.a / 0xffff
   let b = self.b * self.a / 0xffff
@@ -291,7 +291,7 @@ pub(all) struct Alpha {
 } derive(Eq)
 
 ///|
-pub impl Show for Alpha with output(self, logger) {
+pub impl Show for Alpha with fn output(self, logger) {
   logger.write_string(
     (
       $|{a: \{self.a}}
@@ -320,18 +320,18 @@ pub fn Alpha::new(a : Byte) -> Alpha {
 }
 
 ///|
-pub impl Color for Alpha with model(_self) {
+pub impl Color for Alpha with fn model(_self) {
   "Alpha"
 }
 
 ///|
-pub impl Color for Alpha with raw(self) {
+pub impl Color for Alpha with fn raw(self) {
   let a = self.a.to_uint()
   (a, a, a, a)
 }
 
 ///|
-pub impl Color for Alpha with rgba(self) {
+pub impl Color for Alpha with fn rgba(self) {
   let a = self.a.to_uint() | (self.a.to_uint() << 8)
   (a, a, a, a)
 }
@@ -343,7 +343,7 @@ pub(all) struct Alpha16 {
 } derive(Eq)
 
 ///|
-pub impl Show for Alpha16 with output(self, logger) {
+pub impl Show for Alpha16 with fn output(self, logger) {
   logger.write_string(
     (
       $|{a: \{self.a}}
@@ -372,17 +372,17 @@ pub fn Alpha16::new(a : UInt) -> Alpha16 {
 }
 
 ///|
-pub impl Color for Alpha16 with model(_self) {
+pub impl Color for Alpha16 with fn model(_self) {
   "Alpha16"
 }
 
 ///|
-pub impl Color for Alpha16 with raw(self) {
+pub impl Color for Alpha16 with fn raw(self) {
   (self.a, self.a, self.a, self.a)
 }
 
 ///|
-pub impl Color for Alpha16 with rgba(self) {
+pub impl Color for Alpha16 with fn rgba(self) {
   (self.a, self.a, self.a, self.a)
 }
 
@@ -393,7 +393,7 @@ pub(all) struct Gray {
 } derive(Eq)
 
 ///|
-pub impl Show for Gray with output(self, logger) {
+pub impl Show for Gray with fn output(self, logger) {
   logger.write_string(
     (
       $|{y: \{self.y}}
@@ -422,18 +422,18 @@ pub fn Gray::new(y : Byte) -> Gray {
 }
 
 ///|
-pub impl Color for Gray with model(_self) {
+pub impl Color for Gray with fn model(_self) {
   "Gray"
 }
 
 ///|
-pub impl Color for Gray with raw(self) {
+pub impl Color for Gray with fn raw(self) {
   let y = self.y.to_uint()
   (y, y, y, y)
 }
 
 ///|
-pub impl Color for Gray with rgba(self) {
+pub impl Color for Gray with fn rgba(self) {
   let y = self.y.to_uint() | (self.y.to_uint() << 8)
   (y, y, y, 0xffff)
 }
@@ -445,7 +445,7 @@ pub(all) struct Gray16 {
 } derive(Eq)
 
 ///|
-pub impl Show for Gray16 with output(self, logger) {
+pub impl Show for Gray16 with fn output(self, logger) {
   logger.write_string(
     (
       $|{y: \{self.y}}
@@ -474,18 +474,18 @@ pub fn Gray16::new(y : UInt) -> Gray16 {
 }
 
 ///|
-pub impl Color for Gray16 with model(_self) {
+pub impl Color for Gray16 with fn model(_self) {
   "Gray16"
 }
 
 ///|
-pub impl Color for Gray16 with raw(self) {
+pub impl Color for Gray16 with fn raw(self) {
   let y = self.y
   (y, y, y, y)
 }
 
 ///|
-pub impl Color for Gray16 with rgba(self) {
+pub impl Color for Gray16 with fn rgba(self) {
   (self.y, self.y, self.y, 0xffff)
 }
 
@@ -493,9 +493,9 @@ pub impl Color for Gray16 with rgba(self) {
 /// Model can convert any [&Color] to one from its own color model. The conversion
 /// may be lossy.
 pub(open) trait Model {
-  convert(Self, &Color) -> &Color
-  name(Self) -> String
-  get_palette(Self) -> Palette?
+  fn convert(Self, &Color) -> &Color
+  fn name(Self) -> String
+  fn get_palette(Self) -> Palette?
 }
 
 ///|
@@ -522,17 +522,17 @@ struct ModelFunc {
 }
 
 ///|
-pub impl Model for ModelFunc with convert(self, c) {
+pub impl Model for ModelFunc with fn convert(self, c) {
   (self.f)(c)
 }
 
 ///|
-pub impl Model for ModelFunc with name(self) {
+pub impl Model for ModelFunc with fn name(self) {
   self.name
 }
 
 ///|
-pub impl Model for ModelFunc with get_palette(self) {
+pub impl Model for ModelFunc with fn get_palette(self) {
   self.palette
 }
 
@@ -765,12 +765,12 @@ pub fn Palette::from(arr : Array[&Color]) -> Palette {
 }
 
 ///|
-pub impl Model for Palette with name(_self) {
+pub impl Model for Palette with fn name(_self) {
   "Paletted"
 }
 
 ///|
-pub impl Model for Palette with get_palette(self) {
+pub impl Model for Palette with fn get_palette(self) {
   Some(self)
 }
 
@@ -795,7 +795,7 @@ pub fn Palette::op_as_view(
 
 ///|
 /// convert returns the palette color closest to c in Euclidean R,G,B space.
-pub impl Model for Palette with convert(self, c) {
+pub impl Model for Palette with fn convert(self, c) {
   if self.0.length() == 0 {
     return black
   }

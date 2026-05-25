@@ -236,26 +236,26 @@ pub(all) enum YCbCrSubsampling {
 
 // Traits
 pub(open) trait Image {
-  color_model(Self) -> &@color.Model
-  bounds(Self) -> Rectangle
-  at(Self, Int, Int) -> &@color.Color
-  opaque_(Self) -> Bool
-  set(Self, Int, Int, &@color.Color) -> Unit
-  sub_image(Self, Rectangle) -> &Image
-  as_ycbcr(Self) -> YCbCr?
-  raw_data(Self) -> @io.Slice[Byte]
-  get_bytes_per_pixel(Self) -> Int
-  get_stride(Self) -> Int
-  pix_offset(Self, Int, Int) -> Int
-  color_index_at(Self, Int, Int) -> Byte
+  fn color_model(Self) -> &@color.Model
+  fn bounds(Self) -> Rectangle
+  fn at(Self, Int, Int) -> &@color.Color
+  fn opaque_(Self) -> Bool
+  fn set(Self, Int, Int, &@color.Color) -> Unit
+  fn sub_image(Self, Rectangle) -> &Image
+  fn as_ycbcr(Self) -> YCbCr?
+  fn raw_data(Self) -> @io.Slice[Byte]
+  fn get_bytes_per_pixel(Self) -> Int
+  fn get_stride(Self) -> Int
+  fn pix_offset(Self, Int, Int) -> Int
+  fn color_index_at(Self, Int, Int) -> Byte
 }
 pub fn &Image::empty(Self) -> Bool
 pub fn &Image::new_empty() -> Self
 
 pub(open) trait RGBA64Image {
-  rgba64_at(Self, Int, Int) -> @color.RGBA64
-  color_model(Self) -> &@color.Model
-  bounds(Self) -> Rectangle
-  at(Self, Int, Int) -> &@color.Color
+  fn rgba64_at(Self, Int, Int) -> @color.RGBA64
+  fn color_model(Self) -> &@color.Model
+  fn bounds(Self) -> Rectangle
+  fn at(Self, Int, Int) -> &@color.Color
 }
 
