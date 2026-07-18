@@ -504,7 +504,7 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
     img = tmp.0
     let err = tmp.1
     if err != None {
-      let _ = r.close()
+      let _ = @io.Closer::close(r)
       return (img, err)
     }
   } else if self.interlace == IT_ADAM7.to_int() {
@@ -513,13 +513,13 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
     img = tmp.0
     let err = tmp.1
     if err != None {
-      let _ = r.close()
+      let _ = @io.Closer::close(r)
       return (img, err)
     }
     for pass = 0; pass < 7; pass = pass + 1 {
       let (image_pass, err) = self.read_image_pass(r, pass, false)
       if err != None {
-        let _ = r.close()
+        let _ = @io.Closer::close(r)
         return (img, err)
       }
       if !image_pass.empty() {
@@ -533,19 +533,19 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
   let mut err : IOError? = None
   for i = 0; n == 0 && err == None; i = i + 1 {
     if i == 100 {
-      let _ = r.close()
+      let _ = @io.Closer::close(r)
       return (img, Some(@io.err_no_progress))
     }
-    let tmp = r.read(self.tmp[:1]) // discard data
+    let tmp = @io.Reader::read(r, self.tmp[:1]) // discard data
     n = tmp.0
     err = tmp.1
   }
   if err != None && err != Some(@io.eof) {
-    let _ = r.close()
+    let _ = @io.Closer::close(r)
     return (img, Some(format_error(err.unwrap().to_string())))
   }
   if n != 0 || self.idat_length != 0 {
-    let _ = r.close()
+    let _ = @io.Closer::close(r)
     return (
       img,
       Some(
@@ -555,7 +555,7 @@ fn Decoder::decode_idat(self : Decoder) -> (&@image.Image, IOError?) {
       ),
     )
   }
-  let _ = r.close()
+  let _ = @io.Closer::close(r)
   return (img, None)
 }
 
