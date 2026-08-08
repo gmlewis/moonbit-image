@@ -30,4 +30,3 @@ pub fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
 // Type aliases
 
 // Traits
-

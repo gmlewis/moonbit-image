@@ -258,4 +258,3 @@ pub(open) trait RGBA64Image {
   fn bounds(Self) -> Rectangle
   fn at(Self, Int, Int) -> &@color.Color
 }
-

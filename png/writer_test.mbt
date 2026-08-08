@@ -33,7 +33,7 @@ fn diff(m0 : &@image.Image, m1 : &@image.Image) -> TestError? {
 ///|
 fn encode_decode(m : &@image.Image) -> (&@image.Image, IOError?) {
   let b = @io.Buffer::new()
-  guard @png.encode(b, m) is None
+  guard! @png.encode(b, m) is None
   @png.decode(b)
 }
 
@@ -93,7 +93,7 @@ test "writer paletted" {
 
     // Encode the image
     let b = @io.Buffer::new()
-    guard @png.encode(b, m0) is None
+    guard! @png.encode(b, m0) is None
 
     //
     let chunk_fields_length = 12 // 4 bytes for length, name and crc
@@ -111,7 +111,7 @@ test "writer paletted" {
         }
       } else if chunk == be_uint32(Slice::new(b"IDAT".to_array())) {
         // Uncompress the image data
-        guard @zlib.Reader::new(
+        guard! @zlib.Reader::new(
             @io.Buffer::from_slice(data[i + 8:i + 8 + length]),
           )
           is (r, None)

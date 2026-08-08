@@ -17,4 +17,3 @@ type Component derive(Default)
 // Type aliases
 
 // Traits
-

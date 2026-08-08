@@ -187,4 +187,3 @@ pub(open) trait Model {
   fn name(Self) -> String
   fn get_palette(Self) -> Palette?
 }
-

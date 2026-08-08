@@ -77,8 +77,8 @@ fn Encoder::write_chunk(self : Encoder, b : Slice[Byte], name : Bytes) -> Unit {
   self.header[6] = name[2]
   self.header[7] = name[3]
   let crc = @crc32.new()
-  guard crc.write(self.header[4:8]) is (_, None)
-  guard crc.write(b) is (_, None)
+  guard! crc.write(self.header[4:8]) is (_, None)
+  guard! crc.write(b) is (_, None)
   be_put_uint32(self.footer[:4], crc.sum32())
   let (_, err) = self.w.write(self.header[:8])
   self.err = err

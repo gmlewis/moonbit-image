@@ -235,7 +235,7 @@ fn Decoder::parse_ihdr(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
-  guard self.crc.write(self.tmp[:13]) is (_, None)
+  guard! self.crc.write(self.tmp[:13]) is (_, None)
   if self.tmp[10] != 0 {
     return Some(unsupported_error("compression method"))
   }
@@ -334,7 +334,7 @@ fn Decoder::parse_plte(self : Decoder, length : UInt) -> IOError? {
   if err != None {
     return err
   }
-  guard self.crc.write(self.tmp[:n]) is (_, None)
+  guard! self.crc.write(self.tmp[:n]) is (_, None)
   match self.cb {
     CB_P1 | CB_P2 | CB_P4 | CB_P8 => {
       self.palette = @color.Palette::new(256)
@@ -379,7 +379,7 @@ fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard self.crc.write(self.tmp[:n]) is (_, None)
+      guard! self.crc.write(self.tmp[:n]) is (_, None)
       let _ = slice_copy(
         self.transparent[:],
         self.tmp[:length.reinterpret_as_int()],
@@ -403,7 +403,7 @@ fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard self.crc.write(self.tmp[:n]) is (_, None)
+      guard! self.crc.write(self.tmp[:n]) is (_, None)
       let _ = slice_copy(
         self.transparent,
         self.tmp[:length.reinterpret_as_int()],
@@ -421,7 +421,7 @@ fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
       if err != None {
         return err
       }
-      guard self.crc.write(self.tmp[:n]) is (_, None)
+      guard! self.crc.write(self.tmp[:n]) is (_, None)
       if self.palette.0.length() < n {
         self.palette = self.palette.0[:n]
       }
@@ -478,7 +478,7 @@ pub impl @io.Reader for Decoder with fn read(self, p) {
       return (0, Some(format_error("not enough pixel data")))
     }
     self.crc.reset()
-    guard self.crc.write(self.tmp[4:8]) is (_, None)
+    guard! self.crc.write(self.tmp[4:8]) is (_, None)
   }
   if self.idat_length.reinterpret_as_int() < 0 {
     return (0, Some(unsupported_error("IDAT chunk length overflow")))
@@ -486,7 +486,7 @@ pub impl @io.Reader for Decoder with fn read(self, p) {
   let want_len = self.idat_length.reinterpret_as_int()
   let read_len = @cmp.minimum(p.length(), want_len)
   let (n, err) = self.r.read(p[:read_len])
-  guard self.crc.write(p[:n]) is (_, None)
+  guard! self.crc.write(p[:n]) is (_, None)
   self.idat_length -= n.reinterpret_as_uint()
   (n, err)
 }
@@ -1108,7 +1108,7 @@ fn Decoder::parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
   }
   let mut length = be_uint32(self.tmp[:4])
   self.crc.reset()
-  guard self.crc.write(self.tmp[4:8]) is (_, None)
+  guard! self.crc.write(self.tmp[4:8]) is (_, None)
 
   // Read the chunk data.
   let chunk = be_uint32(self.tmp[4:8])
@@ -1179,7 +1179,7 @@ fn Decoder::parse_chunk(self : Decoder, config_only : Bool) -> IOError? {
     if err != None {
       return err
     }
-    guard self.crc.write(ignored[:n]) is (_, None)
+    guard! self.crc.write(ignored[:n]) is (_, None)
     length -= n.reinterpret_as_uint()
   }
   self.verify_checksum()

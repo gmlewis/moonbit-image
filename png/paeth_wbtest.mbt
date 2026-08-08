@@ -123,5 +123,5 @@ test "paeth decode" {
 ///|
 fn dump(b : Slice[Byte]) -> String {
   let arr = b.to_bytes().to_array().map(fn(b) { b.to_int() })
-  to_repr(arr).to_string().replace_all(old=",", new="")
+  Repr(arr).to_string().replace_all(old=",", new="")
 }
