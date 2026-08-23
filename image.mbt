@@ -181,8 +181,9 @@ pub impl Image for RGBA with fn bounds(self) {
 }
 
 ///|
-pub fn RGBA::op_get(self : RGBA, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn RGBA::get(self : RGBA, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -229,8 +230,9 @@ pub impl Image for RGBA with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn RGBA::op_set(self : RGBA, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn RGBA::set_point(self : RGBA, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -377,8 +379,9 @@ pub impl Image for RGBA64 with fn bounds(self) {
 }
 
 ///|
-pub fn RGBA64::op_get(self : RGBA64, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn RGBA64::get(self : RGBA64, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -407,8 +410,9 @@ pub impl Image for RGBA64 with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn RGBA64::op_set(self : RGBA64, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn RGBA64::set_point(self : RGBA64, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -551,8 +555,9 @@ pub impl Image for NRGBA with fn bounds(self) {
 }
 
 ///|
-pub fn NRGBA::op_get(self : NRGBA, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn NRGBA::get(self : NRGBA, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -588,8 +593,9 @@ pub impl Image for NRGBA with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn NRGBA::op_set(self : NRGBA, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn NRGBA::set_point(self : NRGBA, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -749,8 +755,9 @@ pub impl Image for NRGBA64 with fn bounds(self) {
 }
 
 ///|
-pub fn NRGBA64::op_get(self : NRGBA64, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn NRGBA64::get(self : NRGBA64, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -785,8 +792,9 @@ pub impl Image for NRGBA64 with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn NRGBA64::op_set(self : NRGBA64, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn NRGBA64::set_point(self : NRGBA64, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -958,8 +966,9 @@ pub impl Image for Alpha with fn bounds(self) {
 }
 
 ///|
-pub fn Alpha::op_get(self : Alpha, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn Alpha::get(self : Alpha, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -991,8 +1000,9 @@ pub impl Image for Alpha with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn Alpha::op_set(self : Alpha, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn Alpha::set_point(self : Alpha, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -1135,8 +1145,9 @@ pub impl Image for Alpha16 with fn bounds(self) {
 }
 
 ///|
-pub fn Alpha16::op_get(self : Alpha16, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn Alpha16::get(self : Alpha16, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -1168,8 +1179,9 @@ pub impl Image for Alpha16 with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn Alpha16::op_set(self : Alpha16, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn Alpha16::set_point(self : Alpha16, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -1315,8 +1327,9 @@ pub impl Image for Gray with fn bounds(self) {
 }
 
 ///|
-pub fn Gray::op_get(self : Gray, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn Gray::get(self : Gray, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -1348,8 +1361,9 @@ pub impl Image for Gray with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn Gray::op_set(self : Gray, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn Gray::set_point(self : Gray, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -1475,8 +1489,9 @@ pub impl Image for Gray16 with fn bounds(self) {
 }
 
 ///|
-pub fn Gray16::op_get(self : Gray16, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn Gray16::get(self : Gray16, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -1508,8 +1523,9 @@ pub impl Image for Gray16 with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn Gray16::op_set(self : Gray16, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn Gray16::set_point(self : Gray16, p : Point, c : &@color.Color) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|
@@ -1643,8 +1659,9 @@ pub impl Image for CMYK with fn bounds(self) {
 }
 
 ///|
-pub fn CMYK::op_get(self : CMYK, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn CMYK::get(self : CMYK, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -1990,8 +2007,9 @@ pub impl Image for Paletted with fn bounds(self) {
 }
 
 ///|
-pub fn Paletted::op_get(self : Paletted, p : Point) -> &@color.Color {
-  self.at(p.x, p.y)
+#alias("_[_]")
+pub fn Paletted::get(self : Paletted, p : Point) -> &@color.Color {
+  Image::at(self, p.x, p.y)
 }
 
 ///|
@@ -2030,8 +2048,13 @@ pub impl Image for Paletted with fn pix_offset(self, x, y) {
 }
 
 ///|
-pub fn Paletted::op_set(self : Paletted, p : Point, c : &@color.Color) -> Unit {
-  self.set(p.x, p.y, c)
+#alias("_[_]=_")
+pub fn Paletted::set_point(
+  self : Paletted,
+  p : Point,
+  c : &@color.Color,
+) -> Unit {
+  Image::set(self, p.x, p.y, c)
 }
 
 ///|

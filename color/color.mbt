@@ -749,12 +749,14 @@ pub fn Palette::new(n : Int) -> Palette {
 }
 
 ///|
-pub fn Palette::op_set(self : Palette, idx : Int, c : &Color) -> Unit {
+#alias("_[_]=_")
+pub fn Palette::set(self : Palette, idx : Int, c : &Color) -> Unit {
   self.0[idx % self.0.length()] = c
 }
 
 ///|
-pub fn Palette::op_get(self : Palette, idx : Int) -> &Color {
+#alias("_[_]")
+pub fn Palette::get(self : Palette, idx : Int) -> &Color {
   self.0[idx % self.0.length()]
 }
 
@@ -785,11 +787,8 @@ pub fn Palette::length(self : Palette) -> Int {
 }
 
 ///|
-pub fn Palette::op_as_view(
-  self : Palette,
-  start? : Int = 0,
-  end~ : Int,
-) -> Palette {
+#alias("_[_:_]")
+pub fn Palette::sub(self : Palette, start? : Int = 0, end~ : Int) -> Palette {
   self.0[start:end]
 }
 

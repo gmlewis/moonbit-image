@@ -19,6 +19,9 @@ suberror EqError {
 } derive(Debug)
 
 ///|
+pub extend EqError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub impl Show for EqError with fn output(self, logger) {
   let EqError(err) = self
   logger.write_string(

@@ -1,5 +1,6 @@
 import {
   "gmlewis/io",
   "moonbitlang/core/builtin",
+  "moonbitlang/core/debug",
   "moonbitlang/core/uint",
 }

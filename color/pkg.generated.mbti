@@ -129,13 +129,16 @@ pub impl Show for NYCbCrA
 
 pub(all) struct Palette(@io.Slice[&Color])
 pub fn Palette::from(Array[&Color]) -> Self
+#alias("_[_]")
+pub fn Palette::get(Self, Int) -> &Color
 pub fn Palette::index(Self, &Color) -> Int
 pub fn Palette::length(Self) -> Int
 pub fn Palette::new(Int) -> Self
 pub fn Palette::new_empty() -> Self
-pub fn Palette::op_as_view(Self, start? : Int, end~ : Int) -> Self
-pub fn Palette::op_get(Self, Int) -> &Color
-pub fn Palette::op_set(Self, Int, &Color) -> Unit
+#alias("_[_]=_")
+pub fn Palette::set(Self, Int, &Color) -> Unit
+#alias("_[_:_]")
+pub fn Palette::sub(Self, start? : Int, end~ : Int) -> Self
 pub impl Model for Palette
 
 pub(all) struct RGBA {
