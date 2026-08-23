@@ -1,6 +1,6 @@
 name = "gmlewis/image"
 
-version = "0.17.12"
+version = "0.17.13"
 
 import {
   "gmlewis/flate@0.36.12",
