@@ -203,7 +203,7 @@ test "gray 8 transparent" {
     raise TestError("decode: \{err.unwrap().to_repr()}")
   }
   let hex = "0123456789abcdef"
-  let got = StringBuilder::new()
+  let got = StringBuilder()
   let bounds = m.bounds()
   for y = bounds.min.y; y < bounds.max.y; y = y + 1 {
     for x = bounds.min.x; x < bounds.max.x; x = x + 1 {

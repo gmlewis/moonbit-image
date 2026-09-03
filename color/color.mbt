@@ -84,7 +84,7 @@ let _RGBA : &Color = RGBA::new(0, 0, 0, 0)
 
 ///|
 pub fn RGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> RGBA {
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -145,7 +145,7 @@ let _RGBA64 : &Color = RGBA64::new(0, 0, 0, 0)
 
 ///|
 pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -198,7 +198,7 @@ let _NRGBA : &Color = NRGBA::new(0, 0, 0, 0)
 
 ///|
 pub fn NRGBA::new(r : Byte, g : Byte, b : Byte, a : Byte) -> NRGBA {
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -263,7 +263,7 @@ let _NRGBA64 : &Color = NRGBA64::new(0, 0, 0, 0)
 
 ///|
 pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -510,7 +510,7 @@ pub fn model_func(
   // like m == rgba_model. This is not possible if
   // we use the func value directly, because funcs
   // are no longer comparable.
-  let mf : ModelFunc = { f, name, palette }
+  let mf : ModelFunc = { f, name, palette, }
   mf
 }
 
@@ -570,14 +570,14 @@ fn rgba_model_fn(c : &Color) -> &Color {
 pub fn RGBA::from(c : &Color) -> RGBA {
   if c.model() == "RGBA" {
     let (r, g, b, a) = c.raw()
-    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
+    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte(), }
   }
   let (r, g, b, a) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let a = (a >> 8).to_byte()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -589,10 +589,10 @@ fn rgba64_model_fn(c : &Color) -> &Color {
 pub fn RGBA64::from(c : &Color) -> RGBA64 {
   if c.model() == "RGBA64" {
     let (r, g, b, a) = c.raw()
-    return { r, g, b, a }
+    return { r, g, b, a, }
   }
   let (r, g, b, a) = c.rgba()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -604,24 +604,24 @@ fn nrgba_model_fn(c : &Color) -> &Color {
 pub fn NRGBA::from(c : &Color) -> NRGBA {
   if c.model() == "NRGBA" {
     let (r, g, b, a) = c.raw()
-    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte() }
+    return { r: r.to_byte(), g: g.to_byte(), b: b.to_byte(), a: a.to_byte(), }
   }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
     let r = (r >> 8).to_byte()
     let g = (g >> 8).to_byte()
     let b = (b >> 8).to_byte()
-    return { r, g, b, a: 0xff }
+    return { r, g, b, a: 0xff, }
   }
   if a == 0 {
-    return { r: 0, g: 0, b: 0, a: 0 }
+    return { r: 0, g: 0, b: 0, a: 0, }
   }
   // Since Color.RGBA returns an alpha-premultiplied color, we should have r <= a && g <= a && b <= a.
   let r = ((r * 0xffff / a) >> 8).to_byte()
   let g = ((g * 0xffff / a) >> 8).to_byte()
   let b = ((b * 0xffff / a) >> 8).to_byte()
   let a = (a >> 8).to_byte()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -633,20 +633,20 @@ fn nrgba64_model_fn(c : &Color) -> &Color {
 pub fn NRGBA64::from(c : &Color) -> NRGBA64 {
   if c.model() == "NRGBA64" {
     let (r, g, b, a) = c.raw()
-    return { r, g, b, a }
+    return { r, g, b, a, }
   }
   let (r, g, b, a) = c.rgba()
   if a == 0xffff {
-    return { r: r & a, g: g & a, b: b & a, a: 0xffff }
+    return { r: r & a, g: g & a, b: b & a, a: 0xffff, }
   }
   if a == 0 {
-    return { r: 0, g: 0, b: 0, a: 0 }
+    return { r: 0, g: 0, b: 0, a: 0, }
   }
   // Since Color.RGBA returns an alpha-premultiplied color, we should have r <= a && g <= a && b <= a.
   let r = (r * 0xffff / a) & 0xffff
   let g = (g * 0xffff / a) & 0xffff
   let b = (b * 0xffff / a) & 0xffff
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -658,7 +658,7 @@ fn alpha_model_fn(c : &Color) -> &Color {
 pub fn Alpha::from(c : &Color) -> Alpha {
   if c.model() == "Alpha" {
     let (a, _, _, _) = c.raw()
-    return { a: a.to_byte() }
+    return { a: a.to_byte(), }
   }
   let (_, _, _, a) = c.rgba()
   let a = (a >> 8).to_byte()
@@ -689,7 +689,7 @@ fn gray_model_fn(c : &Color) -> &Color {
 pub fn Gray::from(c : &Color) -> Gray {
   if c.model() == "Gray" {
     let (y, _, _, _) = c.raw()
-    return { y: y.to_byte() }
+    return { y: y.to_byte(), }
   }
   let (r, g, b, _) = c.rgba()
 
@@ -862,16 +862,16 @@ fn sq_diff(x : UInt, y : UInt) -> UInt {
 
 ///|
 /// Standard colors.
-pub let black : Gray16 = { y: 0 }
+pub let black : Gray16 = { y: 0, }
 
 ///|
-pub let white : Gray16 = { y: 0xffff }
+pub let white : Gray16 = { y: 0xffff, }
 
 ///|
-pub let transparent : Alpha16 = { a: 0 }
+pub let transparent : Alpha16 = { a: 0, }
 
 ///|
-pub let opaque_ : Alpha16 = { a: 0xffff }
+pub let opaque_ : Alpha16 = { a: 0xffff, }
 
 ///|
 test "sq_diff" {

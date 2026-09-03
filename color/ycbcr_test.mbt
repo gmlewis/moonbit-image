@@ -96,8 +96,8 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
 test "YCbCr colors are a superset of Gray colors" {
   // func TestYCbCrGray(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
-    let c0 : @color.YCbCr = { y: i.to_byte(), cb: 0x80, cr: 0x80 }
-    let c1 : @color.Gray = { y: i.to_byte() }
+    let c0 : @color.YCbCr = { y: i.to_byte(), cb: 0x80, cr: 0x80, }
+    let c1 : @color.Gray = { y: i.to_byte(), }
     let err = eq(c0, c1)
     guard err is None else {
       raise EqError("i=\{i}:\n\{err.unwrap().to_repr()}")
@@ -109,8 +109,8 @@ test "YCbCr colors are a superset of Gray colors" {
 test "NYCbCrA colors are a superset of Alpha colors" {
   // func TestNYCbCrAAlpha(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
-    let c0 : @color.NYCbCrA = { y: 0xff, cb: 0x80, cr: 0x80, a: i.to_byte() }
-    let c1 : @color.Alpha = { a: i.to_byte() }
+    let c0 : @color.NYCbCrA = { y: 0xff, cb: 0x80, cr: 0x80, a: i.to_byte(), }
+    let c1 : @color.Alpha = { a: i.to_byte(), }
     let err = eq(c0, c1)
     guard err is None else {
       raise EqError("i=\{i}:\n\{err.unwrap().to_repr()}")
@@ -122,8 +122,8 @@ test "NYCbCrA colors are a superset of Alpha colors" {
 test "NYCbCrA colors are a superset of YCbCr colors" {
   // func TestNYCbCrAYCbCr(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
-    let c0 : @color.NYCbCrA = { y: i.to_byte(), cb: 0x40, cr: 0xc0, a: 0xff }
-    let c1 : @color.YCbCr = { y: i.to_byte(), cb: 0x40, cr: 0xc0 }
+    let c0 : @color.NYCbCrA = { y: i.to_byte(), cb: 0x40, cr: 0xc0, a: 0xff, }
+    let c1 : @color.YCbCr = { y: i.to_byte(), cb: 0x40, cr: 0xc0, }
     let err = eq(c0, c1)
     guard err is None else {
       raise EqError("i=\{i}:\n\{err.unwrap().to_repr()}")
@@ -185,8 +185,8 @@ test "calling the RGBA method (16 bit color) then truncating to 8 bits is equiva
 test "CMYK colors are a superset of Gray colors" {
   // func TestCMYKGray(t *testing.T) {
   for i = 0; i < 256; i = i + 1 {
-    let c0 : @color.CMYK = { c: 0, m: 0, y: 0, k: (255 - i).to_byte() }
-    let c1 : @color.Gray = { y: i.to_byte() }
+    let c0 : @color.CMYK = { c: 0, m: 0, y: 0, k: (255 - i).to_byte(), }
+    let c1 : @color.Gray = { y: i.to_byte(), }
     let err = eq(c0, c1)
     guard err is None else {
       raise EqError("i=\{i}:\n\{err.unwrap().to_repr()}")

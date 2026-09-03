@@ -36,7 +36,7 @@ pub(all) struct Config {
 
 ///|
 pub fn Config::new_empty() -> Config {
-  { color_model: @color.rgba_model, width: 0, height: 0 }
+  { color_model: @color.rgba_model, width: 0, height: 0, }
 }
 
 ///|
@@ -147,7 +147,7 @@ let _RGBA : &Image = RGBA::new_empty()
 
 ///|
 pub fn RGBA::new_empty() -> RGBA {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -289,7 +289,7 @@ pub impl Image for RGBA with fn sub_image(self, r) {
     return RGBA::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  RGBA::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  RGBA::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -345,7 +345,7 @@ let _RGBA64 : &Image = RGBA64::new_empty()
 
 ///|
 pub fn RGBA64::new_empty() -> RGBA64 {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -399,7 +399,7 @@ pub fn RGBA64::rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
   let g = (self.pix[i + 2].to_uint() << 8) | self.pix[i + 3].to_uint()
   let b = (self.pix[i + 4].to_uint() << 8) | self.pix[i + 5].to_uint()
   let a = (self.pix[i + 6].to_uint() << 8) | self.pix[i + 7].to_uint()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -421,7 +421,7 @@ pub impl Image for RGBA64 with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { r, g, b, a } = @color.RGBA64::from(c)
+  let { r, g, b, a, } = @color.RGBA64::from(c)
   self.pix[i + 0] = (r >> 8).to_byte()
   self.pix[i + 1] = r.to_byte()
   self.pix[i + 2] = (g >> 8).to_byte()
@@ -465,7 +465,7 @@ pub impl Image for RGBA64 with fn sub_image(self, r) {
     return RGBA64::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  RGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  RGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -521,7 +521,7 @@ let _NRGBA : &Image = NRGBA::new_empty()
 
 ///|
 pub fn NRGBA::new_empty() -> NRGBA {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -604,7 +604,7 @@ pub impl Image for NRGBA with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { r, g, b, a } = @color.NRGBA::from(c)
+  let { r, g, b, a, } = @color.NRGBA::from(c)
   self.pix[i + 0] = r
   self.pix[i + 1] = g
   self.pix[i + 2] = b
@@ -665,7 +665,7 @@ pub impl Image for NRGBA with fn sub_image(self, r) {
     return NRGBA::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  NRGBA::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  NRGBA::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -721,7 +721,7 @@ let _NRGBA64 : &Image = NRGBA64::new_empty()
 
 ///|
 pub fn NRGBA64::new_empty() -> NRGBA64 {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -781,7 +781,7 @@ pub fn NRGBA64::nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
   let g = (self.pix[i + 2].to_uint() << 8) | self.pix[i + 3].to_uint()
   let b = (self.pix[i + 4].to_uint() << 8) | self.pix[i + 5].to_uint()
   let a = (self.pix[i + 6].to_uint() << 8) | self.pix[i + 7].to_uint()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -803,7 +803,7 @@ pub impl Image for NRGBA64 with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { r, g, b, a } = @color.NRGBA64::from(c)
+  let { r, g, b, a, } = @color.NRGBA64::from(c)
   self.pix[i + 0] = (r >> 8).to_byte()
   self.pix[i + 1] = r.to_byte()
   self.pix[i + 2] = (g >> 8).to_byte()
@@ -876,7 +876,7 @@ pub impl Image for NRGBA64 with fn sub_image(self, r) {
     return NRGBA64::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  NRGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  NRGBA64::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -932,7 +932,7 @@ let _Alpha : &Image = Alpha::new_empty()
 
 ///|
 pub fn Alpha::new_empty() -> Alpha {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -980,7 +980,7 @@ pub impl Image for Alpha with fn at(self, x, y) {
 pub fn Alpha::rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
   let mut a = self.alpha_at(x, y).a.to_uint()
   a = a | (a << 8)
-  { r: a, g: a, b: a, a }
+  { r: a, g: a, b: a, a, }
 }
 
 ///|
@@ -989,7 +989,7 @@ pub fn Alpha::alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
     return @color.Alpha::new(0)
   }
   let i = self.pix_offset(x, y)
-  { a: self.pix[i] }
+  { a: self.pix[i], }
 }
 
 ///|
@@ -1011,7 +1011,7 @@ pub impl Image for Alpha with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { a } = @color.Alpha::from(c)
+  let { a, } = @color.Alpha::from(c)
   self.pix[i] = a
 }
 
@@ -1055,7 +1055,7 @@ pub impl Image for Alpha with fn sub_image(self, r) {
     return Alpha::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  Alpha::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  Alpha::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -1111,7 +1111,7 @@ let _Alpha16 : &Image = Alpha16::new_empty()
 
 ///|
 pub fn Alpha16::new_empty() -> Alpha16 {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -1158,7 +1158,7 @@ pub impl Image for Alpha16 with fn at(self, x, y) {
 ///|
 pub fn Alpha16::rgba64_at(self : Alpha16, x : Int, y : Int) -> @color.RGBA64 {
   let a = self.alpha16_at(x, y).a
-  { r: a, g: a, b: a, a }
+  { r: a, g: a, b: a, a, }
 }
 
 ///|
@@ -1190,7 +1190,7 @@ pub impl Image for Alpha16 with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { a } = @color.Alpha16::from(c)
+  let { a, } = @color.Alpha16::from(c)
   self.pix[i + 0] = (a >> 8).to_byte()
   self.pix[i + 1] = a.to_byte()
 }
@@ -1237,7 +1237,7 @@ pub impl Image for Alpha16 with fn sub_image(self, r) {
     return Alpha16::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  Alpha16::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  Alpha16::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -1293,7 +1293,7 @@ let _Gray : &Image = Gray::new_empty()
 
 ///|
 pub fn Gray::new_empty() -> Gray {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -1341,7 +1341,7 @@ pub impl Image for Gray with fn at(self, x, y) {
 pub fn Gray::rgba64_at(self : Gray, x : Int, y : Int) -> @color.RGBA64 {
   let mut gray = self.gray_at(x, y).y.to_uint()
   gray = gray | (gray << 8)
-  { r: gray, g: gray, b: gray, a: 0xffff }
+  { r: gray, g: gray, b: gray, a: 0xffff, }
 }
 
 ///|
@@ -1350,7 +1350,7 @@ pub fn Gray::gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
     return @color.Gray::new(0)
   }
   let i = self.pix_offset(x, y)
-  { y: self.pix[i] }
+  { y: self.pix[i], }
 }
 
 ///|
@@ -1372,7 +1372,7 @@ pub impl Image for Gray with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { y } = @color.Gray::from(c)
+  let { y, } = @color.Gray::from(c)
   self.pix[i] = y
 }
 
@@ -1413,7 +1413,7 @@ pub impl Image for Gray with fn sub_image(self, r) {
     return Gray::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  Gray::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  Gray::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -1455,7 +1455,7 @@ let _Gray16 : &Image = Gray16::new_empty()
 
 ///|
 pub fn Gray16::new_empty() -> Gray16 {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -1502,7 +1502,7 @@ pub impl Image for Gray16 with fn at(self, x, y) {
 ///|
 pub fn Gray16::rgba64_at(self : Gray16, x : Int, y : Int) -> @color.RGBA64 {
   let gray = self.gray16_at(x, y).y
-  { r: gray, g: gray, b: gray, a: 0xffff }
+  { r: gray, g: gray, b: gray, a: 0xffff, }
 }
 
 ///|
@@ -1534,7 +1534,7 @@ pub impl Image for Gray16 with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { y } = @color.Gray16::from(c)
+  let { y, } = @color.Gray16::from(c)
   self.pix[i + 0] = (y >> 8).to_byte()
   self.pix[i + 1] = y.to_byte()
 }
@@ -1583,7 +1583,7 @@ pub impl Image for Gray16 with fn sub_image(self, r) {
     return Gray16::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  Gray16::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  Gray16::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -1625,7 +1625,7 @@ let _CMYK : &Image = CMYK::new_empty()
 
 ///|
 pub fn CMYK::new_empty() -> CMYK {
-  { pix: Slice::new([]), stride: 0, rect: Rectangle::new() }
+  { pix: Slice::new([]), stride: 0, rect: Rectangle::new(), }
 }
 
 ///|
@@ -1672,7 +1672,7 @@ pub impl Image for CMYK with fn at(self, x, y) {
 ///|
 pub fn CMYK::rgba64_at(self : CMYK, x : Int, y : Int) -> @color.RGBA64 {
   let (r, g, b, a) = self.cmyk_at(x, y).rgba()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|
@@ -1702,7 +1702,7 @@ pub impl Image for CMYK with fn set(self, x, y, c) {
     return
   }
   let i = self.pix_offset(x, y)
-  let { c, m, y, k } = @color.CMYK::from(c)
+  let { c, m, y, k, } = @color.CMYK::from(c)
   self.pix[i + 0] = c
   self.pix[i + 1] = m
   self.pix[i + 2] = y
@@ -1755,7 +1755,7 @@ pub impl Image for CMYK with fn sub_image(self, r) {
     return CMYK::new_empty()
   }
   let i = self.pix_offset(r.min.x, r.min.y)
-  CMYK::{ pix: self.pix[i:], stride: self.stride, rect: r }
+  CMYK::{ pix: self.pix[i:], stride: self.stride, rect: r, }
 }
 
 ///|
@@ -2037,7 +2037,7 @@ pub fn Paletted::rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
     c = self.palette.0[self.pix[i].to_int()]
   }
   let (r, g, b, a) = c.rgba()
-  { r, g, b, a }
+  { r, g, b, a, }
 }
 
 ///|

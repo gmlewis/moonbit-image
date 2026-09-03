@@ -156,15 +156,15 @@ fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
 ///|
 test "new xxx bad rectangle" {
   let test_cases = [
-    { name: "RGBA", f: r => @image.RGBA::new(r) as &Image },
-    { name: "RGBA64", f: r => @image.RGBA64::new(r) as &Image },
-    { name: "NRGBA", f: r => @image.NRGBA::new(r) as &Image },
-    { name: "NRGBA64", f: r => @image.NRGBA64::new(r) as &Image },
-    { name: "Alpha", f: r => @image.Alpha::new(r) as &Image },
-    { name: "Alpha16", f: r => @image.Alpha16::new(r) as &Image },
-    { name: "Gray", f: r => @image.Gray::new(r) as &Image },
-    { name: "Gray16", f: r => @image.Gray16::new(r) as &Image },
-    { name: "CMYK", f: r => @image.CMYK::new(r) as &Image },
+    { name: "RGBA", f: r => @image.RGBA::new(r) as &Image, },
+    { name: "RGBA64", f: r => @image.RGBA64::new(r) as &Image, },
+    { name: "NRGBA", f: r => @image.NRGBA::new(r) as &Image, },
+    { name: "NRGBA64", f: r => @image.NRGBA64::new(r) as &Image, },
+    { name: "Alpha", f: r => @image.Alpha::new(r) as &Image, },
+    { name: "Alpha16", f: r => @image.Alpha16::new(r) as &Image, },
+    { name: "Gray", f: r => @image.Gray::new(r) as &Image, },
+    { name: "Gray16", f: r => @image.Gray16::new(r) as &Image, },
+    { name: "CMYK", f: r => @image.CMYK::new(r) as &Image, },
     {
       name: "Paletted",
       f: r => {
@@ -183,7 +183,7 @@ test "new xxx bad rectangle" {
     // error) unless r's width and height are both non-negative.
     for neg_dx in [true, false] {
       for neg_dy in [true, false] {
-        let r : Rectangle = { min: @image.pt(15, 28), max: @image.pt(16, 29) }
+        let r : Rectangle = { min: @image.pt(15, 28), max: @image.pt(16, 29), }
         if neg_dx {
           r.max.x = 14
         }

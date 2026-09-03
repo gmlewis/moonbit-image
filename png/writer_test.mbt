@@ -64,11 +64,11 @@ struct PalettedTestCase {
 test "writer paletted" {
   let (width, height) = (32, 16)
   let test_cases = [
-    { plen: 256, bitdepth: 8, datalen: (1 + width) * height },
-    { plen: 128, bitdepth: 8, datalen: (1 + width) * height },
-    { plen: 16, bitdepth: 4, datalen: (1 + width / 2) * height },
-    { plen: 4, bitdepth: 2, datalen: (1 + width / 4) * height },
-    { plen: 2, bitdepth: 1, datalen: (1 + width / 8) * height },
+    { plen: 256, bitdepth: 8, datalen: (1 + width) * height, },
+    { plen: 128, bitdepth: 8, datalen: (1 + width) * height, },
+    { plen: 16, bitdepth: 4, datalen: (1 + width / 2) * height, },
+    { plen: 4, bitdepth: 2, datalen: (1 + width / 4) * height, },
+    { plen: 2, bitdepth: 1, datalen: (1 + width / 8) * height, },
   ]
   for tc in test_cases {
     let test_name = "plen-\{tc.plen}"
@@ -202,10 +202,10 @@ test "write RGBA" {
 
   //
   let test_cases = [
-    { name: "Transparent RGBA", img: transparent_img },
-    { name: "Opaque RGBA", img: opaque_img },
-    { name: "50/50 Transparent/Opaque RGBA", img: mixed_img },
-    { name: "RGBA with variable alpha", img: translucent_img },
+    { name: "Transparent RGBA", img: transparent_img, },
+    { name: "Opaque RGBA", img: opaque_img, },
+    { name: "50/50 Transparent/Opaque RGBA", img: mixed_img, },
+    { name: "RGBA with variable alpha", img: translucent_img, },
   ]
   for _, tc in test_cases {
     let m0 = tc.img

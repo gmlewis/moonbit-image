@@ -202,21 +202,21 @@ let _YCbCr : &Color = YCbCr::new(0, 0, 0)
 
 ///|
 pub fn YCbCr::new(y : Byte, cb : Byte, cr : Byte) -> YCbCr {
-  { y, cb, cr }
+  { y, cb, cr, }
 }
 
 ///|
 pub fn YCbCr::from(c : &Color) -> YCbCr {
   if c.model() == "YCbCr" {
     let (y, cb, cr, _) = c.raw()
-    return { y: y.to_byte(), cb: cb.to_byte(), cr: cr.to_byte() }
+    return { y: y.to_byte(), cb: cb.to_byte(), cr: cr.to_byte(), }
   }
   let (r, g, b, _) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let (y, cb, cr) = rgb_to_y_cb_cr(r, g, b)
-  { y, cb, cr }
+  { y, cb, cr, }
 }
 
 ///|
@@ -301,7 +301,7 @@ fn y_cb_cr_model_fn(c : &Color) -> &Color {
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let (y, cb, cr) = rgb_to_y_cb_cr(r, g, b)
-  let c : YCbCr = { y, cb, cr }
+  let c : YCbCr = { y, cb, cr, }
   c
 }
 
@@ -341,7 +341,7 @@ let _NYCbCrA : &Color = NYCbCrA::new(0, 0, 0, 0)
 
 ///|
 pub fn NYCbCrA::new(y : Byte, cb : Byte, cr : Byte, a : Byte) -> NYCbCrA {
-  { y, cb, cr, a }
+  { y, cb, cr, a, }
 }
 
 ///|
@@ -431,7 +431,7 @@ fn n_y_cb_cr_a_model_fn(c : &Color) -> &Color {
   let b = (b >> 8).to_byte()
   let a = (a >> 8).to_byte()
   let (y, cb, cr) = rgb_to_y_cb_cr(r, g, b)
-  let c : NYCbCrA = { y, cb, cr, a }
+  let c : NYCbCrA = { y, cb, cr, a, }
   c
 }
 
@@ -514,7 +514,7 @@ let _CMYK : &Color = CMYK::new(0, 0, 0, 0)
 
 ///|
 pub fn CMYK::new(c : Byte, m : Byte, y : Byte, k : Byte) -> CMYK {
-  { c, m, y, k }
+  { c, m, y, k, }
 }
 
 ///|
@@ -552,12 +552,12 @@ fn cmyk_model_fn(c : &Color) -> &Color {
 pub fn CMYK::from(c : &Color) -> CMYK {
   if c.model() == "CMYK" {
     let (c, m, y, k) = c.raw()
-    return { c: c.to_byte(), m: m.to_byte(), y: y.to_byte(), k: k.to_byte() }
+    return { c: c.to_byte(), m: m.to_byte(), y: y.to_byte(), k: k.to_byte(), }
   }
   let (r, g, b, _) = c.rgba()
   let r = (r >> 8).to_byte()
   let g = (g >> 8).to_byte()
   let b = (b >> 8).to_byte()
   let (c, m, y, k) = rgb_to_cmyk(r, g, b)
-  { c, m, y, k }
+  { c, m, y, k, }
 }

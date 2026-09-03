@@ -39,7 +39,7 @@ fn ReaderSize::new(rd : &@io.Reader, size : Int) -> ReaderSize {
   // if ok && len(b.buf) >= size {
   // 	return b
   // }
-  let r = { buf: Slice::new([]), rd, r: 0, w: 0, err: None }
+  let r = { buf: Slice::new([]), rd, r: 0, w: 0, err: None, }
   // lastRuneSize: -1,
   r.reset_buf(
     Slice::new(Array::make(@cmp.maximum(size, MIN_READ_BUFFER_SIZE), b'\x00')),

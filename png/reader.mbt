@@ -123,13 +123,13 @@ priv struct InterlaceScan {
 /// interlacing defines Adam7 interlacing, with 7 passes of reduced images.
 /// See https://www.w3.org/TR/PNG/#8Interlace
 let interlacing : Array[InterlaceScan] = [
-  { x_factor: 8, y_factor: 8, x_offset: 0, y_offset: 0 },
-  { x_factor: 8, y_factor: 8, x_offset: 4, y_offset: 0 },
-  { x_factor: 4, y_factor: 8, x_offset: 0, y_offset: 4 },
-  { x_factor: 4, y_factor: 4, x_offset: 2, y_offset: 0 },
-  { x_factor: 2, y_factor: 4, x_offset: 0, y_offset: 2 },
-  { x_factor: 2, y_factor: 2, x_offset: 1, y_offset: 0 },
-  { x_factor: 1, y_factor: 2, x_offset: 0, y_offset: 1 },
+  { x_factor: 8, y_factor: 8, x_offset: 0, y_offset: 0, },
+  { x_factor: 8, y_factor: 8, x_offset: 4, y_offset: 0, },
+  { x_factor: 4, y_factor: 8, x_offset: 0, y_offset: 4, },
+  { x_factor: 4, y_factor: 4, x_offset: 2, y_offset: 0, },
+  { x_factor: 2, y_factor: 4, x_offset: 0, y_offset: 2, },
+  { x_factor: 2, y_factor: 2, x_offset: 1, y_offset: 0, },
+  { x_factor: 1, y_factor: 2, x_offset: 0, y_offset: 1, },
 ]
 
 // Decoding stage.
@@ -1278,7 +1278,7 @@ pub fn decode_config(r : &@io.Reader) -> (@image.Config, IOError?) {
   }
 
   //
-  ({ color_model: cm, width: d.width, height: d.height }, None)
+  ({ color_model: cm, width: d.width, height: d.height, }, None)
 }
 
 // func init {

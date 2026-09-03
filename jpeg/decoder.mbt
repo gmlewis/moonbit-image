@@ -432,7 +432,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
     if err != None {
       return err
     }
-    self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0 })
+    self.comp.push(Component::{ h, v, c, tq, dctbl: 0, actbl: 0, })
   }
   self.max_h = max_h
   self.max_v = max_v
@@ -590,7 +590,7 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
       code = code << 1
       lut.push(arr)
     }
-    let table = HuffmanTable::{ class: tc, id: th, lut, max_len }
+    let table = HuffmanTable::{ class: tc, id: th, lut, max_len, }
     let mut found = false
     for i in 0..<self.htab.length() {
       if self.htab[i].class == tc && self.htab[i].id == th {

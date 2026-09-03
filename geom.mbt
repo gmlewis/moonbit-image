@@ -14,7 +14,7 @@ pub(all) struct Point {
 
 ///|
 pub impl Show for Point with fn output(self, logger) {
-  let { x, y } = self
+  let { x, y, } = self
   logger.write_string(
     (
       $|{x: \{x}, y: \{y}}
@@ -42,25 +42,25 @@ pub fn Point::to_string(self : Point) -> String {
 ///|
 /// add (+) returns the vector p+q.
 pub impl Add for Point with fn add(self, q) {
-  { x: self.x + q.x, y: self.y + q.y }
+  { x: self.x + q.x, y: self.y + q.y, }
 }
 
 ///|
 /// sub (-) returns the vector p-q.
 pub impl Sub for Point with fn sub(self, q) {
-  { x: self.x - q.x, y: self.y - q.y }
+  { x: self.x - q.x, y: self.y - q.y, }
 }
 
 ///|
 /// mul returns the vector p*k.
 pub fn Point::mul(self : Point, k : Int) -> Point {
-  { x: self.x * k, y: self.y * k }
+  { x: self.x * k, y: self.y * k, }
 }
 
 ///|
 /// div returns the vector p/k.
 pub fn Point::div(self : Point, k : Int) -> Point {
-  { x: self.x / k, y: self.y / k }
+  { x: self.x / k, y: self.y / k, }
 }
 
 ///|
@@ -89,7 +89,7 @@ pub fn Point::mod(self : Point, r : Rectangle) -> Point {
 ///|
 /// pt is shorthand for [Point]{X, Y}.
 pub fn pt(x : Int, y : Int) -> Point {
-  { x, y }
+  { x, y, }
 }
 
 ///|
@@ -108,7 +108,7 @@ pub(all) struct Rectangle {
 
 ///|
 pub impl Show for Rectangle with fn output(self, logger) {
-  let { min, max } = self
+  let { min, max, } = self
   logger.write_string(
     (
       $|{min: \{min}, max: \{max}}
@@ -134,7 +134,7 @@ let _Rectangle : &Image = Rectangle::new()
 ///|
 /// Rectangle::new returns an empty (all zeros) rectangle.
 pub fn Rectangle::new() -> Rectangle {
-  { min: pt(0, 0), max: pt(0, 0) }
+  { min: pt(0, 0), max: pt(0, 0), }
 }
 
 ///|
@@ -185,7 +185,7 @@ pub impl Image for Rectangle with fn as_ycbcr(_self) {
 ///|
 /// copy makes a copy of the provided rectangle without changing it.
 pub fn Rectangle::copy(self : Rectangle) -> Rectangle {
-  { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y) }
+  { min: pt(self.min.x, self.min.y), max: pt(self.max.x, self.max.y), }
 }
 
 ///|
@@ -209,7 +209,7 @@ pub fn Rectangle::dy(self : Rectangle) -> Int {
 ///|
 /// size returns r's width and height.
 pub fn Rectangle::size(self : Rectangle) -> Point {
-  { x: self.max.x - self.min.x, y: self.max.y - self.min.y }
+  { x: self.max.x - self.min.x, y: self.max.y - self.min.y, }
 }
 
 ///|
@@ -378,9 +378,9 @@ pub fn Rectangle::rgba64_at(
   y : Int,
 ) -> @color.RGBA64 {
   if pt(x, y).is_in(self) {
-    return @color.RGBA64::{ r: 0xffff, g: 0xffff, b: 0xffff, a: 0xffff }
+    return @color.RGBA64::{ r: 0xffff, g: 0xffff, b: 0xffff, a: 0xffff, }
   }
-  @color.RGBA64::{ r: 0, g: 0, b: 0, a: 0 }
+  @color.RGBA64::{ r: 0, g: 0, b: 0, a: 0, }
 }
 
 ///|
@@ -402,7 +402,7 @@ pub impl Image for Rectangle with fn color_model(_self) {
 pub fn rect(x0 : Int, y0 : Int, x1 : Int, y1 : Int) -> Rectangle {
   let (x0, x1) = if x0 > x1 { (x1, x0) } else { (x0, x1) }
   let (y0, y1) = if y0 > y1 { (y1, y0) } else { (y0, y1) }
-  { min: pt(x0, y0), max: pt(x1, y1) }
+  { min: pt(x0, y0), max: pt(x1, y1), }
 }
 
 ///|
