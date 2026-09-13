@@ -102,10 +102,10 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     r,
     width: 0,
     height: 0,
-    comp: Array::new(),
-    prev_dc: Array::new(),
-    qtab: Array::new(),
-    htab: Array::new(),
+    comp: Array(),
+    prev_dc: Array(),
+    qtab: Array(),
+    htab: Array(),
     bit_curr: 0,
     bits_left: 0,
     img: &@image.Image::new_empty(),
@@ -115,13 +115,13 @@ fn Decoder::new(r : &@io.Reader) -> Decoder {
     max_h: 0,
     max_v: 0,
     progressive: false,
-    prog_coeffs: Array::new(),
+    prog_coeffs: Array(),
     ss: 0,
     se: 0,
     ah: 0,
     al: 0,
     eob_run: 0,
-    sos_comp_indices: Array::new(),
+    sos_comp_indices: Array(),
     tmp: Slice::new(Array::make(1, b'\x00')),
     ri: 0,
   }
@@ -239,7 +239,7 @@ fn Decoder::parse_sos(self : Decoder) -> @io.IOError? {
     return err
   }
   let ncomp = ncomp_byte
-  self.sos_comp_indices = Array::new(capacity=ncomp)
+  self.sos_comp_indices = Array(capacity=ncomp)
   for _ in 0..<ncomp {
     let (c, err) = self.read_byte()
     if err != None {
@@ -408,7 +408,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
       err => return Some(@io.IOError("failed to create image: \{err}"))
     }
   }
-  self.comp = Array::new()
+  self.comp = Array()
   let mut max_h = 0
   let mut max_v = 0
   for _ in 0..<ncomp {
@@ -473,7 +473,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
       None => ()
     }
   }
-  self.prev_dc = Array::new()
+  self.prev_dc = Array()
   for _ in 0..<ncomp {
     self.prev_dc.push(0)
   }
@@ -485,7 +485,7 @@ fn Decoder::parse_sof(self : Decoder, progressive~ : Bool) -> @io.IOError? {
       let comp = self.comp[i]
       total_blocks += mcus_per_row * comp.h * mcus_per_col * comp.v
     }
-    self.prog_coeffs = Array::new(capacity=total_blocks)
+    self.prog_coeffs = Array(capacity=total_blocks)
     for _ in 0..<total_blocks {
       self.prog_coeffs.push(Array::make(64, 0))
     }
@@ -513,7 +513,7 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
     if pq != 0 {
       return Some(@io.IOError("unsupported DQT precision"))
     }
-    let table = Array::new()
+    let table = Array()
     for _ in 0..<64 {
       let (v, err) = self.read_byte()
       if err != None {
@@ -523,7 +523,7 @@ fn Decoder::parse_dqt(self : Decoder) -> @io.IOError? {
       remaining = remaining - 1
     }
     while self.qtab.length() <= tq {
-      self.qtab.push(Array::new())
+      self.qtab.push(Array())
     }
     self.qtab[tq] = table
   }
@@ -545,7 +545,7 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
     remaining = remaining - 1
     let tc = (info >> 4) & 0xF
     let th = info & 0xF
-    let lengths = Array::new()
+    let lengths = Array()
     let mut total = 0
     for _ in 0..<16 {
       let (count, err) = self.read_byte()
@@ -556,7 +556,7 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
       total += count
       remaining = remaining - 1
     }
-    let symbols = Array::new()
+    let symbols = Array()
     for _ in 0..<total {
       let (s, err) = self.read_byte()
       if err != None {
@@ -565,7 +565,7 @@ fn Decoder::parse_dht(self : Decoder) -> @io.IOError? {
       symbols.push(s)
       remaining = remaining - 1
     }
-    let lut = Array::new()
+    let lut = Array()
     let mut code = 0
     let mut idx = 0
     let mut max_len = 0
@@ -617,7 +617,7 @@ fn Decoder::huffman_decode(
       continue
     }
     let mut code = 0
-    let bits_read = Array::new()
+    let bits_read = Array()
     for len = 1; len <= table.max_len; len = len + 1 {
       let (b, err) = self.read_bit()
       if err != None {
@@ -760,7 +760,7 @@ fn Decoder::decode_ac(
   while k <= 63 {
     let (sym, err) = self.huffman_decode(1, act)
     if err != None {
-      return (Array::new(), err)
+      return (Array(), err)
     }
     if sym == 0 {
       break
@@ -773,12 +773,12 @@ fn Decoder::decode_ac(
     let size = sym & 0xF
     k = k + run
     if k > 63 {
-      return (Array::new(), Some(@io.IOError("bad AC run overflow")))
+      return (Array(), Some(@io.IOError("bad AC run overflow")))
     }
     if size != 0 {
       let (bits, err2) = self.read_bits(size)
       if err2 != None {
-        return (Array::new(), err2)
+        return (Array(), err2)
       }
       let val = Decoder::extend_sign(bits, size)
       let pos = zig_zag_order[k]
@@ -811,11 +811,11 @@ fn Decoder::dequantize(
   tq : Int,
 ) -> (Array[Int], @io.IOError?) {
   if tq >= self.qtab.length() {
-    return (Array::new(), Some(@io.IOError("missing qtable")))
+    return (Array(), Some(@io.IOError("missing qtable")))
   }
   let q = self.qtab[tq]
   if q.length() < 64 {
-    return (Array::new(), Some(@io.IOError("short qtable")))
+    return (Array(), Some(@io.IOError("short qtable")))
   }
   let out = Array::make(64, 0)
   for i in 0..<64 {
@@ -897,11 +897,9 @@ fn Decoder::decode_entropy(self : Decoder) -> @io.IOError? {
   if self.sos_comp_indices.length() == 0 {
     return Some(@io.IOError("no components in scan"))
   }
-  let blocks : Array[Array[Array[Int]]] = Array::new(
-    capacity=self.comp.length(),
-  )
+  let blocks : Array[Array[Array[Int]]] = Array(capacity=self.comp.length())
   for _ in 0..<self.comp.length() {
-    blocks.push(Array::new())
+    blocks.push(Array())
   }
   for idx in self.sos_comp_indices {
     let comp = self.comp[idx]
@@ -1368,12 +1366,10 @@ fn Decoder::emit_progressive_pixels(self : Decoder) -> @io.IOError? {
   let mcus_per_col = (self.height + mcu_height - 1) / mcu_height
   for my in 0..<mcus_per_col {
     for mx in 0..<mcus_per_row {
-      let blocks : Array[Array[Array[Int]]] = Array::new(
-        capacity=self.comp.length(),
-      )
+      let blocks : Array[Array[Array[Int]]] = Array(capacity=self.comp.length())
       for i in 0..<self.comp.length() {
         let comp = self.comp[i]
-        let comp_blocks = Array::new(capacity=comp.h * comp.v)
+        let comp_blocks = Array(capacity=comp.h * comp.v)
         for v in 0..<comp.v {
           for h in 0..<comp.h {
             let block = self.get_prog_block(i, mx * comp.h + h, my * comp.v + v)
