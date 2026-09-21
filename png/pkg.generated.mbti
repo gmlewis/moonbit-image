@@ -21,6 +21,7 @@ pub let err_negative_read : @io.IOError
 
 // Types and methods
 type Decoder
+pub fn Decoder::read(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
 pub impl @io.Reader for Decoder
 
 type Encoder

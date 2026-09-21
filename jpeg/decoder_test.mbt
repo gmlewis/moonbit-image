@@ -15,7 +15,7 @@ test "decode 1x1 black jpeg" {
     0x3F, 0x00, 0xFF, 0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (img, err) = decode(buf)
+  let (img, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="1")
   inspect(img.bounds().dy(), content="1")
@@ -56,7 +56,7 @@ test "decode 16x16 4:2:0 black jpeg" {
     0x3F, 0x00, 0x3F, 0x00, 0x3F, 0x00, 0x3F, 0x00, 0xFF, 0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (img, err) = decode(buf)
+  let (img, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="16")
   inspect(img.bounds().dy(), content="16")
@@ -70,7 +70,7 @@ test "decode 16x16 4:2:0 black jpeg" {
 test "decode missing SOI" {
   let jpeg_data : Array[Byte] = [0x00, 0x00]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="Some(IOError(\"eof\"))")
 }
 
@@ -78,7 +78,7 @@ test "decode missing SOI" {
 test "decode truncated file" {
   let jpeg_data : Array[Byte] = [0xFF, 0xD8, 0xFF]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   match err {
     Some(e) => {
       let s = e.to_string()
@@ -99,7 +99,7 @@ test "decode unsupported precision" {
     0x11, 0x00,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="Some(IOError(\"unsupported precision\"))")
 }
 
@@ -121,7 +121,7 @@ test "decode 1x1 progressive black jpeg" {
      0xFF, 0xD9, // EOI
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (img, err) = decode(buf)
+  let (img, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="1")
   inspect(img.bounds().dy(), content="1")
@@ -161,7 +161,7 @@ test "decode 16x8 4:2:2 black jpeg" {
     0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (img, err) = decode(buf)
+  let (img, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="16")
   inspect(img.bounds().dy(), content="8")
@@ -201,7 +201,7 @@ test "decode 8x16 4:4:0 black jpeg" {
     0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (img, err) = decode(buf)
+  let (img, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
   inspect(img.bounds().dx(), content="8")
   inspect(img.bounds().dy(), content="16")
@@ -228,7 +228,7 @@ test "decode with DRI" {
     0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xFF, 0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
 }
 
@@ -236,7 +236,7 @@ test "decode with DRI" {
 test "decode bad DRI length" {
   let jpeg_data : Array[Byte] = [0xFF, 0xD8, 0xFF, 0xDD, 0x00, 0x03, 0x00]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="Some(IOError(\"bad DRI length\"))")
 }
 
@@ -244,7 +244,7 @@ test "decode bad DRI length" {
 test "decode unsupported DQT precision" {
   let jpeg_data : Array[Byte] = [0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x10] // pq=1 (16-bit)
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(
     err,
     content="Some(IOError(\"unsupported DQT precision\"))",
@@ -268,7 +268,7 @@ test "decode skip COM marker" {
     0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xFF, 0xD9,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(err, content="None")
 }
 
@@ -279,7 +279,7 @@ test "decode unsupported number of components" {
     0x11, 0x00, 0x02, 0x11, 0x00,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   @debug.debug_inspect(
     err,
     content="Some(IOError(\"unsupported number of components\"))",
@@ -293,7 +293,7 @@ test "decode malformed DHT symbols shorter than counts" {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
   ]
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, err) = decode(buf)
+  let (_, err) = @jpeg.decode(buf)
   // It returns "eof" because it fails while reading symbols, before it can validate the DHT structure.
   match err {
     Some(e) => {
@@ -325,5 +325,5 @@ test "decode missing quantization table" {
   ]
   // In the current implementation, if an error occurs during scan and a marker is hit, it may return None.
   let buf = @io.Buffer::from_slice(@io.Slice::new(jpeg_data))
-  let (_, _) = decode(buf)
+  let (_, _) = @jpeg.decode(buf)
 }

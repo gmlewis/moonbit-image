@@ -15,7 +15,7 @@ fn cmp(cm : &@color.Model, c0 : &@color.Color, c1 : &@color.Color) -> Bool {
 ///|
 struct TestT {
   name : String
-  image : () -> &Image raise SizeError
+  image : () -> &@image.Image raise @image.SizeError
 }
 
 ///|
@@ -134,12 +134,15 @@ test "image" {
 ///|
 struct TestR {
   name : String
-  f : (Rectangle) -> &Image raise SizeError
+  f : (@image.Rectangle) -> &@image.Image raise @image.SizeError
 }
 
 ///|
 /// call calls f(r) and reports whether it ran without raising an error.
-fn call(f : (Rectangle) -> &Image raise SizeError, r : Rectangle) -> Bool {
+fn call(
+  f : (@image.Rectangle) -> &@image.Image raise @image.SizeError,
+  r : @image.Rectangle,
+) -> Bool {
   // defer func() {
   // 	if recover() != nil {
   // 		ok = false
@@ -183,7 +186,10 @@ test "new xxx bad rectangle" {
     // error) unless r's width and height are both non-negative.
     for neg_dx in [true, false] {
       for neg_dy in [true, false] {
-        let r : Rectangle = { min: @image.pt(15, 28), max: @image.pt(16, 29), }
+        let r : @image.Rectangle = {
+          min: @image.pt(15, 28),
+          max: @image.pt(16, 29),
+        }
         if neg_dx {
           r.max.x = 14
         }
@@ -202,7 +208,7 @@ test "new xxx bad rectangle" {
 
     // Passing a Rectangle whose width and height is MaxInt should also fail
     // (panic), due to overflow.
-    let got = call(tc.f, Rectangle::{
+    let got = call(tc.f, @image.Rectangle::{
       min: @image.pt(0, 0),
       max: @image.pt(@int.MAX_VALUE, @int.MAX_VALUE),
     })
@@ -225,7 +231,7 @@ test "16 bits per color channel" {
       continue
     }
   }
-  let test_image : Array[&Image] = [
+  let test_image : Array[&@image.Image] = [
     @image.RGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
     @image.NRGBA64::new(@image.rect(0, 0, 10, 10)) as &Image,
     @image.Alpha16::new(@image.rect(0, 0, 10, 10)) as &Image,

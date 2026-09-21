@@ -54,6 +54,14 @@ suberror TestError {
 }
 
 ///|
+pub extend TestError with Show::{to_string}
+
+///|
+#deprecated("Use `Show::output` via the trait or `to_string` instead", skip_current_package=true)
+#doc(hidden)
+pub extend TestError with Show::{output}
+
+///|
 pub impl Show for TestError with fn output(self, logger) {
   let TestError(err) = self
   logger.write_string(
