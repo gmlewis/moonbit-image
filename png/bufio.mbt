@@ -18,8 +18,8 @@ priv struct ReaderSize {
   // reader provided by the client
   mut rd : &@io.Reader
   // buf read and write positions
-  mut r : Int
-  mut w : Int
+  mut r : Int32
+  mut w : Int32
   mut err : IOError?
 }
 
@@ -33,7 +33,7 @@ const MAX_CONSECUTIVE_EMPTY_READS = 100
 /// `ReaderSize::new` returns a new [Reader] whose buffer has at least the specified
 /// size. If the argument io.Reader is already a [Reader] with large enough
 /// size, it returns the underlying [Reader].
-fn ReaderSize::new(rd : &@io.Reader, size : Int) -> ReaderSize {
+fn ReaderSize::new(rd : &@io.Reader, size : Int32) -> ReaderSize {
   // Is it already a Reader?
   // b, ok := rd.(*Reader)
   // if ok && len(b.buf) >= size {
@@ -174,6 +174,6 @@ impl @flate.Reader for ReaderSize with fn read_byte(self) {
 
 ///|
 /// Buffered returns the number of bytes that can be read from the current buffer.
-fn ReaderSize::buffered(self : ReaderSize) -> Int {
+fn ReaderSize::buffered(self : ReaderSize) -> Int32 {
   self.w - self.r
 }

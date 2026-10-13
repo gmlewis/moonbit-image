@@ -9,7 +9,7 @@
 using @io {type Slice}
 
 ///|
-fn abs(x : Int) -> Int {
+fn abs(x : Int32) -> Int32 {
   // m = -1 if x < 0. m = 0 otherwise.
   let m = x >> 31
 
@@ -52,7 +52,7 @@ fn paeth(a : Byte, b : Byte, c : Byte) -> Byte {
 fn filter_paeth(
   cdat : Slice[Byte],
   pdat : Slice[Byte],
-  bytes_per_pixel : Int,
+  bytes_per_pixel : Int32,
 ) -> Unit {
   let mut a = 0
   let mut b = 0

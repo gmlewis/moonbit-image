@@ -5,40 +5,40 @@
 // TODO: const W2 : Int = 2676
 
 ///|
-const W3 : Int = 2408
+const W3 : Int32 = 2408
 
 ///|
 // TODO: const W5 : Int = 1609
 
 ///|
-const W6 : Int = 1108
+const W6 : Int32 = 1108
 
 ///|
-const W7 : Int = 565
+const W7 : Int32 = 565
 
 ///|
-const W1PW7 : Int = 3406 // W1 + W7
+const W1PW7 : Int32 = 3406 // W1 + W7
 
 ///|
-const W1MW7 : Int = 2276 // W1 - W7
+const W1MW7 : Int32 = 2276 // W1 - W7
 
 ///|
-const W2PW6 : Int = 3784 // W2 + W6
+const W2PW6 : Int32 = 3784 // W2 + W6
 
 ///|
-const W2MW6 : Int = 1568 // W2 - W6
+const W2MW6 : Int32 = 1568 // W2 - W6
 
 ///|
-const W3PW5 : Int = 4017 // W3 + W5
+const W3PW5 : Int32 = 4017 // W3 + W5
 
 ///|
-const W3MW5 : Int = 799 // W3 - W5
+const W3MW5 : Int32 = 799 // W3 - W5
 
 ///|
-const R2 : Int = 181 // 256/sqrt(2)
+const R2 : Int32 = 181 // 256/sqrt(2)
 
 ///|
-fn idct_block_2pass(src : Array[Int]) -> Array[Int] {
+fn idct_block_2pass(src : Array[Int32]) -> Array[Int32] {
   let b = Array::make(64, 0)
   for i in 0..<64 {
     b[i] = src[i]

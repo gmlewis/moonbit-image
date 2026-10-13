@@ -53,9 +53,9 @@ fn convert_to_nrgba(m : &@image.Image) -> @image.NRGBA {
 
 ///|
 struct PalettedTestCase {
-  plen : Int
+  plen : Int32
   bitdepth : Byte
-  datalen : Int
+  datalen : Int32
 }
 
 // func TestWriterPaletted(t *testing.T) {
@@ -133,7 +133,7 @@ test "writer paletted" {
 }
 
 ///|
-fn be_uint32(b : Slice[Byte]) -> UInt {
+fn be_uint32(b : Slice[Byte]) -> UInt32 {
   (b[0].to_uint() << 24) |
   (b[1].to_uint() << 16) |
   (b[2].to_uint() << 8) |

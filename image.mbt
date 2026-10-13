@@ -30,8 +30,8 @@ using @io {type Slice}
 /// Config holds an image's color model and dimensions.
 pub(all) struct Config {
   color_model : &@color.Model
-  width : Int
-  height : Int
+  width : Int32
+  height : Int32
 }
 
 ///|
@@ -51,23 +51,23 @@ pub(open) trait Image {
   /// At returns the color of the pixel at (x, y).
   /// at(bounds().min.x, bounds().min.y) returns the upper-left pixel of the grid.
   /// at(bounds().max.x-1, bounds().max.y-1) returns the lower-right one.
-  fn at(Self, Int, Int) -> &@color.Color
+  fn at(Self, Int32, Int32) -> &@color.Color
 
   // other available methods:
   fn opaque_(Self) -> Bool
-  fn set(Self, Int, Int, &@color.Color) -> Unit
+  fn set(Self, Int32, Int32, &@color.Color) -> Unit
   fn sub_image(Self, Rectangle) -> &Image
   fn as_ycbcr(Self) -> YCbCr?
 
   // Because MoonBit does not have reflection, the following methods must
   // also be made available:
   fn raw_data(Self) -> Slice[Byte]
-  fn get_bytes_per_pixel(Self) -> Int
-  fn get_stride(Self) -> Int
-  fn pix_offset(Self, Int, Int) -> Int
+  fn get_bytes_per_pixel(Self) -> Int32
+  fn get_stride(Self) -> Int32
+  fn pix_offset(Self, Int32, Int32) -> Int32
   /// color_index_at returns the palette index of the pixel at (x, y).
   /// It returns 0 for non-paletted images.
-  fn color_index_at(Self, Int, Int) -> Byte
+  fn color_index_at(Self, Int32, Int32) -> Byte
 }
 
 ///|
@@ -88,11 +88,11 @@ pub(open) trait RGBA64Image {
   /// equivalent to calling at(x, y).rgba() and converting the resulting
   /// 32-bit return values to a color.RGBA64, but it can avoid allocations
   /// from converting concrete color types to the color.Color trait type.
-  fn rgba64_at(Self, Int, Int) -> @color.RGBA64
+  fn rgba64_at(Self, Int32, Int32) -> @color.RGBA64
   /// Image trait:
   fn color_model(Self) -> &@color.Model
   fn bounds(Self) -> Rectangle
-  fn at(Self, Int, Int) -> &@color.Color
+  fn at(Self, Int32, Int32) -> &@color.Color
 }
 
 ///|
@@ -116,10 +116,10 @@ pub impl Show for SizeError with fn output(self, logger) {
 // but this function panics if at least one of those is negative or if the
 // computation would overflow the int type.
 fn pixel_buffer_length(
-  bytes_per_pixel : Int,
+  bytes_per_pixel : Int32,
   r : Rectangle,
   image_type_name : String,
-) -> Int raise SizeError {
+) -> Int32 raise SizeError {
   let total_length = mul3_non_neg(bytes_per_pixel, r.dx(), r.dy())
   if total_length < 0 {
     raise SizeError(
@@ -136,7 +136,7 @@ pub(all) struct RGBA {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -192,7 +192,7 @@ pub impl Image for RGBA with fn at(self, x, y) {
 }
 
 ///|
-pub fn RGBA::rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
+pub fn RGBA::rgba64_at(self : RGBA, x : Int32, y : Int32) -> @color.RGBA64 {
   if !pt(x, y).is_in(self.rect) {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
@@ -209,7 +209,7 @@ pub fn RGBA::rgba64_at(self : RGBA, x : Int, y : Int) -> @color.RGBA64 {
 }
 
 ///|
-pub fn RGBA::rgba_at(self : RGBA, x : Int, y : Int) -> @color.RGBA {
+pub fn RGBA::rgba_at(self : RGBA, x : Int32, y : Int32) -> @color.RGBA {
   if !pt(x, y).is_in(self.rect) {
     return @color.RGBA::new(0, 0, 0, 0)
   }
@@ -251,8 +251,8 @@ pub impl Image for RGBA with fn set(self, x, y, c) {
 ///|
 pub fn RGBA::set_rgba64(
   self : RGBA,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -266,7 +266,12 @@ pub fn RGBA::set_rgba64(
 }
 
 ///|
-pub fn RGBA::set_rgba(self : RGBA, x : Int, y : Int, c : @color.RGBA) -> Unit {
+pub fn RGBA::set_rgba(
+  self : RGBA,
+  x : Int32,
+  y : Int32,
+  c : @color.RGBA,
+) -> Unit {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -334,7 +339,7 @@ pub(all) struct RGBA64 {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -390,7 +395,7 @@ pub impl Image for RGBA64 with fn at(self, x, y) {
 }
 
 ///|
-pub fn RGBA64::rgba64_at(self : RGBA64, x : Int, y : Int) -> @color.RGBA64 {
+pub fn RGBA64::rgba64_at(self : RGBA64, x : Int32, y : Int32) -> @color.RGBA64 {
   if !pt(x, y).is_in(self.rect) {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
@@ -435,8 +440,8 @@ pub impl Image for RGBA64 with fn set(self, x, y, c) {
 ///|
 pub fn RGBA64::set_rgba64(
   self : RGBA64,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -510,7 +515,7 @@ pub(all) struct NRGBA {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -566,13 +571,13 @@ pub impl Image for NRGBA with fn at(self, x, y) {
 }
 
 ///|
-pub fn NRGBA::rgba64_at(self : NRGBA, x : Int, y : Int) -> @color.RGBA64 {
+pub fn NRGBA::rgba64_at(self : NRGBA, x : Int32, y : Int32) -> @color.RGBA64 {
   let (r, g, b, a) = self.nrgba_at(x, y).rgba()
   @color.RGBA64::new(r, g, b, a)
 }
 
 ///|
-pub fn NRGBA::nrgba_at(self : NRGBA, x : Int, y : Int) -> @color.NRGBA {
+pub fn NRGBA::nrgba_at(self : NRGBA, x : Int32, y : Int32) -> @color.NRGBA {
   if !pt(x, y).is_in(self.rect) {
     return @color.NRGBA::new(0, 0, 0, 0)
   }
@@ -614,8 +619,8 @@ pub impl Image for NRGBA with fn set(self, x, y, c) {
 ///|
 pub fn NRGBA::set_rgba64(
   self : NRGBA,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -639,8 +644,8 @@ pub fn NRGBA::set_rgba64(
 ///|
 pub fn NRGBA::set_nrgba(
   self : NRGBA,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.NRGBA,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -710,7 +715,7 @@ pub(all) struct NRGBA64 {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*8].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -766,13 +771,21 @@ pub impl Image for NRGBA64 with fn at(self, x, y) {
 }
 
 ///|
-pub fn NRGBA64::rgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.RGBA64 {
+pub fn NRGBA64::rgba64_at(
+  self : NRGBA64,
+  x : Int32,
+  y : Int32,
+) -> @color.RGBA64 {
   let (r, g, b, a) = self.nrgba64_at(x, y).rgba()
   @color.RGBA64::new(r, g, b, a)
 }
 
 ///|
-pub fn NRGBA64::nrgba64_at(self : NRGBA64, x : Int, y : Int) -> @color.NRGBA64 {
+pub fn NRGBA64::nrgba64_at(
+  self : NRGBA64,
+  x : Int32,
+  y : Int32,
+) -> @color.NRGBA64 {
   if !pt(x, y).is_in(self.rect) {
     return @color.NRGBA64::new(0, 0, 0, 0)
   }
@@ -817,8 +830,8 @@ pub impl Image for NRGBA64 with fn set(self, x, y, c) {
 ///|
 pub fn NRGBA64::set_rgba64(
   self : NRGBA64,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -846,8 +859,8 @@ pub fn NRGBA64::set_rgba64(
 ///|
 pub fn NRGBA64::set_nrgba64(
   self : NRGBA64,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.NRGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -921,7 +934,7 @@ pub(all) struct Alpha {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -977,14 +990,14 @@ pub impl Image for Alpha with fn at(self, x, y) {
 }
 
 ///|
-pub fn Alpha::rgba64_at(self : Alpha, x : Int, y : Int) -> @color.RGBA64 {
+pub fn Alpha::rgba64_at(self : Alpha, x : Int32, y : Int32) -> @color.RGBA64 {
   let mut a = self.alpha_at(x, y).a.to_uint()
   a = a | (a << 8)
   { r: a, g: a, b: a, a, }
 }
 
 ///|
-pub fn Alpha::alpha_at(self : Alpha, x : Int, y : Int) -> @color.Alpha {
+pub fn Alpha::alpha_at(self : Alpha, x : Int32, y : Int32) -> @color.Alpha {
   if !pt(x, y).is_in(self.rect) {
     return @color.Alpha::new(0)
   }
@@ -1018,8 +1031,8 @@ pub impl Image for Alpha with fn set(self, x, y, c) {
 ///|
 pub fn Alpha::set_rgba64(
   self : Alpha,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1032,8 +1045,8 @@ pub fn Alpha::set_rgba64(
 ///|
 pub fn Alpha::set_alpha(
   self : Alpha,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.Alpha,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1100,7 +1113,7 @@ pub(all) struct Alpha16 {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -1156,13 +1169,21 @@ pub impl Image for Alpha16 with fn at(self, x, y) {
 }
 
 ///|
-pub fn Alpha16::rgba64_at(self : Alpha16, x : Int, y : Int) -> @color.RGBA64 {
+pub fn Alpha16::rgba64_at(
+  self : Alpha16,
+  x : Int32,
+  y : Int32,
+) -> @color.RGBA64 {
   let a = self.alpha16_at(x, y).a
   { r: a, g: a, b: a, a, }
 }
 
 ///|
-pub fn Alpha16::alpha16_at(self : Alpha16, x : Int, y : Int) -> @color.Alpha16 {
+pub fn Alpha16::alpha16_at(
+  self : Alpha16,
+  x : Int32,
+  y : Int32,
+) -> @color.Alpha16 {
   if !pt(x, y).is_in(self.rect) {
     return @color.Alpha16::new(0)
   }
@@ -1198,8 +1219,8 @@ pub impl Image for Alpha16 with fn set(self, x, y, c) {
 ///|
 pub fn Alpha16::set_rgba64(
   self : Alpha16,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1213,8 +1234,8 @@ pub fn Alpha16::set_rgba64(
 ///|
 pub fn Alpha16::set_alpha16(
   self : Alpha16,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.Alpha16,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1282,7 +1303,7 @@ pub(all) struct Gray {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -1338,14 +1359,14 @@ pub impl Image for Gray with fn at(self, x, y) {
 }
 
 ///|
-pub fn Gray::rgba64_at(self : Gray, x : Int, y : Int) -> @color.RGBA64 {
+pub fn Gray::rgba64_at(self : Gray, x : Int32, y : Int32) -> @color.RGBA64 {
   let mut gray = self.gray_at(x, y).y.to_uint()
   gray = gray | (gray << 8)
   { r: gray, g: gray, b: gray, a: 0xffff, }
 }
 
 ///|
-pub fn Gray::gray_at(self : Gray, x : Int, y : Int) -> @color.Gray {
+pub fn Gray::gray_at(self : Gray, x : Int32, y : Int32) -> @color.Gray {
   if !pt(x, y).is_in(self.rect) {
     return @color.Gray::new(0)
   }
@@ -1379,8 +1400,8 @@ pub impl Image for Gray with fn set(self, x, y, c) {
 ///|
 pub fn Gray::set_rgba64(
   self : Gray,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1393,7 +1414,12 @@ pub fn Gray::set_rgba64(
 }
 
 ///|
-pub fn Gray::set_gray(self : Gray, x : Int, y : Int, c : @color.Gray) -> Unit {
+pub fn Gray::set_gray(
+  self : Gray,
+  x : Int32,
+  y : Int32,
+  c : @color.Gray,
+) -> Unit {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1444,7 +1470,7 @@ pub(all) struct Gray16 {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*2].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -1500,13 +1526,13 @@ pub impl Image for Gray16 with fn at(self, x, y) {
 }
 
 ///|
-pub fn Gray16::rgba64_at(self : Gray16, x : Int, y : Int) -> @color.RGBA64 {
+pub fn Gray16::rgba64_at(self : Gray16, x : Int32, y : Int32) -> @color.RGBA64 {
   let gray = self.gray16_at(x, y).y
   { r: gray, g: gray, b: gray, a: 0xffff, }
 }
 
 ///|
-pub fn Gray16::gray16_at(self : Gray16, x : Int, y : Int) -> @color.Gray16 {
+pub fn Gray16::gray16_at(self : Gray16, x : Int32, y : Int32) -> @color.Gray16 {
   if !pt(x, y).is_in(self.rect) {
     return @color.Gray16::new(0)
   }
@@ -1542,8 +1568,8 @@ pub impl Image for Gray16 with fn set(self, x, y, c) {
 ///|
 pub fn Gray16::set_rgba64(
   self : Gray16,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1559,8 +1585,8 @@ pub fn Gray16::set_rgba64(
 ///|
 pub fn Gray16::set_gray16(
   self : Gray16,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.Gray16,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1614,7 +1640,7 @@ pub(all) struct CMYK {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*4].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
 }
@@ -1670,13 +1696,13 @@ pub impl Image for CMYK with fn at(self, x, y) {
 }
 
 ///|
-pub fn CMYK::rgba64_at(self : CMYK, x : Int, y : Int) -> @color.RGBA64 {
+pub fn CMYK::rgba64_at(self : CMYK, x : Int32, y : Int32) -> @color.RGBA64 {
   let (r, g, b, a) = self.cmyk_at(x, y).rgba()
   { r, g, b, a, }
 }
 
 ///|
-pub fn CMYK::cmyk_at(self : CMYK, x : Int, y : Int) -> @color.CMYK {
+pub fn CMYK::cmyk_at(self : CMYK, x : Int32, y : Int32) -> @color.CMYK {
   if !pt(x, y).is_in(self.rect) {
     return @color.CMYK::new(0, 0, 0, 0)
   }
@@ -1712,8 +1738,8 @@ pub impl Image for CMYK with fn set(self, x, y, c) {
 ///|
 pub fn CMYK::set_rgba64(
   self : CMYK,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -1732,7 +1758,12 @@ pub fn CMYK::set_rgba64(
 }
 
 ///|
-pub fn CMYK::set_cmyk(self : CMYK, x : Int, y : Int, c : @color.CMYK) -> Unit {
+pub fn CMYK::set_cmyk(
+  self : CMYK,
+  x : Int32,
+  y : Int32,
+  c : @color.CMYK,
+) -> Unit {
   if !pt(x, y).is_in(self.rect) {
     return
   }
@@ -1796,8 +1827,8 @@ pub(all) struct YCbCr {
   y : Slice[Byte]
   cb : Slice[Byte]
   cr : Slice[Byte]
-  y_stride : Int
-  c_stride : Int
+  y_stride : Int32
+  c_stride : Int32
   subsampling : YCbCrSubsampling
   rect : Rectangle
 }
@@ -1970,7 +2001,7 @@ pub(all) struct Paletted {
   // (x, y) starts at pix[(y-rect.min.y)*stride + (x-rect.min.x)*1].
   pix : Slice[Byte]
   // stride is the pix stride (in bytes) between vertically adjacent pixels.
-  stride : Int
+  stride : Int32
   // rect is the image's bounds.
   rect : Rectangle
   // Palette is the image's palette.
@@ -2025,7 +2056,11 @@ pub impl Image for Paletted with fn at(self, x, y) {
 }
 
 ///|
-pub fn Paletted::rgba64_at(self : Paletted, x : Int, y : Int) -> @color.RGBA64 {
+pub fn Paletted::rgba64_at(
+  self : Paletted,
+  x : Int32,
+  y : Int32,
+) -> @color.RGBA64 {
   if self.palette.0.length() == 0 {
     return @color.RGBA64::new(0, 0, 0, 0)
   }
@@ -2069,8 +2104,8 @@ pub impl Image for Paletted with fn set(self, x, y, c) {
 ///|
 pub fn Paletted::set_rgba64(
   self : Paletted,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   c : @color.RGBA64,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {
@@ -2092,8 +2127,8 @@ pub impl Image for Paletted with fn color_index_at(self, x, y) {
 ///|
 pub fn Paletted::set_color_index(
   self : Paletted,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   index : Byte,
 ) -> Unit {
   if !pt(x, y).is_in(self.rect) {

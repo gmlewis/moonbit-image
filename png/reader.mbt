@@ -76,12 +76,12 @@ const CB_TC16 = 14
 const CB_TCA16 = 15
 
 ///|
-fn cb_paletted(cb : Int) -> Bool {
+fn cb_paletted(cb : Int32) -> Bool {
   CB_P1 <= cb && cb <= CB_P8
 }
 
 ///|
-fn cb_true_color(cb : Int) -> Bool {
+fn cb_true_color(cb : Int32) -> Bool {
   cb == CB_TC8 || cb == CB_TC16
 }
 
@@ -113,10 +113,10 @@ const IT_ADAM7 = b'\x01'
 ///|
 /// InterlaceScan defines the placement and size of a pass for Adam7 interlacing.
 priv struct InterlaceScan {
-  x_factor : Int
-  y_factor : Int
-  x_offset : Int
-  y_offset : Int
+  x_factor : Int32
+  y_factor : Int32
+  x_offset : Int32
+  y_offset : Int32
 }
 
 ///|
@@ -165,15 +165,15 @@ struct Decoder {
   r : &@io.Reader
   mut img : &@image.Image
   crc : &@hash.Hash32
-  mut width : Int
-  mut height : Int
-  mut depth : Int
+  mut width : Int32
+  mut height : Int32
+  mut depth : Int32
   mut palette : @color.Palette
-  mut cb : Int
-  mut stage : Int
-  mut idat_length : UInt
+  mut cb : Int32
+  mut stage : Int32
+  mut idat_length : UInt32
   tmp : Slice[Byte] // [3 * 256]byte
-  mut interlace : Int
+  mut interlace : Int32
 
   // use_transparent and transparent are used for grayscale and truecolor
   // transparency, as opposed to palette transparency.
@@ -227,7 +227,7 @@ fn unsupported_error(e : String) -> IOError {
 }
 
 ///|
-fn Decoder::parse_ihdr(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_ihdr(self : Decoder, length : UInt32) -> IOError? {
   if length != 13 {
     return Some(format_error("bad IHDR length"))
   }
@@ -317,7 +317,7 @@ fn Decoder::parse_ihdr(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn be_uint32(b : Slice[Byte]) -> UInt {
+fn be_uint32(b : Slice[Byte]) -> UInt32 {
   (b[0].to_uint() << 24) |
   (b[1].to_uint() << 16) |
   (b[2].to_uint() << 8) |
@@ -325,7 +325,7 @@ fn be_uint32(b : Slice[Byte]) -> UInt {
 }
 
 ///|
-fn Decoder::parse_plte(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_plte(self : Decoder, length : UInt32) -> IOError? {
   let np = (length / 3).reinterpret_as_int() // The number of palette entries.
   if length % 3 != 0 || np <= 0 || np > 256 || np > 1 << self.depth {
     return Some(format_error("bad PLTE length"))
@@ -366,7 +366,7 @@ fn Decoder::parse_plte(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_t_rns(self : Decoder, length : UInt32) -> IOError? {
   match self.cb {
     CB_G1 | CB_G2 | CB_G4 | CB_G8 | CB_G16 => {
       if length != 2 {
@@ -439,7 +439,7 @@ fn Decoder::parse_t_rns(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int {
+fn slice_copy(dst : Slice[Byte], src : Slice[Byte]) -> Int32 {
   let n = @cmp.minimum(dst.length(), src.length())
   for i = 0; i < n; i = i + 1 {
     dst[i] = src[i]
@@ -569,7 +569,7 @@ fn size_error(e : @image.SizeError) -> IOError? {
 fn Decoder::read_image_pass(
   self : Decoder,
   r : &@io.Reader,
-  pass : Int,
+  pass : Int32,
   allocate_only : Bool,
 ) -> (&@image.Image, IOError?) {
   let mut bits_per_pixel = 0
@@ -1057,7 +1057,7 @@ fn Decoder::read_image_pass(
 fn merge_pass_into(
   dst : &@image.Image,
   src : &@image.Image,
-  pass : Int,
+  pass : Int32,
 ) -> Unit {
   let dst_pix = dst.raw_data()
   let stride = dst.get_stride()
@@ -1081,7 +1081,7 @@ fn merge_pass_into(
 }
 
 ///|
-fn Decoder::parse_idat(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_idat(self : Decoder, length : UInt32) -> IOError? {
   self.idat_length = length
   let (img, err) = self.decode_idat()
   self.img = img
@@ -1092,7 +1092,7 @@ fn Decoder::parse_idat(self : Decoder, length : UInt) -> IOError? {
 }
 
 ///|
-fn Decoder::parse_iend(self : Decoder, length : UInt) -> IOError? {
+fn Decoder::parse_iend(self : Decoder, length : UInt32) -> IOError? {
   if length != 0 {
     return Some(format_error("bad IEND length"))
   }

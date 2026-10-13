@@ -8,8 +8,8 @@
 ///|
 /// A Point is an X, Y coordinate pair. The axes increase right and down.
 pub(all) struct Point {
-  mut x : Int
-  mut y : Int
+  mut x : Int32
+  mut y : Int32
 } derive(Eq)
 
 ///|
@@ -53,13 +53,13 @@ pub impl Sub for Point with fn sub(self, q) {
 
 ///|
 /// mul returns the vector p*k.
-pub fn Point::mul(self : Point, k : Int) -> Point {
+pub fn Point::mul(self : Point, k : Int32) -> Point {
   { x: self.x * k, y: self.y * k, }
 }
 
 ///|
 /// div returns the vector p/k.
-pub fn Point::div(self : Point, k : Int) -> Point {
+pub fn Point::div(self : Point, k : Int32) -> Point {
   { x: self.x / k, y: self.y / k, }
 }
 
@@ -88,7 +88,7 @@ pub fn Point::mod(self : Point, r : Rectangle) -> Point {
 
 ///|
 /// pt is shorthand for [Point]{X, Y}.
-pub fn pt(x : Int, y : Int) -> Point {
+pub fn pt(x : Int32, y : Int32) -> Point {
   { x, y, }
 }
 
@@ -196,13 +196,13 @@ pub fn Rectangle::to_string(self : Rectangle) -> String {
 
 ///|
 /// dx returns r's width.
-pub fn Rectangle::dx(self : Rectangle) -> Int {
+pub fn Rectangle::dx(self : Rectangle) -> Int32 {
   self.max.x - self.min.x
 }
 
 ///|
 /// dy returns r's height.
-pub fn Rectangle::dy(self : Rectangle) -> Int {
+pub fn Rectangle::dy(self : Rectangle) -> Int32 {
   self.max.y - self.min.y
 }
 
@@ -234,7 +234,7 @@ pub fn Rectangle::sub(self : Rectangle, p : Point) -> Rectangle {
 /// inset returns the rectangle r inset by n, which may be negative. If either
 /// of r's dimensions is less than 2*n then an empty rectangle near the center
 /// of r will be returned.
-pub fn Rectangle::inset(self : Rectangle, n : Int) -> Rectangle {
+pub fn Rectangle::inset(self : Rectangle, n : Int32) -> Rectangle {
   let r = self.copy()
   if r.dx() < 2 * n {
     r.min.x = (r.min.x + r.max.x) / 2
@@ -374,8 +374,8 @@ pub impl Image for Rectangle with fn at(self, x, y) {
 /// rgba64_at implements the [RGBA64Image] trait.
 pub fn Rectangle::rgba64_at(
   self : Rectangle,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
 ) -> @color.RGBA64 {
   if pt(x, y).is_in(self) {
     return @color.RGBA64::{ r: 0xffff, g: 0xffff, b: 0xffff, a: 0xffff, }
@@ -399,7 +399,7 @@ pub impl Image for Rectangle with fn color_model(_self) {
 /// rect is shorthand for [Rectangle]{Pt(x0, y0), [Pt](x1, y1)}. The returned
 /// rectangle has minimum and maximum coordinates swapped if necessary so that
 /// it is well-formed.
-pub fn rect(x0 : Int, y0 : Int, x1 : Int, y1 : Int) -> Rectangle {
+pub fn rect(x0 : Int32, y0 : Int32, x1 : Int32, y1 : Int32) -> Rectangle {
   let (x0, x1) = if x0 > x1 { (x1, x0) } else { (x0, x1) }
   let (y0, y1) = if y0 > y1 { (y1, y0) } else { (y0, y1) }
   { min: pt(x0, y0), max: pt(x1, y1), }
@@ -408,7 +408,7 @@ pub fn rect(x0 : Int, y0 : Int, x1 : Int, y1 : Int) -> Rectangle {
 ///|
 /// mul3_non_neg returns (x * y * z), unless at least one argument is negative or
 /// if the computation overflows the int type, in which case it returns -1.
-pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
+pub fn mul3_non_neg(x : Int32, y : Int32, z : Int32) -> Int32 {
   if x < 0 || y < 0 || z < 0 {
     return -1
   }
@@ -422,7 +422,7 @@ pub fn mul3_non_neg(x : Int, y : Int, z : Int) -> Int {
 ///|
 /// add2_non_neg returns (x + y), unless at least one argument is negative or if
 /// the computation overflows the int type, in which case it returns -1.
-pub fn add2_non_neg(x : Int, y : Int) -> Int {
+pub fn add2_non_neg(x : Int32, y : Int32) -> Int32 {
   if x < 0 || y < 0 {
     return -1
   }

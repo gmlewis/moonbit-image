@@ -18,13 +18,13 @@ pub(open) trait Color {
   //
   // An alpha-premultiplied color component c has been scaled by alpha (a),
   // so has valid values 0 <= c <= a.
-  fn rgba(Self) -> (UInt, UInt, UInt, UInt)
+  fn rgba(Self) -> (UInt32, UInt32, UInt32, UInt32)
   // model reports the color model of the underlying data.
   // This is needed because MoonBit does not have reflection.
   fn model(Self) -> String
   // raw is also needed due to the lack of reflection to get the underlying data.
   // Do not use this method as it is for internal use only.
-  fn raw(Self) -> (UInt, UInt, UInt, UInt)
+  fn raw(Self) -> (UInt32, UInt32, UInt32, UInt32)
 }
 
 ///|
@@ -113,10 +113,10 @@ pub impl Color for RGBA with fn rgba(self) {
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
 /// has valid values 0 <= C <= A.
 pub(all) struct RGBA64 {
-  r : UInt // 16 bits
-  g : UInt // 16 bits
-  b : UInt // 16 bits
-  a : UInt // 16 bits
+  r : UInt32 // 16 bits
+  g : UInt32 // 16 bits
+  b : UInt32 // 16 bits
+  a : UInt32 // 16 bits
 } derive(Eq)
 
 ///|
@@ -144,7 +144,7 @@ test "RGBA64 show usage" {
 let _RGBA64 : &Color = RGBA64::new(0, 0, 0, 0)
 
 ///|
-pub fn RGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> RGBA64 {
+pub fn RGBA64::new(r : UInt32, g : UInt32, b : UInt32, a : UInt32) -> RGBA64 {
   { r, g, b, a, }
 }
 
@@ -231,10 +231,10 @@ pub impl Color for NRGBA with fn rgba(self) {
 /// NRGBA64 represents a non-alpha-premultiplied 64-bit color,
 /// having 16 bits for each of red, green, blue and alpha.
 pub(all) struct NRGBA64 {
-  r : UInt // 16 bits
-  g : UInt // 16 bits
-  b : UInt // 16 bits
-  a : UInt // 16 bits
+  r : UInt32 // 16 bits
+  g : UInt32 // 16 bits
+  b : UInt32 // 16 bits
+  a : UInt32 // 16 bits
 } derive(Eq)
 
 ///|
@@ -262,7 +262,7 @@ test "NRGBA64 show usage" {
 let _NRGBA64 : &Color = NRGBA64::new(0, 0, 0, 0)
 
 ///|
-pub fn NRGBA64::new(r : UInt, g : UInt, b : UInt, a : UInt) -> NRGBA64 {
+pub fn NRGBA64::new(r : UInt32, g : UInt32, b : UInt32, a : UInt32) -> NRGBA64 {
   { r, g, b, a, }
 }
 
@@ -339,7 +339,7 @@ pub impl Color for Alpha with fn rgba(self) {
 ///|
 /// Alpha16 represents a 16-bit alpha color.
 pub(all) struct Alpha16 {
-  a : UInt // 16 bits
+  a : UInt32 // 16 bits
 } derive(Eq)
 
 ///|
@@ -367,7 +367,7 @@ test "Alpha16 show usage" {
 let _Alpha16 : &Color = Alpha16::new(0)
 
 ///|
-pub fn Alpha16::new(a : UInt) -> Alpha16 {
+pub fn Alpha16::new(a : UInt32) -> Alpha16 {
   { a, }
 }
 
@@ -441,7 +441,7 @@ pub impl Color for Gray with fn rgba(self) {
 ///|
 /// Gray16 represents a 16-bit grayscale color.
 pub(all) struct Gray16 {
-  y : UInt // 16 bits
+  y : UInt32 // 16 bits
 } derive(Eq)
 
 ///|
@@ -469,7 +469,7 @@ test "Gray16 show usage" {
 let _Gray16 : &Color = Gray16::new(0)
 
 ///|
-pub fn Gray16::new(y : UInt) -> Gray16 {
+pub fn Gray16::new(y : UInt32) -> Gray16 {
   { y, }
 }
 
@@ -740,7 +740,7 @@ let _trait : &Model = Palette::new(0)
 
 ///|
 /// Palette::new makes a new palette with `n` colors (initially all black).
-pub fn Palette::new(n : Int) -> Palette {
+pub fn Palette::new(n : Int32) -> Palette {
   let arr : Array[&Color] = Array(capacity=n)
   for _ in 0..<n {
     arr.push(black)
@@ -750,13 +750,13 @@ pub fn Palette::new(n : Int) -> Palette {
 
 ///|
 #alias("_[_]=_")
-pub fn Palette::set(self : Palette, idx : Int, c : &Color) -> Unit {
+pub fn Palette::set(self : Palette, idx : Int32, c : &Color) -> Unit {
   self.0[idx % self.0.length()] = c
 }
 
 ///|
 #alias("_[_]")
-pub fn Palette::get(self : Palette, idx : Int) -> &Color {
+pub fn Palette::get(self : Palette, idx : Int32) -> &Color {
   self.0[idx % self.0.length()]
 }
 
@@ -782,13 +782,17 @@ pub fn Palette::new_empty() -> Palette {
 }
 
 ///|
-pub fn Palette::length(self : Palette) -> Int {
+pub fn Palette::length(self : Palette) -> Int32 {
   self.0.length()
 }
 
 ///|
 #alias("_[_:_]")
-pub fn Palette::sub(self : Palette, start? : Int = 0, end~ : Int) -> Palette {
+pub fn Palette::sub(
+  self : Palette,
+  start~ : Int32 = 0,
+  end~ : Int32,
+) -> Palette {
   self.0[start:end]
 }
 
@@ -805,7 +809,7 @@ pub impl Model for Palette with fn convert(self, c) {
 ///|
 /// index returns the index of the palette color closest to c in Euclidean
 /// R,G,B,A space.
-pub fn Palette::index(self : Palette, c : &Color) -> Int {
+pub fn Palette::index(self : Palette, c : &Color) -> Int32 {
   // A batch version of this computation is in image/draw/draw.go.
 
   let (cr, cg, cb, ca) = c.rgba()
@@ -833,7 +837,7 @@ pub fn Palette::index(self : Palette, c : &Color) -> Int {
 /// adding four of those won't overflow a uint32.
 ///
 /// x and y are both assumed to be in the range [0, 0xffff].
-fn sq_diff(x : UInt, y : UInt) -> UInt {
+fn sq_diff(x : UInt32, y : UInt32) -> UInt32 {
   // The canonical code of this function looks as follows:
   //
   //	var d uint32
@@ -876,7 +880,7 @@ pub let opaque_ : Alpha16 = { a: 0xffff, }
 ///|
 test "sq_diff" {
   // canonical sqDiff implementation
-  let orig = fn(x : UInt, y : UInt) -> UInt {
+  let orig = fn(x : UInt32, y : UInt32) -> UInt32 {
     let d = if x > y { x - y } else { y - x }
     (d * d) >> 2
   }

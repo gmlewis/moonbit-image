@@ -10,7 +10,7 @@
 struct Encoder {
   mut w : &@io.Writer
   mut m : &@image.Image
-  mut cb : Int
+  mut cb : Int32
   mut err : IOError?
   header : Slice[Byte] // [8]byte
   footer : Slice[Byte] // [4]byte
@@ -42,7 +42,7 @@ fn Encoder::new(w : &@io.Writer, m : &@image.Image) -> Encoder {
 
 ///|
 /// The absolute value of a byte interpreted as a signed int8.
-fn abs8(d : Byte) -> Int {
+fn abs8(d : Byte) -> Int32 {
   if d < 128 {
     return d.to_int()
   }
@@ -50,7 +50,7 @@ fn abs8(d : Byte) -> Int {
 }
 
 ///|
-fn be_put_uint32(b : Slice[Byte], value : UInt) -> Unit {
+fn be_put_uint32(b : Slice[Byte], value : UInt32) -> Unit {
   b[3] = (value & 0xff).to_byte()
   b[2] = ((value >> 8) & 0xff).to_byte()
   b[1] = ((value >> 16) & 0xff).to_byte()
@@ -179,7 +179,7 @@ fn Encoder::write_plte_and_trns(self : Encoder, p : @color.Palette) -> Unit {
 ///
 /// This method should only be called from write_idats (via write_image).
 /// No other code should treat an Encoder as an io.Writer.
-pub fn Encoder::write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
+pub fn Encoder::write(self : Encoder, b : Slice[Byte]) -> (Int32, IOError?) {
   self.write_chunk(b, b"IDAT")
   if self.err != None {
     return (0, self.err)
@@ -190,7 +190,7 @@ pub fn Encoder::write(self : Encoder, b : Slice[Byte]) -> (Int, IOError?) {
 ///|
 /// Chooses the filter to use for encoding the current row, and applies it.
 /// The return value is the index of the filter and also of the row in cr that has had it applied.
-fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int) -> Byte {
+fn filter(cr : Array[Slice[Byte]], pr : Slice[Byte], bpp : Int32) -> Byte {
   // We try all five filter types, and pick the one that minimizes the sum of absolute differences.
   // This is the same heuristic that libpng uses, although the filters are attempted in order of
   // estimated most likely to be minimal (FT_UP, FT_PAETH, FT_NONE, FT_SUB, FT_AVERAGE), rather than
@@ -286,7 +286,7 @@ fn Encoder::write_image(
   self : Encoder,
   w : &@io.Writer,
   m : &@image.Image,
-  cb : Int,
+  cb : Int32,
 ) -> IOError? {
   let zw = @zlib.Writer::new(w)
   let mut bits_per_pixel = 0

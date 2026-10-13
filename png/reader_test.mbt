@@ -254,10 +254,10 @@ test "gray 8 transparent" {
 
 ///|
 struct TestCase {
-  src : Array[Int]
+  src : Array[Int32]
   unsupported_config : Bool
-  width : Int
-  height : Int
+  width : Int32
+  height : Int32
 }
 
 ///|
