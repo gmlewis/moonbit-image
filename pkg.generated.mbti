@@ -7,13 +7,13 @@ import {
 }
 
 // Values
-pub fn add2_non_neg(Int, Int) -> Int
+pub fn add2_non_neg(Int32, Int32) -> Int32
 
-pub fn mul3_non_neg(Int, Int, Int) -> Int
+pub fn mul3_non_neg(Int32, Int32, Int32) -> Int32
 
-pub fn pt(Int, Int) -> Point
+pub fn pt(Int32, Int32) -> Point
 
-pub fn rect(Int, Int, Int, Int) -> Rectangle
+pub fn rect(Int32, Int32, Int32, Int32) -> Rectangle
 
 // Errors
 type SizeError derive(Eq)
@@ -24,251 +24,251 @@ pub impl Show for SizeError
 // Types and methods
 pub(all) struct Alpha {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
-pub fn Alpha::alpha_at(Self, Int, Int) -> @color.Alpha
+pub fn Alpha::alpha_at(Self, Int32, Int32) -> @color.Alpha
 pub fn Alpha::as_ycbcr(Self) -> YCbCr?
-pub fn Alpha::at(Self, Int, Int) -> &@color.Color
+pub fn Alpha::at(Self, Int32, Int32) -> &@color.Color
 pub fn Alpha::bounds(Self) -> Rectangle
-pub fn Alpha::color_index_at(Self, Int, Int) -> Byte
+pub fn Alpha::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Alpha::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn Alpha::get(Self, Point) -> &@color.Color
-pub fn Alpha::get_bytes_per_pixel(Self) -> Int
-pub fn Alpha::get_stride(Self) -> Int
+pub fn Alpha::get_bytes_per_pixel(Self) -> Int32
+pub fn Alpha::get_stride(Self) -> Int32
 pub fn Alpha::new(Rectangle) -> Self raise SizeError
 pub fn Alpha::new_empty() -> Self
 pub fn Alpha::opaque_(Self) -> Bool
-pub fn Alpha::pix_offset(Self, Int, Int) -> Int
+pub fn Alpha::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Alpha::raw_data(Self) -> @io.Slice[Byte]
-pub fn Alpha::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Alpha::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn Alpha::set_alpha(Self, Int, Int, @color.Alpha) -> Unit
+pub fn Alpha::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Alpha::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn Alpha::set_alpha(Self, Int32, Int32, @color.Alpha) -> Unit
 #alias("_[_]=_")
 pub fn Alpha::set_point(Self, Point, &@color.Color) -> Unit
-pub fn Alpha::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn Alpha::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Alpha::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Alpha
 
 pub(all) struct Alpha16 {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
-pub fn Alpha16::alpha16_at(Self, Int, Int) -> @color.Alpha16
+pub fn Alpha16::alpha16_at(Self, Int32, Int32) -> @color.Alpha16
 pub fn Alpha16::as_ycbcr(Self) -> YCbCr?
-pub fn Alpha16::at(Self, Int, Int) -> &@color.Color
+pub fn Alpha16::at(Self, Int32, Int32) -> &@color.Color
 pub fn Alpha16::bounds(Self) -> Rectangle
-pub fn Alpha16::color_index_at(Self, Int, Int) -> Byte
+pub fn Alpha16::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Alpha16::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn Alpha16::get(Self, Point) -> &@color.Color
-pub fn Alpha16::get_bytes_per_pixel(Self) -> Int
-pub fn Alpha16::get_stride(Self) -> Int
+pub fn Alpha16::get_bytes_per_pixel(Self) -> Int32
+pub fn Alpha16::get_stride(Self) -> Int32
 pub fn Alpha16::new(Rectangle) -> Self raise SizeError
 pub fn Alpha16::new_empty() -> Self
 pub fn Alpha16::opaque_(Self) -> Bool
-pub fn Alpha16::pix_offset(Self, Int, Int) -> Int
+pub fn Alpha16::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Alpha16::raw_data(Self) -> @io.Slice[Byte]
-pub fn Alpha16::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Alpha16::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn Alpha16::set_alpha16(Self, Int, Int, @color.Alpha16) -> Unit
+pub fn Alpha16::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Alpha16::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn Alpha16::set_alpha16(Self, Int32, Int32, @color.Alpha16) -> Unit
 #alias("_[_]=_")
 pub fn Alpha16::set_point(Self, Point, &@color.Color) -> Unit
-pub fn Alpha16::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn Alpha16::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Alpha16::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Alpha16
 
 pub(all) struct CMYK {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn CMYK::as_ycbcr(Self) -> YCbCr?
-pub fn CMYK::at(Self, Int, Int) -> &@color.Color
+pub fn CMYK::at(Self, Int32, Int32) -> &@color.Color
 pub fn CMYK::bounds(Self) -> Rectangle
-pub fn CMYK::cmyk_at(Self, Int, Int) -> @color.CMYK
-pub fn CMYK::color_index_at(Self, Int, Int) -> Byte
+pub fn CMYK::cmyk_at(Self, Int32, Int32) -> @color.CMYK
+pub fn CMYK::color_index_at(Self, Int32, Int32) -> Byte
 pub fn CMYK::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn CMYK::get(Self, Point) -> &@color.Color
-pub fn CMYK::get_bytes_per_pixel(Self) -> Int
-pub fn CMYK::get_stride(Self) -> Int
+pub fn CMYK::get_bytes_per_pixel(Self) -> Int32
+pub fn CMYK::get_stride(Self) -> Int32
 pub fn CMYK::new(Rectangle) -> Self raise SizeError
 pub fn CMYK::new_empty() -> Self
 pub fn CMYK::opaque_(Self) -> Bool
-pub fn CMYK::pix_offset(Self, Int, Int) -> Int
+pub fn CMYK::pix_offset(Self, Int32, Int32) -> Int32
 pub fn CMYK::raw_data(Self) -> @io.Slice[Byte]
-pub fn CMYK::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn CMYK::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn CMYK::set_cmyk(Self, Int, Int, @color.CMYK) -> Unit
-pub fn CMYK::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn CMYK::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn CMYK::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn CMYK::set_cmyk(Self, Int32, Int32, @color.CMYK) -> Unit
+pub fn CMYK::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn CMYK::sub_image(Self, Rectangle) -> &Image
 pub impl Image for CMYK
 
 pub(all) struct Config {
   color_model : &@color.Model
-  width : Int
-  height : Int
+  width : Int32
+  height : Int32
 }
 pub fn Config::new_empty() -> Self
 
 pub(all) struct Gray {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn Gray::as_ycbcr(Self) -> YCbCr?
-pub fn Gray::at(Self, Int, Int) -> &@color.Color
+pub fn Gray::at(Self, Int32, Int32) -> &@color.Color
 pub fn Gray::bounds(Self) -> Rectangle
-pub fn Gray::color_index_at(Self, Int, Int) -> Byte
+pub fn Gray::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Gray::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn Gray::get(Self, Point) -> &@color.Color
-pub fn Gray::get_bytes_per_pixel(Self) -> Int
-pub fn Gray::get_stride(Self) -> Int
-pub fn Gray::gray_at(Self, Int, Int) -> @color.Gray
+pub fn Gray::get_bytes_per_pixel(Self) -> Int32
+pub fn Gray::get_stride(Self) -> Int32
+pub fn Gray::gray_at(Self, Int32, Int32) -> @color.Gray
 pub fn Gray::new(Rectangle) -> Self raise SizeError
 pub fn Gray::new_empty() -> Self
 pub fn Gray::opaque_(Self) -> Bool
-pub fn Gray::pix_offset(Self, Int, Int) -> Int
+pub fn Gray::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Gray::raw_data(Self) -> @io.Slice[Byte]
-pub fn Gray::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Gray::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn Gray::set_gray(Self, Int, Int, @color.Gray) -> Unit
+pub fn Gray::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Gray::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn Gray::set_gray(Self, Int32, Int32, @color.Gray) -> Unit
 #alias("_[_]=_")
 pub fn Gray::set_point(Self, Point, &@color.Color) -> Unit
-pub fn Gray::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn Gray::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Gray::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Gray
 
 pub(all) struct Gray16 {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn Gray16::as_ycbcr(Self) -> YCbCr?
-pub fn Gray16::at(Self, Int, Int) -> &@color.Color
+pub fn Gray16::at(Self, Int32, Int32) -> &@color.Color
 pub fn Gray16::bounds(Self) -> Rectangle
-pub fn Gray16::color_index_at(Self, Int, Int) -> Byte
+pub fn Gray16::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Gray16::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn Gray16::get(Self, Point) -> &@color.Color
-pub fn Gray16::get_bytes_per_pixel(Self) -> Int
-pub fn Gray16::get_stride(Self) -> Int
-pub fn Gray16::gray16_at(Self, Int, Int) -> @color.Gray16
+pub fn Gray16::get_bytes_per_pixel(Self) -> Int32
+pub fn Gray16::get_stride(Self) -> Int32
+pub fn Gray16::gray16_at(Self, Int32, Int32) -> @color.Gray16
 pub fn Gray16::new(Rectangle) -> Self raise SizeError
 pub fn Gray16::new_empty() -> Self
 pub fn Gray16::opaque_(Self) -> Bool
-pub fn Gray16::pix_offset(Self, Int, Int) -> Int
+pub fn Gray16::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Gray16::raw_data(Self) -> @io.Slice[Byte]
-pub fn Gray16::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Gray16::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn Gray16::set_gray16(Self, Int, Int, @color.Gray16) -> Unit
+pub fn Gray16::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Gray16::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn Gray16::set_gray16(Self, Int32, Int32, @color.Gray16) -> Unit
 #alias("_[_]=_")
 pub fn Gray16::set_point(Self, Point, &@color.Color) -> Unit
-pub fn Gray16::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn Gray16::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Gray16::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Gray16
 
 pub(all) struct NRGBA {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn NRGBA::as_ycbcr(Self) -> YCbCr?
-pub fn NRGBA::at(Self, Int, Int) -> &@color.Color
+pub fn NRGBA::at(Self, Int32, Int32) -> &@color.Color
 pub fn NRGBA::bounds(Self) -> Rectangle
-pub fn NRGBA::color_index_at(Self, Int, Int) -> Byte
+pub fn NRGBA::color_index_at(Self, Int32, Int32) -> Byte
 pub fn NRGBA::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn NRGBA::get(Self, Point) -> &@color.Color
-pub fn NRGBA::get_bytes_per_pixel(Self) -> Int
-pub fn NRGBA::get_stride(Self) -> Int
+pub fn NRGBA::get_bytes_per_pixel(Self) -> Int32
+pub fn NRGBA::get_stride(Self) -> Int32
 pub fn NRGBA::new(Rectangle) -> Self raise SizeError
 pub fn NRGBA::new_empty() -> Self
-pub fn NRGBA::nrgba_at(Self, Int, Int) -> @color.NRGBA
+pub fn NRGBA::nrgba_at(Self, Int32, Int32) -> @color.NRGBA
 pub fn NRGBA::opaque_(Self) -> Bool
-pub fn NRGBA::pix_offset(Self, Int, Int) -> Int
+pub fn NRGBA::pix_offset(Self, Int32, Int32) -> Int32
 pub fn NRGBA::raw_data(Self) -> @io.Slice[Byte]
-pub fn NRGBA::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn NRGBA::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn NRGBA::set_nrgba(Self, Int, Int, @color.NRGBA) -> Unit
+pub fn NRGBA::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn NRGBA::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn NRGBA::set_nrgba(Self, Int32, Int32, @color.NRGBA) -> Unit
 #alias("_[_]=_")
 pub fn NRGBA::set_point(Self, Point, &@color.Color) -> Unit
-pub fn NRGBA::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn NRGBA::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn NRGBA::sub_image(Self, Rectangle) -> &Image
 pub impl Image for NRGBA
 
 pub(all) struct NRGBA64 {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn NRGBA64::as_ycbcr(Self) -> YCbCr?
-pub fn NRGBA64::at(Self, Int, Int) -> &@color.Color
+pub fn NRGBA64::at(Self, Int32, Int32) -> &@color.Color
 pub fn NRGBA64::bounds(Self) -> Rectangle
-pub fn NRGBA64::color_index_at(Self, Int, Int) -> Byte
+pub fn NRGBA64::color_index_at(Self, Int32, Int32) -> Byte
 pub fn NRGBA64::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn NRGBA64::get(Self, Point) -> &@color.Color
-pub fn NRGBA64::get_bytes_per_pixel(Self) -> Int
-pub fn NRGBA64::get_stride(Self) -> Int
+pub fn NRGBA64::get_bytes_per_pixel(Self) -> Int32
+pub fn NRGBA64::get_stride(Self) -> Int32
 pub fn NRGBA64::new(Rectangle) -> Self raise SizeError
 pub fn NRGBA64::new_empty() -> Self
-pub fn NRGBA64::nrgba64_at(Self, Int, Int) -> @color.NRGBA64
+pub fn NRGBA64::nrgba64_at(Self, Int32, Int32) -> @color.NRGBA64
 pub fn NRGBA64::opaque_(Self) -> Bool
-pub fn NRGBA64::pix_offset(Self, Int, Int) -> Int
+pub fn NRGBA64::pix_offset(Self, Int32, Int32) -> Int32
 pub fn NRGBA64::raw_data(Self) -> @io.Slice[Byte]
-pub fn NRGBA64::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn NRGBA64::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn NRGBA64::set_nrgba64(Self, Int, Int, @color.NRGBA64) -> Unit
+pub fn NRGBA64::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn NRGBA64::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn NRGBA64::set_nrgba64(Self, Int32, Int32, @color.NRGBA64) -> Unit
 #alias("_[_]=_")
 pub fn NRGBA64::set_point(Self, Point, &@color.Color) -> Unit
-pub fn NRGBA64::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn NRGBA64::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn NRGBA64::sub_image(Self, Rectangle) -> &Image
 pub impl Image for NRGBA64
 
 pub(all) struct Paletted {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
   mut palette : @color.Palette
 }
 pub fn Paletted::as_ycbcr(Self) -> YCbCr?
-pub fn Paletted::at(Self, Int, Int) -> &@color.Color
+pub fn Paletted::at(Self, Int32, Int32) -> &@color.Color
 pub fn Paletted::bounds(Self) -> Rectangle
-pub fn Paletted::color_index_at(Self, Int, Int) -> Byte
+pub fn Paletted::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Paletted::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn Paletted::get(Self, Point) -> &@color.Color
-pub fn Paletted::get_bytes_per_pixel(Self) -> Int
-pub fn Paletted::get_stride(Self) -> Int
+pub fn Paletted::get_bytes_per_pixel(Self) -> Int32
+pub fn Paletted::get_stride(Self) -> Int32
 pub fn Paletted::new(Rectangle, @color.Palette) -> Self raise SizeError
 pub fn Paletted::new_empty() -> Self
 pub fn Paletted::opaque_(Self) -> Bool
-pub fn Paletted::pix_offset(Self, Int, Int) -> Int
+pub fn Paletted::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Paletted::raw_data(Self) -> @io.Slice[Byte]
-pub fn Paletted::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Paletted::set(Self, Int, Int, &@color.Color) -> Unit
-pub fn Paletted::set_color_index(Self, Int, Int, Byte) -> Unit
+pub fn Paletted::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Paletted::set(Self, Int32, Int32, &@color.Color) -> Unit
+pub fn Paletted::set_color_index(Self, Int32, Int32, Byte) -> Unit
 #alias("_[_]=_")
 pub fn Paletted::set_point(Self, Point, &@color.Color) -> Unit
-pub fn Paletted::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn Paletted::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Paletted::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Paletted
 
 pub(all) struct Point {
-  mut x : Int
-  mut y : Int
+  mut x : Int32
+  mut y : Int32
 } derive(Eq)
 pub fn Point::add(Self, Self) -> Self
-pub fn Point::div(Self, Int) -> Self
+pub fn Point::div(Self, Int32) -> Self
 pub fn Point::equal(Self, Self) -> Bool
 pub fn Point::is_in(Self, Rectangle) -> Bool
 pub fn Point::mod(Self, Rectangle) -> Self
-pub fn Point::mul(Self, Int) -> Self
+pub fn Point::mul(Self, Int32) -> Self
 pub fn Point::sub(Self, Self) -> Self
 pub fn Point::to_string(Self) -> String
 pub impl Add for Point
@@ -277,57 +277,57 @@ pub impl Sub for Point
 
 pub(all) struct RGBA {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn RGBA::as_ycbcr(Self) -> YCbCr?
-pub fn RGBA::at(Self, Int, Int) -> &@color.Color
+pub fn RGBA::at(Self, Int32, Int32) -> &@color.Color
 pub fn RGBA::bounds(Self) -> Rectangle
-pub fn RGBA::color_index_at(Self, Int, Int) -> Byte
+pub fn RGBA::color_index_at(Self, Int32, Int32) -> Byte
 pub fn RGBA::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn RGBA::get(Self, Point) -> &@color.Color
-pub fn RGBA::get_bytes_per_pixel(Self) -> Int
-pub fn RGBA::get_stride(Self) -> Int
+pub fn RGBA::get_bytes_per_pixel(Self) -> Int32
+pub fn RGBA::get_stride(Self) -> Int32
 pub fn RGBA::new(Rectangle) -> Self raise SizeError
 pub fn RGBA::new_empty() -> Self
 pub fn RGBA::opaque_(Self) -> Bool
-pub fn RGBA::pix_offset(Self, Int, Int) -> Int
+pub fn RGBA::pix_offset(Self, Int32, Int32) -> Int32
 pub fn RGBA::raw_data(Self) -> @io.Slice[Byte]
-pub fn RGBA::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn RGBA::rgba_at(Self, Int, Int) -> @color.RGBA
-pub fn RGBA::set(Self, Int, Int, &@color.Color) -> Unit
+pub fn RGBA::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn RGBA::rgba_at(Self, Int32, Int32) -> @color.RGBA
+pub fn RGBA::set(Self, Int32, Int32, &@color.Color) -> Unit
 #alias("_[_]=_")
 pub fn RGBA::set_point(Self, Point, &@color.Color) -> Unit
-pub fn RGBA::set_rgba(Self, Int, Int, @color.RGBA) -> Unit
-pub fn RGBA::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn RGBA::set_rgba(Self, Int32, Int32, @color.RGBA) -> Unit
+pub fn RGBA::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn RGBA::sub_image(Self, Rectangle) -> &Image
 pub impl Image for RGBA
 
 pub(all) struct RGBA64 {
   pix : @io.Slice[Byte]
-  stride : Int
+  stride : Int32
   rect : Rectangle
 }
 pub fn RGBA64::as_ycbcr(Self) -> YCbCr?
-pub fn RGBA64::at(Self, Int, Int) -> &@color.Color
+pub fn RGBA64::at(Self, Int32, Int32) -> &@color.Color
 pub fn RGBA64::bounds(Self) -> Rectangle
-pub fn RGBA64::color_index_at(Self, Int, Int) -> Byte
+pub fn RGBA64::color_index_at(Self, Int32, Int32) -> Byte
 pub fn RGBA64::color_model(Self) -> &@color.Model
 #alias("_[_]")
 pub fn RGBA64::get(Self, Point) -> &@color.Color
-pub fn RGBA64::get_bytes_per_pixel(Self) -> Int
-pub fn RGBA64::get_stride(Self) -> Int
+pub fn RGBA64::get_bytes_per_pixel(Self) -> Int32
+pub fn RGBA64::get_stride(Self) -> Int32
 pub fn RGBA64::new(Rectangle) -> Self raise SizeError
 pub fn RGBA64::new_empty() -> Self
 pub fn RGBA64::opaque_(Self) -> Bool
-pub fn RGBA64::pix_offset(Self, Int, Int) -> Int
+pub fn RGBA64::pix_offset(Self, Int32, Int32) -> Int32
 pub fn RGBA64::raw_data(Self) -> @io.Slice[Byte]
-pub fn RGBA64::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn RGBA64::set(Self, Int, Int, &@color.Color) -> Unit
+pub fn RGBA64::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn RGBA64::set(Self, Int32, Int32, &@color.Color) -> Unit
 #alias("_[_]=_")
 pub fn RGBA64::set_point(Self, Point, &@color.Color) -> Unit
-pub fn RGBA64::set_rgba64(Self, Int, Int, @color.RGBA64) -> Unit
+pub fn RGBA64::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn RGBA64::sub_image(Self, Rectangle) -> &Image
 pub impl Image for RGBA64
 
@@ -337,28 +337,28 @@ pub(all) struct Rectangle {
 }
 pub fn Rectangle::add(Self, Point) -> Self
 pub fn Rectangle::as_ycbcr(Self) -> YCbCr?
-pub fn Rectangle::at(Self, Int, Int) -> &@color.Color
+pub fn Rectangle::at(Self, Int32, Int32) -> &@color.Color
 pub fn Rectangle::bounds(Self) -> Self
 pub fn Rectangle::canon(Self) -> Self
-pub fn Rectangle::color_index_at(Self, Int, Int) -> Byte
+pub fn Rectangle::color_index_at(Self, Int32, Int32) -> Byte
 pub fn Rectangle::color_model(Self) -> &@color.Model
 pub fn Rectangle::copy(Self) -> Self
-pub fn Rectangle::dx(Self) -> Int
-pub fn Rectangle::dy(Self) -> Int
+pub fn Rectangle::dx(Self) -> Int32
+pub fn Rectangle::dy(Self) -> Int32
 pub fn Rectangle::empty(Self) -> Bool
 pub fn Rectangle::equal(Self, Self) -> Bool
-pub fn Rectangle::get_bytes_per_pixel(Self) -> Int
-pub fn Rectangle::get_stride(Self) -> Int
-pub fn Rectangle::inset(Self, Int) -> Self
+pub fn Rectangle::get_bytes_per_pixel(Self) -> Int32
+pub fn Rectangle::get_stride(Self) -> Int32
+pub fn Rectangle::inset(Self, Int32) -> Self
 pub fn Rectangle::intersect(Self, Self) -> Self
 pub fn Rectangle::is_in(Self, Self) -> Bool
 pub fn Rectangle::new() -> Self
 pub fn Rectangle::opaque_(Self) -> Bool
 pub fn Rectangle::overlaps(Self, Self) -> Bool
-pub fn Rectangle::pix_offset(Self, Int, Int) -> Int
+pub fn Rectangle::pix_offset(Self, Int32, Int32) -> Int32
 pub fn Rectangle::raw_data(Self) -> @io.Slice[Byte]
-pub fn Rectangle::rgba64_at(Self, Int, Int) -> @color.RGBA64
-pub fn Rectangle::set(Self, Int, Int, &@color.Color) -> Unit
+pub fn Rectangle::rgba64_at(Self, Int32, Int32) -> @color.RGBA64
+pub fn Rectangle::set(Self, Int32, Int32, &@color.Color) -> Unit
 pub fn Rectangle::size(Self) -> Point
 pub fn Rectangle::sub(Self, Point) -> Self
 pub fn Rectangle::sub_image(Self, Self) -> &Image
@@ -372,23 +372,23 @@ pub(all) struct YCbCr {
   y : @io.Slice[Byte]
   cb : @io.Slice[Byte]
   cr : @io.Slice[Byte]
-  y_stride : Int
-  c_stride : Int
+  y_stride : Int32
+  c_stride : Int32
   subsampling : YCbCrSubsampling
   rect : Rectangle
 }
 pub fn YCbCr::as_ycbcr(Self) -> Self?
-pub fn YCbCr::at(Self, Int, Int) -> &@color.Color
+pub fn YCbCr::at(Self, Int32, Int32) -> &@color.Color
 pub fn YCbCr::bounds(Self) -> Rectangle
-pub fn YCbCr::color_index_at(Self, Int, Int) -> Byte
+pub fn YCbCr::color_index_at(Self, Int32, Int32) -> Byte
 pub fn YCbCr::color_model(Self) -> &@color.Model
-pub fn YCbCr::get_bytes_per_pixel(Self) -> Int
-pub fn YCbCr::get_stride(Self) -> Int
+pub fn YCbCr::get_bytes_per_pixel(Self) -> Int32
+pub fn YCbCr::get_stride(Self) -> Int32
 pub fn YCbCr::new(Rectangle, YCbCrSubsampling) -> Self raise SizeError
 pub fn YCbCr::opaque_(Self) -> Bool
-pub fn YCbCr::pix_offset(Self, Int, Int) -> Int
+pub fn YCbCr::pix_offset(Self, Int32, Int32) -> Int32
 pub fn YCbCr::raw_data(Self) -> @io.Slice[Byte]
-pub fn YCbCr::set(Self, Int, Int, &@color.Color) -> Unit
+pub fn YCbCr::set(Self, Int32, Int32, &@color.Color) -> Unit
 pub fn YCbCr::sub_image(Self, Rectangle) -> &Image
 pub impl Image for YCbCr
 
@@ -408,23 +408,23 @@ pub fn YCbCrSubsampling::equal(Self, Self) -> Bool
 pub(open) trait Image {
   fn color_model(Self) -> &@color.Model
   fn bounds(Self) -> Rectangle
-  fn at(Self, Int, Int) -> &@color.Color
+  fn at(Self, Int32, Int32) -> &@color.Color
   fn opaque_(Self) -> Bool
-  fn set(Self, Int, Int, &@color.Color) -> Unit
+  fn set(Self, Int32, Int32, &@color.Color) -> Unit
   fn sub_image(Self, Rectangle) -> &Image
   fn as_ycbcr(Self) -> YCbCr?
   fn raw_data(Self) -> @io.Slice[Byte]
-  fn get_bytes_per_pixel(Self) -> Int
-  fn get_stride(Self) -> Int
-  fn pix_offset(Self, Int, Int) -> Int
-  fn color_index_at(Self, Int, Int) -> Byte
+  fn get_bytes_per_pixel(Self) -> Int32
+  fn get_stride(Self) -> Int32
+  fn pix_offset(Self, Int32, Int32) -> Int32
+  fn color_index_at(Self, Int32, Int32) -> Byte
 }
 pub fn &Image::empty(Self) -> Bool
 pub fn &Image::new_empty() -> Self
 
 pub(open) trait RGBA64Image {
-  fn rgba64_at(Self, Int, Int) -> @color.RGBA64
+  fn rgba64_at(Self, Int32, Int32) -> @color.RGBA64
   fn color_model(Self) -> &@color.Model
   fn bounds(Self) -> Rectangle
-  fn at(Self, Int, Int) -> &@color.Color
+  fn at(Self, Int32, Int32) -> &@color.Color
 }

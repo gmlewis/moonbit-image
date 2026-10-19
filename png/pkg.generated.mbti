@@ -21,12 +21,12 @@ pub let err_negative_read : @io.IOError
 
 // Types and methods
 type Decoder
-pub fn Decoder::read(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
+pub fn Decoder::read(Self, @io.Slice[Byte]) -> (Int32, @io.IOError?)
 pub impl @io.Reader for Decoder
 
 type Encoder
 pub fn Encoder::enc(Self, &@io.Writer, &@image.Image) -> @io.IOError?
-pub fn Encoder::write(Self, @io.Slice[Byte]) -> (Int, @io.IOError?)
+pub fn Encoder::write(Self, @io.Slice[Byte]) -> (Int32, @io.IOError?)
 
 // Type aliases
 
