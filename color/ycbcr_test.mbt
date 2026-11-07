@@ -14,9 +14,10 @@ fn delta(x : Byte, y : Byte) -> Byte {
 }
 
 ///|
+#derive(Debug)
 suberror EqError {
   EqError(String)
-} derive(Debug)
+}
 
 ///|
 pub extend EqError with @moonbitlang/core/debug.Debug::{to_repr}

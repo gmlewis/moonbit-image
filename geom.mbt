@@ -7,10 +7,11 @@
 
 ///|
 /// A Point is an X, Y coordinate pair. The axes increase right and down.
+#derive(Eq)
 pub(all) struct Point {
   mut x : Int32
   mut y : Int32
-} derive(Eq)
+}
 
 ///|
 pub impl Show for Point with fn output(self, logger) {

@@ -16,7 +16,8 @@ pub fn pt(Int32, Int32) -> Point
 pub fn rect(Int32, Int32, Int32, Int32) -> Rectangle
 
 // Errors
-type SizeError derive(Eq)
+#derive(Eq)
+type SizeError
 pub fn SizeError::equal(Self, Self) -> Bool
 pub fn SizeError::to_string(Self) -> String
 pub impl Show for SizeError
@@ -259,10 +260,11 @@ pub fn Paletted::set_rgba64(Self, Int32, Int32, @color.RGBA64) -> Unit
 pub fn Paletted::sub_image(Self, Rectangle) -> &Image
 pub impl Image for Paletted
 
+#derive(Eq)
 pub(all) struct Point {
   mut x : Int32
   mut y : Int32
-} derive(Eq)
+}
 pub fn Point::add(Self, Self) -> Self
 pub fn Point::div(Self, Int32) -> Self
 pub fn Point::equal(Self, Self) -> Bool
@@ -392,6 +394,7 @@ pub fn YCbCr::set(Self, Int32, Int32, &@color.Color) -> Unit
 pub fn YCbCr::sub_image(Self, Rectangle) -> &Image
 pub impl Image for YCbCr
 
+#derive(Eq)
 pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling444
   YCbCrSubsampling422
@@ -399,7 +402,7 @@ pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling440
   YCbCrSubsampling411
   YCbCrSubsampling410
-} derive(Eq)
+}
 pub fn YCbCrSubsampling::equal(Self, Self) -> Bool
 
 // Type aliases

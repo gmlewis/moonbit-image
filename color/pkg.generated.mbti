@@ -49,9 +49,10 @@ pub fn y_cb_cr_to_rgb(Byte, Byte, Byte) -> (Byte, Byte, Byte)
 // Errors
 
 // Types and methods
+#derive(Eq)
 pub(all) struct Alpha {
   a : Byte
-} derive(Eq)
+}
 pub fn Alpha::equal(Self, Self) -> Bool
 pub fn Alpha::from(&Color) -> Self
 pub fn Alpha::model(Self) -> String
@@ -62,9 +63,10 @@ pub fn Alpha::to_string(Self) -> String
 pub impl Color for Alpha
 pub impl Show for Alpha
 
+#derive(Eq)
 pub(all) struct Alpha16 {
   a : UInt32
-} derive(Eq)
+}
 pub fn Alpha16::equal(Self, Self) -> Bool
 pub fn Alpha16::from(&Color) -> Self
 pub fn Alpha16::model(Self) -> String
@@ -75,12 +77,13 @@ pub fn Alpha16::to_string(Self) -> String
 pub impl Color for Alpha16
 pub impl Show for Alpha16
 
+#derive(Eq)
 pub(all) struct CMYK {
   c : Byte
   m : Byte
   y : Byte
   k : Byte
-} derive(Eq)
+}
 pub fn CMYK::equal(Self, Self) -> Bool
 pub fn CMYK::from(&Color) -> Self
 pub fn CMYK::model(Self) -> String
@@ -91,9 +94,10 @@ pub fn CMYK::to_string(Self) -> String
 pub impl Color for CMYK
 pub impl Show for CMYK
 
+#derive(Eq)
 pub(all) struct Gray {
   y : Byte
-} derive(Eq)
+}
 pub fn Gray::equal(Self, Self) -> Bool
 pub fn Gray::from(&Color) -> Self
 pub fn Gray::model(Self) -> String
@@ -104,9 +108,10 @@ pub fn Gray::to_string(Self) -> String
 pub impl Color for Gray
 pub impl Show for Gray
 
+#derive(Eq)
 pub(all) struct Gray16 {
   y : UInt32
-} derive(Eq)
+}
 pub fn Gray16::equal(Self, Self) -> Bool
 pub fn Gray16::from(&Color) -> Self
 pub fn Gray16::model(Self) -> String
@@ -123,12 +128,13 @@ pub fn ModelFunc::get_palette(Self) -> Palette?
 pub fn ModelFunc::name(Self) -> String
 pub impl Model for ModelFunc
 
+#derive(Eq)
 pub(all) struct NRGBA {
   r : Byte
   g : Byte
   b : Byte
   a : Byte
-} derive(Eq)
+}
 pub fn NRGBA::equal(Self, Self) -> Bool
 pub fn NRGBA::from(&Color) -> Self
 pub fn NRGBA::model(Self) -> String
@@ -139,12 +145,13 @@ pub fn NRGBA::to_string(Self) -> String
 pub impl Color for NRGBA
 pub impl Show for NRGBA
 
+#derive(Eq)
 pub(all) struct NRGBA64 {
   r : UInt32
   g : UInt32
   b : UInt32
   a : UInt32
-} derive(Eq)
+}
 pub fn NRGBA64::equal(Self, Self) -> Bool
 pub fn NRGBA64::from(&Color) -> Self
 pub fn NRGBA64::model(Self) -> String
@@ -155,12 +162,13 @@ pub fn NRGBA64::to_string(Self) -> String
 pub impl Color for NRGBA64
 pub impl Show for NRGBA64
 
+#derive(Eq)
 pub(all) struct NYCbCrA {
   y : Byte
   cb : Byte
   cr : Byte
   a : Byte
-} derive(Eq)
+}
 pub fn NYCbCrA::equal(Self, Self) -> Bool
 pub fn NYCbCrA::model(Self) -> String
 pub fn NYCbCrA::new(Byte, Byte, Byte, Byte) -> Self
@@ -187,12 +195,13 @@ pub fn Palette::set(Self, Int32, &Color) -> Unit
 pub fn Palette::sub(Self, start? : Int32, end~ : Int32) -> Self
 pub impl Model for Palette
 
+#derive(Eq)
 pub(all) struct RGBA {
   r : Byte
   g : Byte
   b : Byte
   a : Byte
-} derive(Eq)
+}
 pub fn RGBA::equal(Self, Self) -> Bool
 pub fn RGBA::from(&Color) -> Self
 pub fn RGBA::model(Self) -> String
@@ -203,12 +212,13 @@ pub fn RGBA::to_string(Self) -> String
 pub impl Color for RGBA
 pub impl Show for RGBA
 
+#derive(Eq)
 pub(all) struct RGBA64 {
   r : UInt32
   g : UInt32
   b : UInt32
   a : UInt32
-} derive(Eq)
+}
 pub fn RGBA64::equal(Self, Self) -> Bool
 pub fn RGBA64::from(&Color) -> Self
 pub fn RGBA64::model(Self) -> String
@@ -219,11 +229,12 @@ pub fn RGBA64::to_string(Self) -> String
 pub impl Color for RGBA64
 pub impl Show for RGBA64
 
+#derive(Eq)
 pub(all) struct YCbCr {
   y : Byte
   cb : Byte
   cr : Byte
-} derive(Eq)
+}
 pub fn YCbCr::equal(Self, Self) -> Bool
 pub fn YCbCr::from(&Color) -> Self
 pub fn YCbCr::model(Self) -> String

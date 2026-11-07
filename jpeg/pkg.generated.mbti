@@ -12,7 +12,8 @@ pub fn decode(&@io.Reader) -> (&@image.Image, @io.IOError?)
 // Errors
 
 // Types and methods
-type Component derive(Default)
+#derive(Default)
+type Component
 
 // Type aliases
 

@@ -96,9 +96,10 @@ pub(open) trait RGBA64Image {
 }
 
 ///|
+#derive(Eq)
 suberror SizeError {
   SizeError(String)
-} derive(Eq)
+}
 
 ///|
 pub impl Show for SizeError with fn output(self, logger) {
@@ -1812,6 +1813,7 @@ pub fn CMYK::new(r : Rectangle) -> CMYK raise SizeError {
 
 ///|
 /// YCbCrSubsampling represents the chroma subsampling ratio.
+#derive(Eq)
 pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling444
   YCbCrSubsampling422
@@ -1819,7 +1821,7 @@ pub(all) enum YCbCrSubsampling {
   YCbCrSubsampling440
   YCbCrSubsampling411
   YCbCrSubsampling410
-} derive(Eq)
+}
 
 ///|
 /// YCbCr is an in-memory image of Y'CbCr colors.

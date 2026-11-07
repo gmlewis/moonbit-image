@@ -79,6 +79,7 @@ priv struct Decoder {
 }
 
 ///|
+#derive(Default)
 struct Component {
   h : Int32 // horizontal sampling factor
   v : Int32 // vertical sampling factor
@@ -86,7 +87,7 @@ struct Component {
   tq : Int32 // quantization table destination selector
   mut dctbl : Int32
   mut actbl : Int32
-} derive(Default)
+}
 
 ///|
 priv struct HuffmanTable {

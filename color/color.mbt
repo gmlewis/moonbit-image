@@ -51,12 +51,13 @@ pub impl Eq for &Color with fn equal(self, o) {
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
 /// has valid values 0 <= C <= A.
+#derive(Eq)
 pub(all) struct RGBA {
   r : Byte
   g : Byte
   b : Byte
   a : Byte
-} derive(Eq)
+}
 
 ///|
 pub impl Show for RGBA with fn output(self, logger) {
@@ -112,12 +113,13 @@ pub impl Color for RGBA with fn rgba(self) {
 ///
 /// An alpha-premultiplied color component C has been scaled by alpha (A), so
 /// has valid values 0 <= C <= A.
+#derive(Eq)
 pub(all) struct RGBA64 {
   r : UInt32 // 16 bits
   g : UInt32 // 16 bits
   b : UInt32 // 16 bits
   a : UInt32 // 16 bits
-} derive(Eq)
+}
 
 ///|
 pub impl Show for RGBA64 with fn output(self, logger) {
@@ -165,12 +167,13 @@ pub impl Color for RGBA64 with fn rgba(self) {
 
 ///|
 /// NRGBA represents a non-alpha-premultiplied 32-bit color.
+#derive(Eq)
 pub(all) struct NRGBA {
   r : Byte
   g : Byte
   b : Byte
   a : Byte
-} derive(Eq)
+}
 
 ///|
 pub impl Show for NRGBA with fn output(self, logger) {
@@ -230,12 +233,13 @@ pub impl Color for NRGBA with fn rgba(self) {
 ///|
 /// NRGBA64 represents a non-alpha-premultiplied 64-bit color,
 /// having 16 bits for each of red, green, blue and alpha.
+#derive(Eq)
 pub(all) struct NRGBA64 {
   r : UInt32 // 16 bits
   g : UInt32 // 16 bits
   b : UInt32 // 16 bits
   a : UInt32 // 16 bits
-} derive(Eq)
+}
 
 ///|
 pub impl Show for NRGBA64 with fn output(self, logger) {
@@ -286,9 +290,10 @@ pub impl Color for NRGBA64 with fn rgba(self) {
 
 ///|
 /// Alpha represents an 8-bit alpha color.
+#derive(Eq)
 pub(all) struct Alpha {
   a : Byte
-} derive(Eq)
+}
 
 ///|
 pub impl Show for Alpha with fn output(self, logger) {
@@ -338,9 +343,10 @@ pub impl Color for Alpha with fn rgba(self) {
 
 ///|
 /// Alpha16 represents a 16-bit alpha color.
+#derive(Eq)
 pub(all) struct Alpha16 {
   a : UInt32 // 16 bits
-} derive(Eq)
+}
 
 ///|
 pub impl Show for Alpha16 with fn output(self, logger) {
@@ -388,9 +394,10 @@ pub impl Color for Alpha16 with fn rgba(self) {
 
 ///|
 /// Gray represents an 8-bit grayscale color.
+#derive(Eq)
 pub(all) struct Gray {
   y : Byte
-} derive(Eq)
+}
 
 ///|
 pub impl Show for Gray with fn output(self, logger) {
@@ -440,9 +447,10 @@ pub impl Color for Gray with fn rgba(self) {
 
 ///|
 /// Gray16 represents a 16-bit grayscale color.
+#derive(Eq)
 pub(all) struct Gray16 {
   y : UInt32 // 16 bits
-} derive(Eq)
+}
 
 ///|
 pub impl Show for Gray16 with fn output(self, logger) {
