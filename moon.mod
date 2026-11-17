@@ -1,12 +1,12 @@
 name = "gmlewis/image"
 
-version = "0.17.19"
+version = "0.17.20"
 
 import {
-  "gmlewis/flate@0.36.18",
-  "gmlewis/hash@0.21.3",
-  "gmlewis/io@0.23.21",
-  "gmlewis/zlib@0.21.18",
+  "gmlewis/flate@0.36.19",
+  "gmlewis/hash@0.21.4",
+  "gmlewis/io@0.23.22",
+  "gmlewis/zlib@0.21.19",
 }
 
 readme = "README.md"

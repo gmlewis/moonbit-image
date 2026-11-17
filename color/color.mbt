@@ -74,7 +74,7 @@ test "RGBA show usage" {
   inspect(
     c,
     content=(
-      #|{r: b'\x01', g: b'\x02', b: b'\x03', a: b'\xFF'}
+      #|{r: 1, g: 2, b: 3, a: 255}
     ),
   )
 }
@@ -190,7 +190,7 @@ test "NRGBA show usage" {
   inspect(
     c,
     content=(
-      #|{r: b'\x01', g: b'\x02', b: b'\x03', a: b'\xFF'}
+      #|{r: 1, g: 2, b: 3, a: 255}
     ),
   )
 }
@@ -310,7 +310,7 @@ test "Alpha show usage" {
   inspect(
     c,
     content=(
-      #|{a: b'\xFF'}
+      #|{a: 255}
     ),
   )
 }
@@ -414,7 +414,7 @@ test "Gray show usage" {
   inspect(
     c,
     content=(
-      #|{y: b'\xFF'}
+      #|{y: 255}
     ),
   )
 }

@@ -192,7 +192,7 @@ test "YCbCr show interface" {
   inspect(
     c,
     content=(
-      #|{y: b'\x01', cb: b'\x02', cr: b'\x03'}
+      #|{y: 1, cb: 2, cr: 3}
     ),
   )
 }
@@ -332,7 +332,7 @@ test "NYCbCrA show interface" {
   inspect(
     c,
     content=(
-      #|{y: b'\x01', cb: b'\x02', cr: b'\x03', a: b'\xFF'}
+      #|{y: 1, cb: 2, cr: 3, a: 255}
     ),
   )
 }
@@ -506,7 +506,7 @@ test "CMYK show interface" {
   inspect(
     c,
     content=(
-      #|{c: b'\x01', m: b'\x02', y: b'\x03', k: b'\xFF'}
+      #|{c: 1, m: 2, y: 3, k: 255}
     ),
   )
 }
