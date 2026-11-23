@@ -1,4 +1,4 @@
 #!/bin/bash -ex
 moon fmt && moon info
-moon test
+moon test --deny-warn
 # moon test --target all
